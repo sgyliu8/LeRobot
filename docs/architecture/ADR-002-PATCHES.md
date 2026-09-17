@@ -1,6 +1,6 @@
 # ADR-002 — 不造轮子不等于禁止修上游缺口
 
-**Status:** accepted planning baseline. **Scope:** minimum necessary LeLab integration fixes.
+**Status:** accepted and active. **Scope:** minimum necessary LeLab integration fixes.
 
 ## Decision hierarchy
 
@@ -25,6 +25,15 @@ tracked `patches/` 仅在第一份实际 patch 产生时创建；每 patch 配�
 安装入口与锁定必须明确指向 patched checkout，展示 import file path，避免“修了源码但运行旧包”。
 每个 patch 先 no-device regression，之后重跑受影响 GUI 和必要台架 gate。
 若 upstream 解决同一问题，做替换对照后移除 patch；不要无限维护叉版本。
+
+## 2026-09-17 implementation record
+
+- Upstream identity: LeLab `6091a45811ef926a06b9b3622a9ab69fefb8bb7b`.
+- Tracked artifact: `patches/lelab-6091a458-so101-lab.patch`; runtime checkout remains ignored at `_vendor/lelab` and `uv.lock` resolves the editable checkout.
+- Patched scope: one process-local atomic hardware-mode gate across calibration/teleoperation/recording/inference; positive `max_relative_target` propagation; explicit mixed telemetry units with missing/error state instead of zero fill; stale/partial UI presentation; exact loopback Host/Origin/WS boundary; read-only `/lab-runtime-status`.
+- The broad upstream `lelab --stop` path is not used. `scripts/lab.ps1` owns one recorded PID/start-time/executable/command line, refuses a foreign port, and refuses software termination while `hardware_mode` is non-null.
+- No-device regression is in `tests/test_runtime_contracts.py`. Patch application was checked both forward on a clean pinned checkout and reverse on the runtime checkout. Frontend unit/build and real loopback-browser smoke passed.
+- Rollback: stop the idle project service, restore the exact upstream checkout, remove the patch from `configs/upstream-pins.json`, relock/sync, and rerun the M1 gate. Do not reverse-apply against an unknown working tree.
 
 ## Non-goals
 

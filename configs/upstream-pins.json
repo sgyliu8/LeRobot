@@ -1,10 +1,10 @@
 {
   "schema_version": "1.0",
-  "status": "candidate_not_installed",
+  "status": "installed_with_tracked_patch",
   "verified_on": "2026-09-17",
   "python": {
     "minor": "3.12",
-    "exact_patch": null
+    "exact_patch": "3.12.13"
   },
   "lelab": {
     "repository": "https://github.com/huggingface/leLab.git",
@@ -23,6 +23,12 @@
       "S24"
     ]
   },
-  "runtime_lock": null,
-  "patch_set": []
+  "runtime_lock": {
+    "path": "uv.lock",
+    "uv_version": "0.12.4",
+    "resolved_on": "2026-09-17"
+  },
+  "patch_set": [
+    "patches/lelab-6091a458-so101-lab.patch"
+  ]
 }

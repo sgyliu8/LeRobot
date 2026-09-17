@@ -1,14 +1,14 @@
 # Roadmap — 每步都有真实交付与退出条件
 
-**Initial status:** M0 READY; M1–M8 NOT_STARTED. This is a work queue, not a record of completed hardware work.
+**Current status (2026-09-17):** M0/M1 COMPLETE; M2 PARTIAL/BLOCKED; M3 PARTIAL; M4–M8 NOT_STARTED.
 各阶段按依赖推进，不按日历作不可靠工期承诺。阻塞硬件时继续不依赖它的软件切片。
 
 | 阶段 | 产出 | 依赖 | 权限 | 当前状态 |
 |---|---|---|---|---|
-| M0 | 独立子仓库、父隔离、上下文与主机身份 | 已解压 pack | A | READY |
-| M1 | 固定依赖、官方 UI、无设备 smoke 与必要保护补丁 | M0 | A | NOT_STARTED |
-| M2 | 主机/USB/驱动事实与主从映射计划 | M0；可与 M1 并行 | A/B | NOT_STARTED |
-| M3 | wrist/front 身份与稳定双路相机预览 | M1、设备可见 | B | NOT_STARTED |
+| M0 | 独立子仓库、父隔离、上下文与主机身份 | 已解压 pack | A | COMPLETE |
+| M1 | 固定依赖、官方 UI、无设备 smoke 与必要保护补丁 | M0 | A | COMPLETE |
+| M2 | 主机/USB/驱动事实与主从映射计划 | M0；可与 M1 并行 | A/B | PARTIAL / BLOCKED（仅一个控制口候选） |
+| M3 | wrist/front 身份与稳定双路相机预览 | M1、设备可见 | B | PARTIAL（T-CAM-03 NOT_RUN） |
 | M4 | 现场准入、校准、首轮小幅遥操作 | M1/M2；机械事实已确认 | C/D | NOT_STARTED |
 | M5 | 三个真实双视角短回合与本地检查 | M3/M4 | D；浏览 A | NOT_STARTED |
 | M6 | 任务数据、ACT 离线训练基线 | M5 + 算力/存储确认 | A；采集 D；云 E | NOT_STARTED |
@@ -23,6 +23,8 @@
 学习目标：分清知识平台、实验工程、上游源码三个身份。
 退出：目录或远端存在冲突历史时暂停相关 Git 写入；不停止可继续的源码分析。
 
+**2026-09-17 evidence:** T-GIT-01/02/03 PASS。子仓库独立初始化，`main` baseline 为 `81b43520ea711a8af7e73577b6c4e174135d43b9` 并已推送；工作分支为 `codex/bootstrap-so101-lab`。父仓库未跟踪本目录，仅在父 `.git/info/exclude` 幂等加入 `/Lerobot/`；父 branch、HEAD、index 和受控 diff 未改变。
+
 ## M1 — 官方工作台真正能在本机启动
 
 实施：按候选 SHA 建独立 Python 3.12 环境；解析并保存真实 uv.lock；核对 LeRobot v0.6.0 commit；复用 shipped frontend；核查缓存路径和初次访问是否触发设备打开。
@@ -33,6 +35,8 @@
 学习目标：理解 LeLab/LeRobot/依赖锁/本地服务的层级。
 退出：软件错误通过固定版本源码和可复现日志定位；不自动装所有 policy extras 或重装系统。
 
+**2026-09-17 evidence:** T-ENV-01/02、T-UI-01、T-OWN-01/02 fixture、T-WEB-01、T-STOP-01 和 T-PATCH-01 PASS。Python 3.12.13 / uv 0.12.4 按 `uv.lock` 安装 114 包，LeLab/LeRobot 分别解析到固定 checkout 与 `30da8e…`；第二临时环境重建、依赖检查和当时 23 项测试通过，最终主环境候选为 24 项。真实浏览器加载官方 LeLab，start/status/logs/stop/restart、重复 start、foreign-port refusal 和 idle-only stop 通过。UI 存在不等于机械臂在线；没有调用 `Robot.connect()`。
+
 ## M2 — 主机与设备身份，而不是“看见 COM 就连接”
 
 实施：复查 Codex 执行主机与实物所在电脑；Windows PnP、设备管理器、数据线、端口/hub及驱动状态；必要时由用户一次只拔插一件设备完成差分映射。
@@ -40,6 +44,8 @@
 驱动安装只采用已核实控制板/芯片对应官方来源，系统级安装由用户批准。没有证据不猜 CH340/CP210x 型号。
 验收：两只独立控制板的 OS 身份、主从角色、重新插拔后的再识别策略；或具体可验证的阻塞原因。
 学习目标：USB 枚举、串口设备、舵机总线与 actuator power 的区别。
+
+**2026-09-17 evidence:** 执行主机确认是 `YANGHOME`。COM1 为 ACPI legacy port；COM6 是当前唯一独立 CH343 USB 串口候选但角色未分配；COM7 与 front camera 共用一个复合 USB container，未作为第二控制板。T-DEV-01 `BLOCKED`：OS 仍未提供两只独立控制板及 leader/follower 差分身份。未打开串口、未安装驱动、未发探测命令。
 
 ## M3 — 双视角相机先独立跑稳
 
@@ -50,6 +56,8 @@
 测试后释放句柄，再启动正式 recorder；不能让 Windows Camera、浏览器 getUserMedia 和 backend 各自占同一设备。
 验收：T-CAM-01..04；身份和显示角色吻合；缺一路时禁止启动“双视角合格”采集。
 学习目标：两相机视角、捕获后端、软时间关联与硬同步的区别。
+
+**2026-09-17 evidence:** T-CAM-01 PASS：`LRCP G720P` 视觉确认是 wrist，`1080P USB Camera` 是 front；既有 UGREEN 设备未打开。T-CAM-02 PASS：DSHOW 640×480/15 fps 双路 60 秒，wrist 15.012 fps / front 29.816 fps，均 0 read failure、0 invalid shape、时间戳递增。T-CAM-04 PASS（camera-only scope）：preview 退出后官方 LeRobot `OpenCVCamera` 可按同一 index/name/profile 逐路读取并断开。T-CAM-03 `NOT_RUN`：未进行物理重插/换序，因此 M3 保持 PARTIAL。统计和一帧证据仅在忽略的 `.local/evidence/`。
 
 ## M4 — 现场硬件确认与第一次有限运动
 

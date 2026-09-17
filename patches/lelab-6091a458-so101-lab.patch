@@ -1,0 +1,785 @@
+diff --git a/frontend/src/components/UrdfViewer.tsx b/frontend/src/components/UrdfViewer.tsx
+index 60e0b59..5b099be 100644
+--- a/frontend/src/components/UrdfViewer.tsx
++++ b/frontend/src/components/UrdfViewer.tsx
+@@ -42,11 +42,35 @@ const UrdfViewer: React.FC = () => {
+   const hasInitializedRef = useRef<boolean>(false);
+ 
+   // Real-time joint updates via WebSocket
+-  const { isConnected: isWebSocketConnected } = useRealTimeJoints({
++  const {
++    isConnected: isWebSocketConnected,
++    telemetryStatus,
++  } = useRealTimeJoints({
+     viewerRef,
+     enabled: isDefaultModel, // Only enable WebSocket for default model
+   });
+ 
++  const telemetryLabel = {
++    disconnected: "Disconnected",
++    waiting: "Waiting for telemetry",
++    fresh: "Live robot data",
++    partial: "Partial telemetry",
++    stale: "Telemetry stale",
++    error: "Telemetry unavailable",
++  }[telemetryStatus];
++  const telemetryTone =
++    telemetryStatus === "fresh"
++      ? "bg-green-900/70 text-green-300"
++      : telemetryStatus === "waiting" || telemetryStatus === "partial"
++        ? "bg-amber-900/70 text-amber-300"
++        : "bg-red-900/70 text-red-300";
++  const telemetryDot =
++    telemetryStatus === "fresh"
++      ? "bg-green-400"
++      : telemetryStatus === "waiting" || telemetryStatus === "partial"
++        ? "bg-amber-400"
++        : "bg-red-400";
++
+   // Add state for custom URDF path
+   const [customUrdfPath, setCustomUrdfPath] = useState<string | null>(null);
+   const [urlModifierFunc, setUrlModifierFunc] = useState<
+@@ -282,18 +306,11 @@ const UrdfViewer: React.FC = () => {
+       {isDefaultModel && (
+         <div className="absolute top-4 right-4 z-10">
+           <div
+-            className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-mono ${
+-              isWebSocketConnected
+-                ? "bg-green-900/70 text-green-300"
+-                : "bg-red-900/70 text-red-300"
+-            }`}
++            className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-mono ${telemetryTone}`}
++            aria-live="polite"
+           >
+-            <div
+-              className={`w-2 h-2 rounded-full ${
+-                isWebSocketConnected ? "bg-green-400" : "bg-red-400"
+-              }`}
+-            />
+-            {isWebSocketConnected ? "Live Robot Data" : "Disconnected"}
++            <div className={`w-2 h-2 rounded-full ${telemetryDot}`} />
++            {isWebSocketConnected ? telemetryLabel : "Disconnected"}
+           </div>
+         </div>
+       )}
+diff --git a/frontend/src/hooks/useRealTimeJoints.ts b/frontend/src/hooks/useRealTimeJoints.ts
+index 0e74a69..b701c29 100644
+--- a/frontend/src/hooks/useRealTimeJoints.ts
++++ b/frontend/src/hooks/useRealTimeJoints.ts
+@@ -6,8 +6,20 @@ interface JointData {
+   type: "joint_update";
+   joints: Record<string, number>;
+   timestamp: number;
++  status: "fresh" | "partial" | "error";
++  units: Record<string, string>;
++  missing: string[];
++  error: string | null;
+ }
+ 
++export type TelemetryStatus =
++  | "disconnected"
++  | "waiting"
++  | "fresh"
++  | "partial"
++  | "stale"
++  | "error";
++
+ interface UseRealTimeJointsProps {
+   viewerRef: React.RefObject<URDFViewerElement>;
+   enabled?: boolean;
+@@ -29,7 +41,10 @@ export const useRealTimeJoints = ({
+   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+   const reconnectDelayRef = useRef(INITIAL_RECONNECT_DELAY_MS);
+   const intentionallyClosedRef = useRef(false);
++  const lastTelemetryAtRef = useRef<number | null>(null);
+   const [isConnected, setIsConnected] = useState(false);
++  const [telemetryStatus, setTelemetryStatus] =
++    useState<TelemetryStatus>("disconnected");
+ 
+   const updateJointValues = useCallback(
+     (joints: Record<string, number>) => {
+@@ -66,6 +81,8 @@ export const useRealTimeJoints = ({
+ 
+       ws.onopen = () => {
+         setIsConnected(true);
++        setTelemetryStatus("waiting");
++        lastTelemetryAtRef.current = null;
+         reconnectDelayRef.current = INITIAL_RECONNECT_DELAY_MS;
+         if (reconnectTimeoutRef.current) {
+           clearTimeout(reconnectTimeoutRef.current);
+@@ -77,7 +94,14 @@ export const useRealTimeJoints = ({
+         try {
+           const data = JSON.parse(event.data) as JointData;
+           if (data.type === "joint_update" && data.joints) {
+-            updateJointValues(data.joints);
++            if (data.status === "fresh" || data.status === "partial") {
++              updateJointValues(data.joints);
++              lastTelemetryAtRef.current = Date.now();
++              setTelemetryStatus(data.status);
++            } else {
++              lastTelemetryAtRef.current = null;
++              setTelemetryStatus("error");
++            }
+           }
+         } catch (error) {
+           console.error("Error parsing WebSocket message:", error);
+@@ -86,6 +110,8 @@ export const useRealTimeJoints = ({
+ 
+       ws.onclose = (event) => {
+         setIsConnected(false);
++        setTelemetryStatus("disconnected");
++        lastTelemetryAtRef.current = null;
+         wsRef.current = null;
+         if (intentionallyClosedRef.current) return;
+         if (event.code === 1000) return; // clean close
+@@ -94,6 +120,7 @@ export const useRealTimeJoints = ({
+ 
+       ws.onerror = () => {
+         setIsConnected(false);
++        setTelemetryStatus("error");
+       };
+     };
+ 
+@@ -111,8 +138,19 @@ export const useRealTimeJoints = ({
+     };
+ 
+     connect();
++    const staleTimer = window.setInterval(() => {
++      const lastTelemetryAt = lastTelemetryAtRef.current;
++      if (
++        wsRef.current?.readyState === WebSocket.OPEN &&
++        lastTelemetryAt !== null &&
++        Date.now() - lastTelemetryAt > 2000
++      ) {
++        setTelemetryStatus("stale");
++      }
++    }, 500);
+ 
+     return () => {
++      window.clearInterval(staleTimer);
+       intentionallyClosedRef.current = true;
+       if (reconnectTimeoutRef.current) {
+         clearTimeout(reconnectTimeoutRef.current);
+@@ -123,8 +161,10 @@ export const useRealTimeJoints = ({
+         wsRef.current = null;
+       }
+       setIsConnected(false);
++      setTelemetryStatus("disconnected");
++      lastTelemetryAtRef.current = null;
+     };
+   }, [enabled, finalWebSocketUrl, updateJointValues]);
+ 
+-  return { isConnected };
++  return { isConnected, telemetryStatus };
+ };
+diff --git a/lelab/calibrate.py b/lelab/calibrate.py
+index 58a9bda..ba7376c 100644
+--- a/lelab/calibrate.py
++++ b/lelab/calibrate.py
+@@ -38,6 +38,7 @@ from lerobot.teleoperators import (
+ )
+ from lerobot.utils.utils import init_logging
+ 
++from .mode import hardware_mode_gate
+ from .utils.devices import safe_disconnect_device
+ 
+ logger = logging.getLogger(__name__)
+@@ -177,8 +178,13 @@ class CalibrationManager:
+ 
+     def start_calibration(self, request: CalibrationRequest) -> dict[str, Any]:
+         """Start calibration process"""
++        claimed, owner = hardware_mode_gate.claim("calibration")
++        if not claimed:
++            return {"success": False, "message": f"{owner.title()} is currently active. Stop it first."}
++
+         try:
+             if self.status.calibration_active:
++                hardware_mode_gate.release("calibration")
+                 return {"success": False, "message": "Calibration already active"}
+ 
+             # Reset status and clear any previous calibration data
+@@ -211,6 +217,7 @@ class CalibrationManager:
+ 
+         except Exception as e:
+             logger.error(f"Error starting calibration: {e}")
++            hardware_mode_gate.release("calibration")
+             self._update_status(
+                 calibration_active=False, status="error", error=str(e), message="Failed to start calibration"
+             )
+@@ -254,9 +261,13 @@ class CalibrationManager:
+ 
+             # Ensure cleanup is called if thread didn't finish properly
+             if self.calibration_thread and self.calibration_thread.is_alive():
+-                logger.warning("Calibration thread did not finish within timeout, forcing cleanup")
++                logger.warning("Calibration thread did not finish within timeout; ownership remains held")
++                return {
++                    "success": False,
++                    "message": "Calibration is still stopping; wait for the worker before starting another mode",
++                }
+ 
+-            # Force cleanup and finish
++            # The worker is no longer accessing the device, so final cleanup is safe.
+             self._cleanup_and_finish("Calibration stopped", status="idle")
+ 
+             logger.info("Calibration stop completed")
+@@ -548,6 +559,7 @@ class CalibrationManager:
+         self._cleanup_device()
+         self._recording_active = False
+         self._update_status(calibration_active=False, status=status, message=message)
++        hardware_mode_gate.release("calibration")
+ 
+     def _cleanup_device(self):
+         """Clean up device connection.
+diff --git a/lelab/mode.py b/lelab/mode.py
+new file mode 100644
+index 0000000..8589503
+--- /dev/null
++++ b/lelab/mode.py
+@@ -0,0 +1,42 @@
++"""Process-local ownership gate for hardware-affecting LeLab modes."""
++
++from __future__ import annotations
++
++import threading
++from typing import Literal
++
++HardwareMode = Literal["calibration", "teleoperation", "recording", "inference"]
++
++
++class HardwareModeGate:
++    """Atomically reserve the single local hardware owner slot."""
++
++    def __init__(self) -> None:
++        self._lock = threading.Lock()
++        self._owner: HardwareMode | None = None
++
++    def claim(self, mode: HardwareMode) -> tuple[bool, HardwareMode | None]:
++        with self._lock:
++            if self._owner is not None:
++                return False, self._owner
++            self._owner = mode
++            return True, None
++
++    def release(self, mode: HardwareMode) -> bool:
++        with self._lock:
++            if self._owner != mode:
++                return False
++            self._owner = None
++            return True
++
++    def current(self) -> HardwareMode | None:
++        with self._lock:
++            return self._owner
++
++    def reset_for_test(self) -> None:
++        """Reset only for a no-device test fixture."""
++        with self._lock:
++            self._owner = None
++
++
++hardware_mode_gate = HardwareModeGate()
+diff --git a/lelab/record.py b/lelab/record.py
+index 07e13f2..b3623c5 100644
+--- a/lelab/record.py
++++ b/lelab/record.py
+@@ -21,7 +21,7 @@ import traceback
+ from datetime import datetime
+ from typing import Any
+ 
+-from pydantic import BaseModel
++from pydantic import BaseModel, PositiveFloat
+ 
+ from lerobot.configs.dataset import DatasetRecordConfig
+ from lerobot.datasets import LeRobotDataset
+@@ -32,6 +32,7 @@ from lerobot.scripts.lerobot_record import RecordConfig
+ from lerobot.teleoperators.so_leader import SO101LeaderConfig
+ 
+ from .dataset_repair import DatasetRepairError, repair_local_dataset
++from .mode import hardware_mode_gate
+ from .utils.config import setup_calibration_files, with_lelab_tag
+ from .utils.devices import safe_disconnect_device
+ 
+@@ -78,6 +79,7 @@ class RecordingRequest(BaseModel):
+     resume: bool = False
+     streaming_encoding: bool = True
+     cameras: dict = {}
++    max_relative_target: PositiveFloat | dict[str, PositiveFloat] | None = None
+     test_mode: bool = False  # Skip robot connection for testing
+ 
+ 
+@@ -166,6 +168,7 @@ def create_record_config(request: RecordingRequest) -> RecordConfig:
+         port=request.follower_port,
+         id=follower_config_name,
+         cameras=camera_configs,
++        max_relative_target=request.max_relative_target,
+     )
+ 
+     # Create teleop config
+@@ -219,17 +222,16 @@ def handle_start_recording(request: RecordingRequest) -> dict[str, Any]:
+         phase_start_time, \
+         last_recording_info
+ 
+-    from . import rollout as _rollout, teleoperate as _teleoperate
+-
+     # Claim the active flag under the lock so two concurrent starts can't both
+     # pass the precondition check.
++    claimed, owner = hardware_mode_gate.claim("recording")
++    if not claimed:
++        return {"success": False, "message": f"{owner.title()} is currently active. Stop it first."}
++
+     with _state_lock:
+         if recording_active:
++            hardware_mode_gate.release("recording")
+             return {"success": False, "message": "Recording is already active"}
+-        if _teleoperate.teleoperation_active:
+-            return {"success": False, "message": "Teleoperation is currently active. Stop it first."}
+-        if _rollout.inference_active:
+-            return {"success": False, "message": "Inference is currently active. Stop it first."}
+         recording_active = True
+         recording_thread = None
+         recording_events = None
+@@ -341,6 +343,7 @@ def handle_start_recording(request: RecordingRequest) -> dict[str, Any]:
+                 phase_start_time = None
+                 current_episode = 1
+                 saved_episodes = 0
++                hardware_mode_gate.release("recording")
+                 logger.info("Recording session ended")
+ 
+         recording_thread = threading.Thread(target=recording_worker, name="recording-worker", daemon=True)
+@@ -355,6 +358,7 @@ def handle_start_recording(request: RecordingRequest) -> dict[str, Any]:
+ 
+     except Exception as e:
+         recording_active = False
++        hardware_mode_gate.release("recording")
+         logger.error(f"Failed to start recording: {e}")
+         return {"success": False, "message": f"Failed to start recording: {str(e)}"}
+ 
+diff --git a/lelab/rollout.py b/lelab/rollout.py
+index 9e0243c..bd4b5a4 100644
+--- a/lelab/rollout.py
++++ b/lelab/rollout.py
+@@ -35,8 +35,9 @@ import time
+ from pathlib import Path
+ from typing import Any
+ 
+-from pydantic import BaseModel
++from pydantic import BaseModel, PositiveFloat
+ 
++from .mode import hardware_mode_gate
+ from .utils.config import setup_follower_calibration_file
+ 
+ logger = logging.getLogger(__name__)
+@@ -49,6 +50,7 @@ class InferenceRequest(BaseModel):
+     task: str = ""
+     cameras: dict[str, dict[str, Any]] = {}
+     duration_s: int = 60
++    max_relative_target: PositiveFloat | dict[str, PositiveFloat] | None = None
+ 
+ 
+ inference_active: bool = False
+@@ -96,6 +98,13 @@ def _pump_stdout(proc: subprocess.Popen, log_handle) -> None:
+             log_handle.close()
+ 
+ 
++def _release_mode_when_process_exits(proc: subprocess.Popen) -> None:
++    """Release inference ownership even when the UI never polls status."""
++    with contextlib.suppress(Exception):
++        proc.wait()
++    hardware_mode_gate.release("inference")
++
++
+ def _detect_device() -> str:
+     """cuda → mps → cpu, picked once at start time."""
+     try:
+@@ -201,6 +210,12 @@ def _format_cameras_arg(cameras: dict[str, dict[str, Any]]) -> str:
+     return "{" + ", ".join(parts) + "}"
+ 
+ 
++def _format_max_relative_target(value: float | dict[str, float]) -> str:
++    if isinstance(value, dict):
++        return "{" + ", ".join(f"{key}: {limit}" for key, limit in value.items()) + "}"
++    return str(value)
++
++
+ # Exception lines at the tail of a Python traceback look like
+ # "RuntimeError: ..." or "lerobot.errors.DeviceNotConnectedError: ...".
+ _EXC_LINE_RE = re.compile(r"^[A-Za-z_][\w.]*(?:Error|Exception|Interrupt|Timeout|Failure)\b")
+@@ -294,23 +309,17 @@ def handle_start_inference(request: InferenceRequest) -> dict[str, Any]:
+     global inference_active, _inference_proc, _inference_started_at
+     global _inference_rollout_started_at, _inference_meta
+ 
+-    # Mutex with teleop and recording: all three drive the same serial bus.
+-    from . import record as _record, teleoperate as _teleoperate
++    claimed, owner = hardware_mode_gate.claim("inference")
++    if not claimed:
++        return {
++            "success": False,
++            "status_code": 409,
++            "message": f"{owner.title()} is currently active. Stop it first.",
++        }
+ 
+     with _state_lock:
+-        if _teleoperate.teleoperation_active:
+-            return {
+-                "success": False,
+-                "status_code": 409,
+-                "message": "Teleoperation is currently active. Stop it first.",
+-            }
+-        if _record.recording_active:
+-            return {
+-                "success": False,
+-                "status_code": 409,
+-                "message": "Recording is currently active. Stop it first.",
+-            }
+         if inference_active:
++            hardware_mode_gate.release("inference")
+             return {
+                 "success": False,
+                 "status_code": 409,
+@@ -346,6 +355,8 @@ def handle_start_inference(request: InferenceRequest) -> dict[str, Any]:
+             f"--duration={request.duration_s}",
+             *_rollout_inference_args(policy_path),
+         ]
++        if request.max_relative_target is not None:
++            cmd.append(f"--robot.max_relative_target={_format_max_relative_target(request.max_relative_target)}")
+         if request.cameras:
+             cmd.append(f"--robot.cameras={_format_cameras_arg(request.cameras)}")
+ 
+@@ -392,6 +403,7 @@ def handle_start_inference(request: InferenceRequest) -> dict[str, Any]:
+             log_handle.close()
+         with _state_lock:
+             inference_active = False
++        hardware_mode_gate.release("inference")
+         return {"success": False, "status_code": 500, "message": f"Failed to start inference: {exc}"}
+ 
+     with _state_lock:
+@@ -403,6 +415,12 @@ def handle_start_inference(request: InferenceRequest) -> dict[str, Any]:
+             "duration_s": request.duration_s,
+             "log_path": str(log_path),
+         }
++    threading.Thread(
++        target=_release_mode_when_process_exits,
++        args=(proc,),
++        name="inference-mode-release",
++        daemon=True,
++    ).start()
+     logger.info("Inference started: pid=%s policy=%s", proc.pid, policy_path)
+     return {"success": True, "message": "Inference started", "log_path": str(log_path)}
+ 
+@@ -433,6 +451,7 @@ def handle_stop_inference() -> dict[str, Any]:
+         _inference_started_at = None
+         _inference_rollout_started_at = None
+         _inference_meta = {}
++    hardware_mode_gate.release("inference")
+     return {"success": True, "message": "Inference stopped"}
+ 
+ 
+@@ -454,6 +473,7 @@ def handle_inference_status() -> dict[str, Any]:
+             _inference_started_at = None
+             _inference_rollout_started_at = None
+             _inference_meta = {}
++            hardware_mode_gate.release("inference")
+             # On failure, surface the real error from the log so the UI doesn't
+             # have to send the user digging through the cache.
+             error = _extract_error_from_log(finished_meta.get("log_path")) if rc else None
+diff --git a/lelab/server.py b/lelab/server.py
+index 08d5d53..1a5b04f 100644
+--- a/lelab/server.py
++++ b/lelab/server.py
+@@ -25,6 +25,7 @@ import threading
+ import time
+ from pathlib import Path
+ from typing import Any, Literal
++from urllib.parse import urlsplit
+ 
+ from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
+ from fastapi.middleware.cors import CORSMiddleware
+@@ -49,6 +50,7 @@ from .jobs import (
+     JobTarget,
+     job_registry,
+ )
++from .mode import hardware_mode_gate
+ from .record import (
+     DatasetInfoRequest,
+     RecordingRequest,
+@@ -142,16 +144,67 @@ _FLAVOR_CACHE_TTL_SECONDS = 300.0
+ 
+ app = FastAPI()
+ 
++_TRUSTED_HOSTNAMES = {"127.0.0.1", "localhost", "::1"}
++_TRUSTED_ORIGINS = {
++    "http://127.0.0.1:8000",
++    "http://localhost:8000",
++    "http://127.0.0.1:8080",
++    "http://localhost:8080",
++}
++
++
++def _scope_header(scope: Scope, name: bytes) -> str | None:
++    for key, value in scope.get("headers", []):
++        if key.lower() == name:
++            return value.decode("latin-1")
++    return None
++
++
++def _trusted_host(raw_host: str | None) -> bool:
++    if not raw_host:
++        return False
++    try:
++        parsed = urlsplit(f"//{raw_host}")
++        return parsed.hostname in _TRUSTED_HOSTNAMES and parsed.port in (None, 8000)
++    except ValueError:
++        return False
++
++
++class LocalRequestBoundaryMiddleware:
++    """Reject DNS-rebinding hosts and cross-site browser requests before routing."""
++
++    def __init__(self, app):
++        self.app = app
++
++    async def __call__(self, scope: Scope, receive, send):
++        if scope["type"] not in {"http", "websocket"}:
++            await self.app(scope, receive, send)
++            return
++
++        host = _scope_header(scope, b"host")
++        origin = _scope_header(scope, b"origin")
++        status_code = 400 if not _trusted_host(host) else 403 if origin not in (None, *_TRUSTED_ORIGINS) else None
++        if status_code is None:
++            await self.app(scope, receive, send)
++            return
++
++        if scope["type"] == "websocket":
++            await send({"type": "websocket.close", "code": 1008})
++            return
++        response = JSONResponse({"detail": "Untrusted local request boundary"}, status_code=status_code)
++        await response(scope, receive, send)
++
+ # In dev mode the React app runs on :8080 while the API runs on :8000; in
+-# prod they share an origin and CORS is unnecessary. allow_credentials with
+-# a wildcard origin is rejected by browsers, so we drop it.
++# prod they share an origin and CORS is unnecessary. Keep the explicit local
++# origins for dev mode, while the boundary middleware enforces Host/Origin.
+ app.add_middleware(
+     CORSMiddleware,
+-    allow_origins=["*"],
++    allow_origins=sorted(_TRUSTED_ORIGINS),
+     allow_credentials=False,
+     allow_methods=["*"],
+     allow_headers=["*"],
+ )
++app.add_middleware(LocalRequestBoundaryMiddleware)
+ 
+ FRONTEND_DIST = Path(__file__).parent.parent / "frontend" / "dist"
+ 
+@@ -359,6 +412,12 @@ def health_check():
+     return {"status": "ok", "message": "FastAPI server is running"}
+ 
+ 
++@app.get("/lab-runtime-status")
++def lab_runtime_status():
++    """Ownership-only status; it never opens or polls a hardware device."""
++    return {"hardware_mode": hardware_mode_gate.current()}
++
++
+ @app.get("/hf-auth-status")
+ def hf_auth_status():
+     """Check whether the local HF CLI is authenticated and return user info."""
+diff --git a/lelab/teleoperate.py b/lelab/teleoperate.py
+index a7b9bc5..5738444 100644
+--- a/lelab/teleoperate.py
++++ b/lelab/teleoperate.py
+@@ -18,11 +18,12 @@ import threading
+ import time
+ from typing import Any
+ 
+-from pydantic import BaseModel
++from pydantic import BaseModel, PositiveFloat
+ 
+ from lerobot.robots.so_follower import SO101Follower, SO101FollowerConfig
+ from lerobot.teleoperators.so_leader import SO101Leader, SO101LeaderConfig
+ 
++from .mode import hardware_mode_gate
+ from .utils.config import setup_calibration_files
+ from .utils.devices import safe_disconnect_device
+ 
+@@ -42,24 +43,17 @@ class TeleoperateRequest(BaseModel):
+     follower_port: str
+     leader_config: str
+     follower_config: str
++    max_relative_target: PositiveFloat | dict[str, PositiveFloat] | None = None
+ 
+ 
+-def get_joint_positions_from_robot(robot) -> dict[str, float]:
+-    """
+-    Extract current joint positions from the robot and convert to URDF joint format.
+-
+-    lerobot drives the SO-101 with ``use_degrees=True`` by default, so each
+-    ``observation["<motor>.pos"]`` is already the joint angle in degrees relative
+-    to the calibration center — which is also the URDF's zero pose. The URDF
+-    joint value is therefore just that angle converted to radians, for every
+-    joint. (The gripper reports 0–100 rather than degrees, but that range lands
+-    inside the Jaw limit, matching the open/closed sweep.)
++def get_joint_telemetry_from_robot(robot) -> dict[str, Any]:
++    """Read fresh telemetry without turning missing/error values into zero.
+ 
+-    Args:
+-        robot: The robot instance (SO101Follower)
+-
+-    Returns:
+-        Dictionary mapping URDF joint names to radian values
++    The first five SO-101 positions are degrees when ``use_degrees=True`` and
++    are converted to radians for the URDF. The gripper remains a normalized
++    0–100 measurement; only its *visual* Jaw value is mapped onto the URDF's
++    0–100 degree sweep. Units are carried separately so the normalized value is
++    never reported as a physical angle or distance.
+     """
+     motor_to_urdf_mapping = {
+         "shoulder_pan": "Rotation",
+@@ -70,33 +64,55 @@ def get_joint_positions_from_robot(robot) -> dict[str, float]:
+         "gripper": "Jaw",
+     }
+ 
++    units = {
++        "shoulder_pan.pos": "degree",
++        "shoulder_lift.pos": "degree",
++        "elbow_flex.pos": "degree",
++        "wrist_flex.pos": "degree",
++        "wrist_roll.pos": "degree",
++        "gripper.pos": "normalized_0_100",
++    }
+     try:
+         observation = robot.get_observation()
++    except Exception as exc:
++        logger.error("Error getting joint positions: %s", exc)
++        return {"status": "error", "joints": {}, "units": units, "missing": [], "error": str(exc)}
++
++    joint_positions: dict[str, float] = {}
++    missing: list[str] = []
++    debug_rows = []
++    for motor_name, urdf_joint_name in motor_to_urdf_mapping.items():
++        motor_key = f"{motor_name}.pos"
++        value = observation.get(motor_key)
++        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
++            logger.warning("Motor %s is missing or non-finite", motor_key)
++            missing.append(motor_key)
++            continue
++
++        # The Jaw conversion is an animation mapping only. Its source unit
++        # remains normalized_0_100 in the telemetry metadata above.
++        joint_positions[urdf_joint_name] = float(value) * math.pi / 180.0
++        source_unit = units[motor_key]
++        debug_rows.append(f"{motor_name:14s} {value:+8.2f} {source_unit} → {urdf_joint_name:11s}")
++
++    # Throttled debug print (~once per second at 20 Hz broadcast).
++    now = time.time()
++    if debug_rows and now - getattr(get_joint_telemetry_from_robot, "_last_log", 0) > 1.0:
++        get_joint_telemetry_from_robot._last_log = now
++        logger.info("[joint-debug]\n  " + "\n  ".join(debug_rows))
+ 
+-        joint_positions: dict[str, float] = {}
+-        debug_rows = []
+-        for motor_name, urdf_joint_name in motor_to_urdf_mapping.items():
+-            motor_key = f"{motor_name}.pos"
+-            if motor_key not in observation:
+-                logger.warning(f"Motor {motor_key} not found in observation")
+-                joint_positions[urdf_joint_name] = 0.0
+-                continue
+-
+-            angle_degrees = observation[motor_key]
+-            joint_positions[urdf_joint_name] = angle_degrees * math.pi / 180.0
+-            debug_rows.append(f"{motor_name:14s} {angle_degrees:+8.2f}° → {urdf_joint_name:11s}")
+-
+-        # Throttled debug print (~once per second at 20 Hz broadcast).
+-        now = time.time()
+-        if now - getattr(get_joint_positions_from_robot, "_last_log", 0) > 1.0:
+-            get_joint_positions_from_robot._last_log = now
+-            logger.info("[joint-debug]\n  " + "\n  ".join(debug_rows))
++    return {
++        "status": "fresh" if not missing else "partial",
++        "joints": joint_positions,
++        "units": units,
++        "missing": missing,
++        "error": None,
++    }
+ 
+-        return joint_positions
+ 
+-    except Exception as e:
+-        logger.error(f"Error getting joint positions: {e}")
+-        return dict.fromkeys(motor_to_urdf_mapping.values(), 0.0)
++def get_joint_positions_from_robot(robot) -> dict[str, float]:
++    """Backward-compatible URDF positions, omitting unavailable joints."""
++    return get_joint_telemetry_from_robot(robot)["joints"]
+ 
+ 
+ def _safe_disconnect(device) -> None:
+@@ -118,15 +134,14 @@ def handle_start_teleoperation(request: TeleoperateRequest, websocket_manager=No
+     """
+     global teleoperation_active, teleoperation_thread, current_robot, current_teleop
+ 
+-    from . import record as _record, rollout as _rollout
++    claimed, owner = hardware_mode_gate.claim("teleoperation")
++    if not claimed:
++        return {"success": False, "message": f"{owner.title()} is currently active. Stop it first."}
+ 
+     with _state_lock:
+         if teleoperation_active:
++            hardware_mode_gate.release("teleoperation")
+             return {"success": False, "message": "Teleoperation is already active"}
+-        if _record.recording_active:
+-            return {"success": False, "message": "Recording is currently active. Stop it first."}
+-        if _rollout.inference_active:
+-            return {"success": False, "message": "Inference is currently active. Stop it first."}
+         teleoperation_active = True
+ 
+     robot = None
+@@ -145,6 +160,7 @@ def handle_start_teleoperation(request: TeleoperateRequest, websocket_manager=No
+         robot_config = SO101FollowerConfig(
+             port=request.follower_port,
+             id=follower_config_name,
++            max_relative_target=request.max_relative_target,
+         )
+ 
+         teleop_config = SO101LeaderConfig(
+@@ -212,10 +228,10 @@ def handle_start_teleoperation(request: TeleoperateRequest, websocket_manager=No
+                     current_time = time.time()
+                     if current_time - last_broadcast_time >= broadcast_interval:
+                         try:
+-                            joint_positions = get_joint_positions_from_robot(robot)
++                            telemetry = get_joint_telemetry_from_robot(robot)
+                             joint_data = {
+                                 "type": "joint_update",
+-                                "joints": joint_positions,
++                                **telemetry,
+                                 "timestamp": current_time,
+                             }
+                             if websocket_manager and websocket_manager.active_connections:
+@@ -234,6 +250,7 @@ def handle_start_teleoperation(request: TeleoperateRequest, websocket_manager=No
+                 teleoperation_active = False
+                 current_robot = None
+                 current_teleop = None
++                hardware_mode_gate.release("teleoperation")
+ 
+         teleoperation_thread = threading.Thread(
+             target=teleoperation_worker, name="teleoperation-worker", daemon=True
+@@ -255,6 +272,7 @@ def handle_start_teleoperation(request: TeleoperateRequest, websocket_manager=No
+         teleoperation_active = False
+         current_robot = None
+         current_teleop = None
++        hardware_mode_gate.release("teleoperation")
+         logger.error(f"Failed to start teleoperation: {e}")
+         # str(e) is already a user-facing message for the connection failures
+         # raised above; the toast title supplies the "error starting" context.
+@@ -305,8 +323,8 @@ def handle_get_joint_positions() -> dict[str, Any]:
+         return {"success": False, "message": "No active teleoperation session"}
+ 
+     try:
+-        joint_positions = get_joint_positions_from_robot(current_robot)
+-        return {"success": True, "joint_positions": joint_positions, "timestamp": time.time()}
++        telemetry = get_joint_telemetry_from_robot(current_robot)
++        return {"success": telemetry["status"] != "error", **telemetry, "timestamp": time.time()}
+     except Exception as e:
+         logger.error(f"Error getting joint positions: {e}")
+         return {"success": False, "message": f"Failed to get joint positions: {str(e)}"}
