@@ -1,0 +1,52 @@
+# Local environments and fetched upstream checkouts
+.venv/
+.venv-*/
+_vendor/
+node_modules/
+# Local device state, runtime, evidence and private inputs
+.local/
+.cache/
+runtime/
+private/
+calibration/
+data/
+datasets/
+models/
+outputs/
+logs/
+.env
+.env.*
+!.env.example
+*.local.json
+*.local.yaml
+# Common raw recordings/model artifacts (never source control by default)
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.parquet
+*.safetensors
+*.pt
+*.pth
+*.onnx
+*.bag
+*.mcap
+*.log
+*.sqlite
+*.sqlite3
+# Python/build outputs
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+# Editor/OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

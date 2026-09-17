@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SO101 minimal experiment sidecar; no replacement for LeRobotDataset",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "status",
+    "task",
+    "observed_at",
+    "project_commit",
+    "runtime_versions",
+    "device_mapping_verified",
+    "calibration_identity",
+    "camera_roles",
+    "action_semantics",
+    "dataset",
+    "timing",
+    "metrics",
+    "evidence",
+    "limitations"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "NOT_RUN",
+        "PASS",
+        "FAIL",
+        "BLOCKED",
+        "PARTIAL"
+      ]
+    },
+    "task": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "observed_at": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "project_commit": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "runtime_versions": {
+      "type": "object"
+    },
+    "device_mapping_verified": {
+      "type": "boolean"
+    },
+    "calibration_identity": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "camera_roles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "action_semantics": {
+      "type": "object"
+    },
+    "dataset": {
+      "type": "object"
+    },
+    "timing": {
+      "type": "object"
+    },
+    "metrics": {
+      "type": "object"
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

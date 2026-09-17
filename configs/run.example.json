@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0",
+  "run_id": "example-not-a-real-run",
+  "status": "NOT_RUN",
+  "task": null,
+  "observed_at": null,
+  "project_commit": null,
+  "runtime_versions": {},
+  "device_mapping_verified": false,
+  "calibration_identity": null,
+  "camera_roles": [
+    "wrist",
+    "front"
+  ],
+  "action_semantics": {
+    "verified": false,
+    "representation": null,
+    "units": null,
+    "requested_source": null,
+    "sent_target_recorded": null,
+    "measured_state_recorded": null
+  },
+  "dataset": {
+    "repo_id": null,
+    "revision": null,
+    "episodes": null,
+    "split": null
+  },
+  "timing": {
+    "camera_exposure_clock": null,
+    "arrival_clock": null,
+    "control_loop_fps_measured": null
+  },
+  "metrics": {},
+  "evidence": [],
+  "limitations": [
+    "Template only; no hardware or data capture has run."
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0",
+  "status": "candidate_not_installed",
+  "verified_on": "2026-09-17",
+  "python": {
+    "minor": "3.12",
+    "exact_patch": null
+  },
+  "lelab": {
+    "repository": "https://github.com/huggingface/leLab.git",
+    "commit": "6091a45811ef926a06b9b3622a9ab69fefb8bb7b",
+    "source_ids": [
+      "S02",
+      "S23"
+    ]
+  },
+  "lerobot": {
+    "repository": "https://github.com/huggingface/lerobot.git",
+    "declared_ref": "v0.6.0",
+    "commit": "30da8e687a6dfc617fcd94afc367ac7071c376ce",
+    "source_ids": [
+      "S02",
+      "S24"
+    ]
+  },
+  "runtime_lock": null,
+  "patch_set": []
+}

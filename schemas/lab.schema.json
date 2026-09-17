@@ -1,0 +1,412 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SO101 Lab project configuration (not LeLab request schema)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "config_kind",
+    "project",
+    "server",
+    "devices",
+    "cameras",
+    "motion",
+    "data",
+    "calibration"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "config_kind": {
+      "const": "project_example_not_lelab_api"
+    },
+    "project": {
+      "type": "object",
+      "required": [
+        "name",
+        "repository"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "repository": {
+          "const": "https://github.com/sgyliu8/LeRobot.git"
+        }
+      }
+    },
+    "server": {
+      "type": "object",
+      "required": [
+        "host",
+        "preferred_port"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "host": {
+          "enum": [
+            "127.0.0.1",
+            "localhost"
+          ]
+        },
+        "preferred_port": {
+          "type": "integer",
+          "minimum": 1024,
+          "maximum": 65535
+        }
+      }
+    },
+    "devices": {
+      "type": "object",
+      "required": [
+        "leader",
+        "follower"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "leader": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "id",
+            "port",
+            "identity_verified"
+          ],
+          "properties": {
+            "type": {
+              "enum": [
+                "so101_leader",
+                "so101_follower"
+              ]
+            },
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "port": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "identity_verified": {
+              "type": "boolean"
+            }
+          }
+        },
+        "follower": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "id",
+            "port",
+            "identity_verified"
+          ],
+          "properties": {
+            "type": {
+              "enum": [
+                "so101_leader",
+                "so101_follower"
+              ]
+            },
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "port": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "identity_verified": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "cameras": {
+      "type": "object",
+      "required": [
+        "wrist",
+        "front"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "wrist": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "device_identifier",
+            "opencv_index",
+            "backend_candidate",
+            "role_verified",
+            "width_requested",
+            "height_requested",
+            "fps_requested"
+          ],
+          "properties": {
+            "device_identifier": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "opencv_index": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "backend_candidate": {
+              "enum": [
+                "DSHOW",
+                "MSMF",
+                "ANY"
+              ]
+            },
+            "role_verified": {
+              "type": "boolean"
+            },
+            "width_requested": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "height_requested": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "fps_requested": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        "front": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "device_identifier",
+            "opencv_index",
+            "backend_candidate",
+            "role_verified",
+            "width_requested",
+            "height_requested",
+            "fps_requested"
+          ],
+          "properties": {
+            "device_identifier": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "opencv_index": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "backend_candidate": {
+              "enum": [
+                "DSHOW",
+                "MSMF",
+                "ANY"
+              ]
+            },
+            "role_verified": {
+              "type": "boolean"
+            },
+            "width_requested": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "height_requested": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "fps_requested": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        }
+      }
+    },
+    "motion": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "bench_session",
+        "max_relative_target",
+        "limits_verified_in_runtime"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "bench_session": {
+          "enum": [
+            "not_confirmed",
+            "confirmed",
+            "expired"
+          ]
+        },
+        "max_relative_target": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "object",
+              "additionalProperties": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            }
+          ]
+        },
+        "limits_verified_in_runtime": {
+          "type": "boolean"
+        }
+      }
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "push_to_hub",
+        "wandb_enabled",
+        "cloud_training_enabled",
+        "record_fps_candidate",
+        "runtime_dataset_root"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "push_to_hub": {
+          "type": "boolean"
+        },
+        "wandb_enabled": {
+          "type": "boolean"
+        },
+        "cloud_training_enabled": {
+          "type": "boolean"
+        },
+        "record_fps_candidate": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "runtime_dataset_root": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "calibration": {
+      "type": "object",
+      "required": [
+        "leader_actual_path",
+        "follower_actual_path",
+        "physical_validity_verified"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "leader_actual_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "follower_actual_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "physical_validity_verified": {
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "motion": {
+            "properties": {
+              "enabled": {
+                "const": true
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "motion": {
+            "properties": {
+              "bench_session": {
+                "const": "confirmed"
+              },
+              "limits_verified_in_runtime": {
+                "const": true
+              },
+              "max_relative_target": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            }
+          },
+          "devices": {
+            "properties": {
+              "leader": {
+                "properties": {
+                  "identity_verified": {
+                    "const": true
+                  },
+                  "port": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "follower": {
+                "properties": {
+                  "identity_verified": {
+                    "const": true
+                  },
+                  "port": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          },
+          "calibration": {
+            "properties": {
+              "physical_validity_verified": {
+                "const": true
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

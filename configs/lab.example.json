@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0",
+  "config_kind": "project_example_not_lelab_api",
+  "project": {
+    "name": "PhysicalAI SO101 Lab",
+    "repository": "https://github.com/sgyliu8/LeRobot.git"
+  },
+  "server": {
+    "host": "127.0.0.1",
+    "preferred_port": 8000
+  },
+  "devices": {
+    "leader": {
+      "type": "so101_leader",
+      "id": "yang_so101_leader",
+      "port": null,
+      "identity_verified": false
+    },
+    "follower": {
+      "type": "so101_follower",
+      "id": "yang_so101_follower",
+      "port": null,
+      "identity_verified": false
+    }
+  },
+  "cameras": {
+    "wrist": {
+      "device_identifier": null,
+      "opencv_index": null,
+      "backend_candidate": "DSHOW",
+      "role_verified": false,
+      "width_requested": 640,
+      "height_requested": 480,
+      "fps_requested": 15
+    },
+    "front": {
+      "device_identifier": null,
+      "opencv_index": null,
+      "backend_candidate": "DSHOW",
+      "role_verified": false,
+      "width_requested": 640,
+      "height_requested": 480,
+      "fps_requested": 15
+    }
+  },
+  "motion": {
+    "enabled": false,
+    "bench_session": "not_confirmed",
+    "max_relative_target": null,
+    "limits_verified_in_runtime": false
+  },
+  "data": {
+    "push_to_hub": false,
+    "wandb_enabled": false,
+    "cloud_training_enabled": false,
+    "record_fps_candidate": 15,
+    "runtime_dataset_root": null
+  },
+  "calibration": {
+    "leader_actual_path": null,
+    "follower_actual_path": null,
+    "physical_validity_verified": false
+  }
+}
