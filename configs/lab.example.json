@@ -12,13 +12,13 @@
   "devices": {
     "leader": {
       "type": "so101_leader",
-      "id": "yang_so101_leader",
+      "id": "my_so101_leader",
       "port": null,
       "identity_verified": false
     },
     "follower": {
       "type": "so101_follower",
-      "id": "yang_so101_follower",
+      "id": "my_so101_follower",
       "port": null,
       "identity_verified": false
     }

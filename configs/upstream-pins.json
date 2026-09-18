@@ -8,20 +8,12 @@
   },
   "lelab": {
     "repository": "https://github.com/huggingface/leLab.git",
-    "commit": "6091a45811ef926a06b9b3622a9ab69fefb8bb7b",
-    "source_ids": [
-      "S02",
-      "S23"
-    ]
+    "commit": "6091a45811ef926a06b9b3622a9ab69fefb8bb7b"
   },
   "lerobot": {
     "repository": "https://github.com/huggingface/lerobot.git",
     "declared_ref": "v0.6.0",
-    "commit": "30da8e687a6dfc617fcd94afc367ac7071c376ce",
-    "source_ids": [
-      "S02",
-      "S24"
-    ]
+    "commit": "30da8e687a6dfc617fcd94afc367ac7071c376ce"
   },
   "runtime_lock": {
     "path": "uv.lock",
