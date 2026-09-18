@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -9,13 +10,20 @@ from unittest.mock import MagicMock, patch
 
 import av
 import numpy as np
+import pyarrow as pa
+import pyarrow.parquet as pq
 from fastapi.testclient import TestClient
 from lelab import episode_media, record, server
 from lerobot.configs.video import RGBEncoderConfig
 from lerobot.datasets import LeRobotDataset
 from torch.utils.data import DataLoader
 
-from tools.audit_dataset import audit
+from tools.audit_dataset import (
+    _parse_parquet_rows,
+    _read_parquet_rows,
+    _validate_episode_end_semantics,
+    audit,
+)
 
 JOINT_NAMES = [
     "shoulder_pan.pos",
@@ -27,7 +35,113 @@ JOINT_NAMES = [
 ]
 
 
+def _make_directory_link(link: Path, target: Path) -> None:
+    try:
+        link.symlink_to(target, target_is_directory=True)
+        return
+    except OSError:
+        pass
+    environment = os.environ.copy()
+    environment["LELAB_TEST_LINK"] = str(link)
+    environment["LELAB_TEST_TARGET"] = str(target)
+    result = subprocess.run(
+        [
+            "powershell.exe",
+            "-NoProfile",
+            "-Command",
+            (
+                "New-Item -ItemType Junction -Path $env:LELAB_TEST_LINK "
+                "-Target $env:LELAB_TEST_TARGET | Out-Null"
+            ),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+        env=environment,
+    )
+    if result.returncode != 0:
+        raise unittest.SkipTest(f"directory link unavailable: {result.stderr}")
+
+
 class M5DataIntegrityTests(unittest.TestCase):
+    def test_audit_rejects_linked_descendant_before_reading_external_bytes(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            cache = base / "cache"
+            dataset = cache / "owner" / "unsafe"
+            (dataset / "meta").mkdir(parents=True)
+            (dataset / "meta" / "info.json").write_text("{}", encoding="utf-8")
+            external = base / "external"
+            external.mkdir()
+            (external / "secret.txt").write_text("must not be audited", encoding="utf-8")
+            _make_directory_link(dataset / "linked", external)
+
+            with patch.dict(os.environ, {"HF_LEROBOT_HOME": str(cache)}):
+                result = audit("owner/unsafe", ["arm", "table_veiw"])
+
+        self.assertEqual(result["status"], "FAIL")
+        self.assertTrue(
+            any("link or reparse point" in failure for failure in result["failures"]),
+            result,
+        )
+        self.assertIsNone(result["read_only_manifest_unchanged"])
+
+    def test_parquet_reader_requires_columns_in_every_chunk_without_crashing(self):
+        full = {
+            "action": [[0.0] * 6],
+            "observation.state": [[0.5] * 6],
+            "episode_index": [0],
+            "frame_index": [0],
+            "timestamp": [0.0],
+            "index": [0],
+            "task_index": [0],
+        }
+        incomplete = {**full, "frame_index": [1], "timestamp": [1 / 15], "index": [1]}
+        incomplete.pop("task_index")
+        with tempfile.TemporaryDirectory() as temporary:
+            data = Path(temporary) / "data"
+            data.mkdir()
+            pq.write_table(pa.table(full), data / "chunk-000.parquet")
+            pq.write_table(pa.table(incomplete), data / "chunk-001.parquet")
+
+            rows, available, common = _read_parquet_rows(Path(temporary))
+
+        self.assertIn("task_index", available)
+        self.assertNotIn("task_index", common)
+        failures: list[str] = []
+        parsed = _parse_parquet_rows(rows, fps=15, declared_frames=2, failures=failures)
+        self.assertEqual(parsed, {})
+        self.assertTrue(any("task_index" in failure for failure in failures), failures)
+
+    def test_malformed_parquet_indices_become_failures_not_exceptions(self):
+        failures: list[str] = []
+        rows = [
+            {
+                "action": [0.0] * 6,
+                "observation.state": [0.0] * 6,
+                "episode_index": 0,
+                "frame_index": 0,
+                "timestamp": 0.0,
+                "index": None,
+                "task_index": 0,
+            }
+        ]
+        parsed = _parse_parquet_rows(rows, fps=15, declared_frames=1, failures=failures)
+        self.assertEqual(parsed, {})
+        self.assertTrue(any("invalid index/time fields" in failure for failure in failures), failures)
+        self.assertIn("global Parquet index is not contiguous", failures)
+
+    def test_episode_end_reason_and_saved_state_must_agree(self):
+        failures: list[str] = []
+        _validate_episode_end_semantics(
+            {"reason": "discard", "saved": True}, "attempt 1", failures
+        )
+        _validate_episode_end_semantics(
+            {"reason": "mystery", "saved": False}, "attempt 2", failures
+        )
+        self.assertTrue(any("requires saved=False" in failure for failure in failures), failures)
+        self.assertTrue(any("unknown episode_end reason" in failure for failure in failures), failures)
+
     def test_recording_profile_gate_rejects_schema_corruption_and_task_drift(self):
         request = record.RecordingRequest(
             leader_port="FIXTURE-L",

@@ -34,7 +34,7 @@ LeLab 负责操作流程和页面，LeRobot 负责设备、数据、策略与训
 
 ### 单一硬件所有者
 
-Calibration、Teleoperation、Recording、Replay 和 Inference 共用一个原子模式所有权。每次任务获得唯一 session/lease；旧任务的延迟 cleanup 或旧页面请求不能释放或控制新任务。
+当前可执行的 Calibration、Teleoperation、Recording 和 Inference 共用一个原子模式所有权。每次任务获得唯一 session/lease；旧任务的延迟 cleanup 或旧页面请求不能释放或控制新任务。当前固定版本没有驱动机械臂的 Replay 路由；若未来启用 action Replay，必须先接入同一所有权门禁，不能把网页中的视频回放当作机器人 Replay。
 
 状态查询来自拥有设备的 worker cache。HTTP 或 WebSocket 状态读取不会为了“监测”再次打开串口。
 

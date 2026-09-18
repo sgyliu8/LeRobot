@@ -136,10 +136,15 @@ uv run --frozen python -X utf8 tools\validate_docs.py
 # 项目回归（全部使用 fixture；不会连接机器人）
 uv run --frozen --with pytest -- python -X utf8 -m pytest -q tests
 
+# 固定 LeLab 后端
+uv run --frozen --with pytest -- python -X utf8 -m pytest -q _vendor\lelab\tests
+
 # 固定 LeLab 前端
 Set-Location .\_vendor\lelab\frontend
-npm test -- --run
+npm test
+npm run lint
 npm run build
+npm audit
 ```
 
 绿色测试只证明对应软件范围。测试模式、HTTP 200 或页面可打开都不是硬件在线、运动安全或真实数据质量证明。

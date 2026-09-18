@@ -21,22 +21,119 @@ $healthUrl = 'http://127.0.0.1:8000/health'
 $runtimeStatusUrl = 'http://127.0.0.1:8000/lab-runtime-status'
 $shutdownFenceUrl = 'http://127.0.0.1:8000/lab-shutdown-fence'
 
+function Test-ContainedPath {
+    param(
+        [Parameter(Mandatory)][string]$Root,
+        [Parameter(Mandatory)][string]$Candidate
+    )
+
+    $resolvedRoot = [IO.Path]::GetFullPath($Root).TrimEnd(
+        [IO.Path]::DirectorySeparatorChar,
+        [IO.Path]::AltDirectorySeparatorChar
+    )
+    $resolvedCandidate = [IO.Path]::GetFullPath($Candidate)
+    $prefix = "$resolvedRoot$([IO.Path]::DirectorySeparatorChar)"
+    return (
+        $resolvedCandidate.Equals($resolvedRoot, [StringComparison]::OrdinalIgnoreCase) -or
+        $resolvedCandidate.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)
+    )
+}
+
+function Assert-NoReparsePath {
+    param(
+        [Parameter(Mandatory)][string]$Root,
+        [Parameter(Mandatory)][string]$Candidate
+    )
+
+    if (-not (Test-ContainedPath -Root $Root -Candidate $Candidate)) {
+        throw "Resolved path escaped the project root: $Candidate"
+    }
+    $resolvedRoot = [IO.Path]::GetFullPath($Root).TrimEnd(
+        [IO.Path]::DirectorySeparatorChar,
+        [IO.Path]::AltDirectorySeparatorChar
+    )
+    $resolvedCandidate = [IO.Path]::GetFullPath($Candidate)
+    $current = $resolvedRoot
+    if (Test-Path -LiteralPath $current) {
+        $rootItem = Get-Item -LiteralPath $current -Force
+        if (($rootItem.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
+            throw "Project path crosses a reparse point: $current"
+        }
+    }
+    $relative = $resolvedCandidate.Substring($resolvedRoot.Length).TrimStart(
+        [IO.Path]::DirectorySeparatorChar,
+        [IO.Path]::AltDirectorySeparatorChar
+    )
+    if (-not $relative) { return }
+    foreach ($part in $relative.Split(@(
+                [IO.Path]::DirectorySeparatorChar,
+                [IO.Path]::AltDirectorySeparatorChar
+            ), [StringSplitOptions]::RemoveEmptyEntries)) {
+        $current = Join-Path $current $part
+        if (-not (Test-Path -LiteralPath $current)) { break }
+        $item = Get-Item -LiteralPath $current -Force
+        if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
+            throw "Project path crosses a reparse point: $current"
+        }
+    }
+}
+
 foreach ($scopedPath in @($runtimeRoot, $logRoot, $recordingEvidenceRoot, $statePath, $pythonExe)) {
-    if (-not $scopedPath.StartsWith($projectRoot, [StringComparison]::OrdinalIgnoreCase)) {
+    if (-not (Test-ContainedPath -Root $projectRoot -Candidate $scopedPath)) {
         throw "Resolved path escaped the project root: $scopedPath"
     }
+    Assert-NoReparsePath -Root $projectRoot -Candidate $scopedPath
 }
 
 function Read-ProcessState {
     if (-not (Test-Path -LiteralPath $statePath)) {
         return $null
     }
+    Assert-NoReparsePath -Root $projectRoot -Candidate $statePath
     try {
-        return Get-Content -LiteralPath $statePath -Raw | ConvertFrom-Json
+        $state = Get-Content -LiteralPath $statePath -Raw | ConvertFrom-Json
     }
     catch {
         throw "Invalid project process state at $statePath. Inspect it before retrying."
     }
+
+    $required = @(
+        'schema_version', 'pid', 'start_filetime_utc', 'executable',
+        'project_root', 'port', 'stdout_log', 'stderr_log'
+    )
+    foreach ($name in $required) {
+        if ($state.PSObject.Properties.Name -notcontains $name) {
+            throw "Project process state failed ownership validation: missing $name."
+        }
+    }
+    try {
+        $recordedProjectRoot = [IO.Path]::GetFullPath([string]$state.project_root)
+        $recordedExecutable = [IO.Path]::GetFullPath([string]$state.executable)
+        $stdoutLog = [IO.Path]::GetFullPath([string]$state.stdout_log)
+        $stderrLog = [IO.Path]::GetFullPath([string]$state.stderr_log)
+        $validNumbers = (
+            [int]$state.schema_version -eq 1 -and
+            [int]$state.pid -gt 0 -and
+            [int64]$state.start_filetime_utc -gt 0 -and
+            [int]$state.port -eq 8000
+        )
+    }
+    catch {
+        throw 'Project process state failed ownership validation: invalid field type or path.'
+    }
+    if (-not $validNumbers -or
+        -not $recordedProjectRoot.Equals($projectRoot, [StringComparison]::OrdinalIgnoreCase) -or
+        -not $recordedExecutable.Equals($pythonExe, [StringComparison]::OrdinalIgnoreCase) -or
+        -not (Test-ContainedPath -Root $logRoot -Candidate $stdoutLog) -or
+        -not (Test-ContainedPath -Root $logRoot -Candidate $stderrLog) -or
+        $stdoutLog -eq $stderrLog -or
+        [IO.Path]::GetFileName($stdoutLog) -notlike 'lelab-*.stdout.log' -or
+        [IO.Path]::GetFileName($stderrLog) -notlike 'lelab-*.stderr.log') {
+        throw 'Project process state failed ownership validation; no process or log was accessed.'
+    }
+    Assert-NoReparsePath -Root $projectRoot -Candidate $stdoutLog
+    Assert-NoReparsePath -Root $projectRoot -Candidate $stderrLog
+    return $state
 }
 
 function Resolve-OwnedProcess {
@@ -137,6 +234,9 @@ switch ($Action) {
         }
 
         New-Item -ItemType Directory -Force -Path $runtimeRoot, $logRoot, $recordingEvidenceRoot | Out-Null
+        foreach ($createdPath in @($runtimeRoot, $logRoot, $recordingEvidenceRoot)) {
+            Assert-NoReparsePath -Root $projectRoot -Candidate $createdPath
+        }
         $state = Read-ProcessState
         if ($null -ne $state) {
             $existing = Resolve-OwnedProcess -State $state

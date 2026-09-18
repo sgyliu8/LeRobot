@@ -23,6 +23,9 @@ import numpy as np
 import pyarrow as pa
 import pyarrow.parquet as pq
 from lelab.episode_media import (
+    UnsafeDatasetPathError,
+    ensure_safe_dataset_path,
+    iter_safe_files,
     list_cameras,
     locate_episode_video,
     read_episode_index,
@@ -52,6 +55,13 @@ REQUIRED_PARQUET_COLUMNS = {
     "index",
     "task_index",
 }
+EPISODE_END_SAVED = {
+    "accept": True,
+    "timeout": True,
+    "discard": False,
+    "stop_interrupted": True,
+    "stop_no_frames": False,
+}
 
 
 def _evidence_root() -> Path:
@@ -62,7 +72,7 @@ def _evidence_root() -> Path:
 
 def _manifest(root: Path) -> dict[str, tuple[int, int, str]]:
     result: dict[str, tuple[int, int, str]] = {}
-    for path in sorted(candidate for candidate in root.rglob("*") if candidate.is_file()):
+    for path in iter_safe_files(root):
         digest = hashlib.sha256()
         with path.open("rb") as handle:
             for chunk in iter(lambda: handle.read(1024 * 1024), b""):
@@ -98,22 +108,90 @@ def _finite_joint_map(value: Any) -> dict[str, float] | None:
     return normalized
 
 
-def _read_parquet_rows(dataset_dir: Path) -> tuple[list[dict[str, Any]], set[str]]:
+def _read_parquet_rows(dataset_dir: Path) -> tuple[list[dict[str, Any]], set[str], set[str]]:
     tables: list[pa.Table] = []
     available: set[str] = set()
-    for path in sorted((dataset_dir / "data").rglob("*.parquet")):
+    for path in iter_safe_files(dataset_dir / "data", suffix=".parquet"):
         table = pq.read_table(path)
         available.update(table.column_names)
         tables.append(table)
     if not tables:
-        return [], available
+        return [], available, set()
     common = set(tables[0].column_names)
     for table in tables[1:]:
         common &= set(table.column_names)
     selected = sorted(REQUIRED_PARQUET_COLUMNS & common)
     rows = pa.concat_tables([table.select(selected) for table in tables]).to_pylist()
-    rows.sort(key=lambda row: int(row.get("index", -1)))
-    return rows, available
+    return rows, available, common
+
+
+def _required_int(row: dict[str, Any], key: str) -> int:
+    value = row[key]
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{key} must be an integer")
+    return value
+
+
+def _parse_parquet_rows(
+    rows: list[dict[str, Any]],
+    *,
+    fps: int,
+    declared_frames: int,
+    failures: list[str],
+) -> dict[int, list[dict[str, Any]]]:
+    parsed: list[tuple[int, int, int, int, dict[str, Any]]] = []
+    for row_number, row in enumerate(rows):
+        try:
+            episode_index = _required_int(row, "episode_index")
+            frame_index = _required_int(row, "frame_index")
+            global_index = _required_int(row, "index")
+            task_index = _required_int(row, "task_index")
+            raw_timestamp = row["timestamp"]
+            if isinstance(raw_timestamp, bool) or not isinstance(raw_timestamp, (int, float)):
+                raise TypeError("timestamp must be numeric")
+            timestamp = float(raw_timestamp)
+        except (KeyError, TypeError, ValueError, OverflowError) as exc:
+            failures.append(f"Parquet row {row_number}: invalid index/time fields: {exc}")
+            continue
+        if episode_index < 0 or frame_index < 0 or global_index < 0:
+            failures.append(f"Parquet row {row_number}: episode/frame/global indices must be non-negative")
+        if not math.isfinite(timestamp) or fps <= 0 or not math.isclose(
+            timestamp, frame_index / fps, rel_tol=0.0, abs_tol=1e-5
+        ):
+            failures.append(f"Parquet row {row_number}: timestamp is not frame_index/fps")
+        if task_index < 0:
+            failures.append(f"Parquet row {row_number}: task_index is negative")
+        if _finite_vector(row.get("action")) is None or _finite_vector(row.get("observation.state")) is None:
+            failures.append(f"Parquet row {row_number}: action/state is not a finite six-value vector")
+
+        normalized = dict(row)
+        normalized.update(
+            episode_index=episode_index,
+            frame_index=frame_index,
+            index=global_index,
+            task_index=task_index,
+            timestamp=timestamp,
+        )
+        parsed.append((global_index, episode_index, frame_index, task_index, normalized))
+
+    parsed.sort(key=lambda item: item[0])
+    if [item[0] for item in parsed] != list(range(declared_frames)):
+        failures.append("global Parquet index is not contiguous")
+
+    by_episode: dict[int, list[dict[str, Any]]] = defaultdict(list)
+    for _, episode_index, _, _, row in parsed:
+        by_episode[episode_index].append(row)
+    return by_episode
+
+
+def _validate_episode_end_semantics(row: dict[str, Any], label: str, failures: list[str]) -> None:
+    reason = row.get("reason")
+    saved = row.get("saved") is True
+    expected_saved = EPISODE_END_SAVED.get(reason)
+    if expected_saved is None:
+        failures.append(f"{label}: unknown episode_end reason {reason!r}")
+    elif saved is not expected_saved:
+        failures.append(f"{label}: reason {reason!r} requires saved={expected_saved}")
 
 
 def _profile_path(repo_id: str) -> Path:
@@ -200,9 +278,10 @@ def _validate_profile(
 
 def _video_window_summary(dataset_dir: Path, episode_idx: int, camera: str) -> dict[str, Any]:
     location = locate_episode_video(dataset_dir, episode_idx, camera=camera)
+    video_path = ensure_safe_dataset_path(dataset_dir, location.path, require_file=True)
     decoded = 0
     times: list[float] = []
-    with av.open(str(location.path)) as container:
+    with av.open(str(video_path)) as container:
         stream = container.streams.video[0]
         codec = stream.codec_context.name
         pixel_format = stream.codec_context.pix_fmt
@@ -221,7 +300,7 @@ def _video_window_summary(dataset_dir: Path, episode_idx: int, camera: str) -> d
             times.append(stamp)
             decoded += 1
     return {
-        "path": location.path.relative_to(dataset_dir).as_posix(),
+        "path": video_path.relative_to(dataset_dir).as_posix(),
         "codec": codec,
         "pixel_format": pixel_format,
         "width": width,
@@ -265,7 +344,7 @@ def _validate_command(row: dict[str, Any], label: str, failures: list[str]) -> N
         failures.append(f"{label}: clipped flags must cover six joints")
         return
     expected_clipped = {
-        key: not math.isclose(to_send[key], effective[key], rel_tol=0.0, abs_tol=1e-9)
+        key: to_send[key] != effective[key]
         for key in EXPECTED_JOINT_NAMES
     }
     if clipped != expected_clipped or clipped_any is not any(expected_clipped.values()):
@@ -301,7 +380,17 @@ def _sidecar_summary(
         except json.JSONDecodeError as exc:
             failures.append(f"sidecar {path.parent.name} is unreadable after its matching session_start: {exc}")
             continue
-        sessions.append((float(first.get("started_at_unix_s") or 0), path.parent.name, rows))
+        raw_started = first.get("started_at_unix_s")
+        if (
+            isinstance(raw_started, bool)
+            or not isinstance(raw_started, (int, float))
+            or not math.isfinite(raw_started)
+        ):
+            failures.append(f"sidecar {path.parent.name}: started_at_unix_s must be finite")
+            started = 0.0
+        else:
+            started = float(raw_started)
+        sessions.append((started, path.parent.name, rows))
     sessions.sort()
     if not sessions:
         failures.append("no matching local timing/action sidecar")
@@ -435,6 +524,7 @@ def _sidecar_summary(
             elif saved_index is not None:
                 failures.append(f"{label}: discarded attempt carries a saved episode index")
             reason = end_row.get("reason")
+            _validate_episode_end_semantics(end_row, label, failures)
             if reason == "accept":
                 reason_counts["accepted"] += 1
             elif reason == "timeout":
@@ -533,17 +623,60 @@ def _sidecar_summary(
     }
 
 
-def audit(repo_id: str, expected_cameras: list[str]) -> dict[str, Any]:
-    dataset_dir = resolve_dataset_dir(repo_id)
-    before = _manifest(dataset_dir)
-    info = read_info(dataset_dir)
-    episodes = read_episode_index(dataset_dir)
-    cameras = list_cameras(dataset_dir)
-    failures: list[str] = []
+def _early_failure(repo_id: str, dataset_dir: Path | None, failure: str) -> dict[str, Any]:
+    """Return a stable audit result when input cannot be inspected safely."""
 
-    declared_episodes = int(info.get("total_episodes") or 0)
-    declared_frames = int(info.get("total_frames") or 0)
-    fps = int(info.get("fps") or 0)
+    return {
+        "status": "FAIL",
+        "repo_id": repo_id,
+        "dataset_dir": str(dataset_dir) if dataset_dir is not None else None,
+        "dataset_fps": None,
+        "episodes": None,
+        "frames": None,
+        "cameras": [],
+        "joint_units": {
+            **{name: "degree" for name in EXPECTED_JOINT_NAMES[:5]},
+            "gripper.pos": "normalized_0_100",
+        },
+        "action_semantics": "processed_operator_target",
+        "timestamp_semantics": "nominal_frame_index_div_dataset_fps",
+        "failures": [failure],
+        "videos": {},
+        "sidecar": {},
+        "profile_path": str(_profile_path(repo_id)),
+        "read_only_manifest_unchanged": None,
+    }
+
+
+def audit(repo_id: str, expected_cameras: list[str]) -> dict[str, Any]:
+    failures: list[str] = []
+    dataset_dir: Path | None = None
+    try:
+        dataset_dir = resolve_dataset_dir(repo_id)
+        # The manifest walk rejects every linked/special descendant before any
+        # Parquet or media decoder sees project-external bytes.
+        before = _manifest(dataset_dir)
+        info = read_info(dataset_dir)
+        episodes = read_episode_index(dataset_dir)
+        cameras = list_cameras(dataset_dir)
+    except Exception as exc:  # noqa: BLE001 - malformed/untrusted local dataset input
+        return _early_failure(repo_id, dataset_dir, f"unable to inspect dataset safely: {exc}")
+
+    metadata_values: dict[str, int] = {}
+    for key in ("total_episodes", "total_frames", "fps"):
+        value = info.get(key)
+        if isinstance(value, bool) or not isinstance(value, int):
+            failures.append(f"Dataset metadata {key} must be an integer")
+            metadata_values[key] = 0
+        else:
+            metadata_values[key] = value
+    declared_episodes = metadata_values["total_episodes"]
+    declared_frames = metadata_values["total_frames"]
+    fps = metadata_values["fps"]
+    if declared_episodes < 1:
+        failures.append("Dataset must contain at least one episode")
+    if declared_frames < 1:
+        failures.append("Dataset must contain at least one frame")
     if declared_episodes != len(episodes):
         failures.append(f"declared episodes {declared_episodes} != indexed episodes {len(episodes)}")
     indices = [row.episode_idx for row in episodes]
@@ -566,51 +699,37 @@ def audit(repo_id: str, expected_cameras: list[str]) -> dict[str, Any]:
     profile = _load_profile(repo_id, failures)
     _validate_profile(profile, info, expected_cameras, failures)
 
-    parquet_rows, available_columns = _read_parquet_rows(dataset_dir)
-    missing_columns = sorted(REQUIRED_PARQUET_COLUMNS - available_columns)
+    try:
+        parquet_rows, _available_columns, common_columns = _read_parquet_rows(dataset_dir)
+    except Exception as exc:  # noqa: BLE001 - report malformed input instead of aborting the audit
+        failures.append(f"unable to read Parquet data: {exc}")
+        parquet_rows, _available_columns, common_columns = [], set(), set()
+    missing_columns = sorted(REQUIRED_PARQUET_COLUMNS - common_columns)
     if missing_columns:
-        failures.append(f"missing Parquet columns: {missing_columns}")
+        failures.append(f"Parquet columns missing from one or more files: {missing_columns}")
     if len(parquet_rows) != declared_frames:
         failures.append(f"Parquet rows {len(parquet_rows)} != declared_frames {declared_frames}")
 
-    parquet_by_episode: dict[int, list[dict[str, Any]]] = defaultdict(list)
-    global_indices: list[int] = []
-    for row_number, row in enumerate(parquet_rows):
-        try:
-            episode_index = int(row["episode_index"])
-            frame_index = int(row["frame_index"])
-            global_index = int(row["index"])
-            timestamp = float(row["timestamp"])
-            task_index = int(row["task_index"])
-        except (KeyError, TypeError, ValueError, OverflowError) as exc:
-            failures.append(f"Parquet row {row_number}: invalid index/time fields: {exc}")
-            continue
-        if not math.isfinite(timestamp) or fps <= 0 or not math.isclose(
-            timestamp, frame_index / fps, rel_tol=0.0, abs_tol=1e-5
-        ):
-            failures.append(f"Parquet row {row_number}: timestamp is not frame_index/fps")
-        if task_index < 0:
-            failures.append(f"Parquet row {row_number}: task_index is negative")
-        if _finite_vector(row.get("action")) is None or _finite_vector(row.get("observation.state")) is None:
-            failures.append(f"Parquet row {row_number}: action/state is not a finite six-value vector")
-        global_indices.append(global_index)
-        parquet_by_episode[episode_index].append(row)
-    if global_indices != list(range(declared_frames)):
-        failures.append("global Parquet index is not contiguous")
+    parquet_by_episode = _parse_parquet_rows(
+        parquet_rows,
+        fps=fps,
+        declared_frames=declared_frames,
+        failures=failures,
+    )
 
     indexed_by_episode = {row.episode_idx: row for row in episodes}
     task = (profile or {}).get("single_task")
     for episode_index, rows in sorted(parquet_by_episode.items()):
-        rows.sort(key=lambda row: int(row["frame_index"]))
+        rows.sort(key=lambda row: row["frame_index"])
         index_row = indexed_by_episode.get(episode_index)
         if index_row is None:
             failures.append(f"Parquet episode {episode_index} is absent from episode metadata")
             continue
-        if [int(row["frame_index"]) for row in rows] != list(range(index_row.length)):
+        if [row["frame_index"] for row in rows] != list(range(index_row.length)):
             failures.append(f"episode {episode_index}: frame_index is not contiguous or length differs")
         if task is not None and list(index_row.tasks) != [task]:
             failures.append(f"episode {episode_index}: task labels {list(index_row.tasks)} != frozen task")
-        task_indices = {int(row["task_index"]) for row in rows}
+        task_indices = {row["task_index"] for row in rows}
         if len(task_indices) != 1:
             failures.append(f"episode {episode_index}: multiple task_index values {sorted(task_indices)}")
 
@@ -651,7 +770,11 @@ def audit(repo_id: str, expected_cameras: list[str]) -> dict[str, Any]:
 
     sidecar = _sidecar_summary(repo_id, profile, expected_cameras, parquet_by_episode, failures)
 
-    after = _manifest(dataset_dir)
+    try:
+        after = _manifest(dataset_dir)
+    except UnsafeDatasetPathError as exc:
+        after = {}
+        failures.append(f"dataset became unsafe during read-only audit: {exc}")
     if after != before:
         failures.append("dataset changed during read-only audit")
 

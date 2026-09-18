@@ -37,12 +37,14 @@ uv run --frozen python -X utf8 .\tools\validate_docs.py
 uv run --frozen --with pytest -- python -X utf8 -m pytest -q tests
 
 # 固定上游测试
-uv run --frozen --with pytest -- python -X utf8 -m pytest -q _vendor\lelab\backend\tests
+uv run --frozen --with pytest -- python -X utf8 -m pytest -q _vendor\lelab\tests
 
 # 前端
 Set-Location .\_vendor\lelab\frontend
-npm test -- --run
+npm test
+npm run lint
 npm run build
+npm audit
 ```
 
 测试通过只证明对应 fixture 与软件合同。除非测试显式拦截设备构造，否则不能称为无硬件测试；

@@ -1,3 +1,522 @@
+diff --git a/frontend/package-lock.json b/frontend/package-lock.json
+index e477415e01d49da2bba6c1f3f10d6d7e2644090c..3343c386678261f0c4724103414b14b5df83d68b 100644
+--- a/frontend/package-lock.json
++++ b/frontend/package-lock.json
+@@ -262,7 +262,6 @@
+         }
+       ],
+       "license": "MIT",
+-      "peer": true,
+       "engines": {
+         "node": ">=20.19.0"
+       },
+@@ -311,7 +310,6 @@
+         }
+       ],
+       "license": "MIT",
+-      "peer": true,
+       "engines": {
+         "node": ">=20.19.0"
+       }
+@@ -2523,7 +2521,6 @@
+       "resolved": "https://registry.npmjs.org/@react-three/fiber/-/fiber-8.18.0.tgz",
+       "integrity": "sha512-FYZZqD0UUHUswKz3LQl2Z7H24AhD14XGTsIRw3SJaXUxyfVMi+1yiZGmqTcPt/CkPpdU7rrxqcyQ1zJE5DjvIQ==",
+       "license": "MIT",
+-      "peer": true,
+       "dependencies": {
+         "@babel/runtime": "^7.17.8",
+         "@types/react-reconciler": "^0.26.7",
+@@ -3281,7 +3278,6 @@
+       "integrity": "sha512-dyh/xO2Fh5bYrfWaaqGrRQQGkNdmYw6AmaAUvYeUMNTWQtvb796ikLdmTchRmOlOiIJ1TDXfWgVx1QkUlQ6Hew==",
+       "dev": true,
+       "license": "MIT",
+-      "peer": true,
+       "dependencies": {
+         "undici-types": "~6.21.0"
+       }
+@@ -3303,7 +3299,6 @@
+       "resolved": "https://registry.npmjs.org/@types/react/-/react-18.3.30.tgz",
+       "integrity": "sha512-3ek6mwJL5/VBewBcY4S66cqlCtK3qi4WIq37Z0m/NHw1hjhI7274Mx1qz/+ggSzyBCOEf7eHjBN6INjPAWYfYw==",
+       "license": "MIT",
+-      "peer": true,
+       "dependencies": {
+         "@types/prop-types": "*",
+         "csstype": "^3.2.2"
+@@ -3315,7 +3310,6 @@
+       "integrity": "sha512-MEe3UeoENYVFXzoXEWsvcpg6ZvlrFNlOQ7EOsvhI3CfAXwzPfO8Qwuxd40nepsYKqyyVQnTdEfv68q91yLcKrQ==",
+       "devOptional": true,
+       "license": "MIT",
+-      "peer": true,
+       "peerDependencies": {
+         "@types/react": "^18.0.0"
+       }
+@@ -3340,7 +3334,6 @@
+       "resolved": "https://registry.npmjs.org/@types/three/-/three-0.184.1.tgz",
+       "integrity": "sha512-6q4VdiqVsrTRqmk62/BnlcAvIrnDM0zf2ZDVKI5kZiniWrSaOHaQzmbp+BNzoggc/8tgW412pL//wZIxu2PPTA==",
+       "license": "MIT",
+-      "peer": true,
+       "dependencies": {
+         "@dimforge/rapier3d-compat": "~0.12.0",
+         "@tweenjs/tween.js": "~23.1.3",
+@@ -3401,7 +3394,6 @@
+       "integrity": "sha512-A0M6ua6H252bVjPvvtSgl2QA4+ET9S5Mtkb2GDyTxIhH/C4qDItT7RQNO5PhMC6NXGYXOR9dIalcDDgBKT7oFA==",
+       "dev": true,
+       "license": "MIT",
+-      "peer": true,
+       "dependencies": {
+         "@typescript-eslint/scope-manager": "8.60.1",
+         "@typescript-eslint/types": "8.60.1",
+@@ -3556,9 +3548,9 @@
+       }
+     },
+     "node_modules/@typescript-eslint/typescript-estree/node_modules/brace-expansion": {
+-      "version": "5.0.8",
+-      "resolved": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-5.0.8.tgz",
+-      "integrity": "sha512-JZyDyq3D4AUifKTPOB7DELf6XsB3WdPuNxCtob1vFXPsSXhdAiHBWJ/tJ8HAc9aH84BK+5JFZLNkJKx3G9kzQg==",
++      "version": "5.0.12",
++      "resolved": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-5.0.12.tgz",
++      "integrity": "sha512-YovQ3rzhaLMIrDjNDMkNS01tea93qhEhG5xy8f6+R0l+dw3Ki+5sCoIoI942iuLZTHWogWktgwVDhU09iNEimQ==",
+       "dev": true,
+       "license": "MIT",
+       "dependencies": {
+@@ -3675,31 +3667,31 @@
+       }
+     },
+     "node_modules/@vitest/expect": {
+-      "version": "4.1.0",
+-      "resolved": "https://registry.npmjs.org/@vitest/expect/-/expect-4.1.0.tgz",
+-      "integrity": "sha512-EIxG7k4wlWweuCLG9Y5InKFwpMEOyrMb6ZJ1ihYu02LVj/bzUwn2VMU+13PinsjRW75XnITeFrQBMH5+dLvCDA==",
++      "version": "4.1.11",
++      "resolved": "https://registry.npmjs.org/@vitest/expect/-/expect-4.1.11.tgz",
++      "integrity": "sha512-VX2x5vNJXET47KAFzwERI+KRMtTTCSWTfSMKsW7JsUsXV4psq++e3DvZpuTDOpHcxytiDs6p2nhVb2tVDiiUYw==",
+       "dev": true,
+       "license": "MIT",
+       "dependencies": {
+         "@standard-schema/spec": "^1.1.0",
+         "@types/chai": "^5.2.2",
+-        "@vitest/spy": "4.1.0",
+-        "@vitest/utils": "4.1.0",
++        "@vitest/spy": "4.1.11",
++        "@vitest/utils": "4.1.11",
+         "chai": "^6.2.2",
+-        "tinyrainbow": "^3.0.3"
++        "tinyrainbow": "^3.1.0"
+       },
+       "funding": {
+         "url": "https://opencollective.com/vitest"
+       }
+     },
+     "node_modules/@vitest/mocker": {
+-      "version": "4.1.0",
+-      "resolved": "https://registry.npmjs.org/@vitest/mocker/-/mocker-4.1.0.tgz",
+-      "integrity": "sha512-evxREh+Hork43+Y4IOhTo+h5lGmVRyjqI739Rz4RlUPqwrkFFDF6EMvOOYjTx4E8Tl6gyCLRL8Mu7Ry12a13Tw==",
++      "version": "4.1.11",
++      "resolved": "https://registry.npmjs.org/@vitest/mocker/-/mocker-4.1.11.tgz",
++      "integrity": "sha512-2XJVD55d1o5AZous5CCGKS74g/riOj9odEt2bQpCVZeblHyHdnMeFl4jl0XjU21stf4mbjUkew2eXQZt65g5CQ==",
+       "dev": true,
+       "license": "MIT",
+       "dependencies": {
+-        "@vitest/spy": "4.1.0",
++        "@vitest/spy": "4.1.11",
+         "estree-walker": "^3.0.3",
+         "magic-string": "^0.30.21"
+       },
+@@ -3708,7 +3700,7 @@
+       },
+       "peerDependencies": {
+         "msw": "^2.4.9",
+-        "vite": "^6.0.0 || ^7.0.0 || ^8.0.0-0"
++        "vite": "^6.0.0 || ^7.0.0 || ^8.0.0"
+       },
+       "peerDependenciesMeta": {
+         "msw": {
+@@ -3720,26 +3712,26 @@
+       }
+     },
+     "node_modules/@vitest/pretty-format": {
+-      "version": "4.1.0",
+-      "resolved": "https://registry.npmjs.org/@vitest/pretty-format/-/pretty-format-4.1.0.tgz",
+-      "integrity": "sha512-3RZLZlh88Ib0J7NQTRATfc/3ZPOnSUn2uDBUoGNn5T36+bALixmzphN26OUD3LRXWkJu4H0s5vvUeqBiw+kS0A==",
++      "version": "4.1.11",
++      "resolved": "https://registry.npmjs.org/@vitest/pretty-format/-/pretty-format-4.1.11.tgz",
++      "integrity": "sha512-yiZzPbGTS9Sr/JpFl8zHrcIkAofNbFV6k21vIgQN/cY/oxZeXhJv5sc/MBJ5jFKWmWs+oJHw0UXLZjmf931+Vw==",
+       "dev": true,
+       "license": "MIT",
+       "dependencies": {
+-        "tinyrainbow": "^3.0.3"
++        "tinyrainbow": "^3.1.0"
+       },
+       "funding": {
+         "url": "https://opencollective.com/vitest"
+       }
+     },
+     "node_modules/@vitest/runner": {
+-      "version": "4.1.0",
+-      "resolved": "https://registry.npmjs.org/@vitest/runner/-/runner-4.1.0.tgz",
+-      "integrity": "sha512-Duvx2OzQ7d6OjchL+trw+aSrb9idh7pnNfxrklo14p3zmNL4qPCDeIJAK+eBKYjkIwG96Bc6vYuxhqDXQOWpoQ==",
++      "version": "4.1.11",
++      "resolved": "https://registry.npmjs.org/@vitest/runner/-/runner-4.1.11.tgz",
++      "integrity": "sha512-LztvUgdwMNJMIkj3hQnnxiC2Xy1zNxq928W/xhjCLaNCzqTZOudjwbQf6v9IntZGPw132i2Lq2rgTRZHD3JHNw==",
+       "dev": true,
+       "license": "MIT",
+       "dependencies": {
+-        "@vitest/utils": "4.1.0",
++        "@vitest/utils": "4.1.11",
+         "pathe": "^2.0.3"
+       },
+       "funding": {
+@@ -3747,14 +3739,14 @@
+       }
+     },
+     "node_modules/@vitest/snapshot": {
+-      "version": "4.1.0",
+-      "resolved": "https://registry.npmjs.org/@vitest/snapshot/-/snapshot-4.1.0.tgz",
+-      "integrity": "sha512-0Vy9euT1kgsnj1CHttwi9i9o+4rRLEaPRSOJ5gyv579GJkNpgJK+B4HSv/rAWixx2wdAFci1X4CEPjiu2bXIMg==",
++      "version": "4.1.11",
++      "resolved": "https://registry.npmjs.org/@vitest/snapshot/-/snapshot-4.1.11.tgz",
++      "integrity": "sha512-pN7ikn1ON7h8ee4gIAp4AzyK+zBtJPzVbqOgu5LCEh4VaJVbPQcgYQYJIMGQPXVeJJq1fnfazis7a5pFNPahog==",
+       "dev": true,
+       "license": "MIT",
+       "dependencies": {
+-        "@vitest/pretty-format": "4.1.0",
+-        "@vitest/utils": "4.1.0",
++        "@vitest/pretty-format": "4.1.11",
++        "@vitest/utils": "4.1.11",
+         "magic-string": "^0.30.21",
+         "pathe": "^2.0.3"
+       },
+@@ -3763,9 +3755,9 @@
+       }
+     },
+     "node_modules/@vitest/spy": {
+-      "version": "4.1.0",
+-      "resolved": "https://registry.npmjs.org/@vitest/spy/-/spy-4.1.0.tgz",
+-      "integrity": "sha512-pz77k+PgNpyMDv2FV6qmk5ZVau6c3R8HC8v342T2xlFxQKTrSeYw9waIJG8KgV9fFwAtTu4ceRzMivPTH6wSxw==",
++      "version": "4.1.11",
++      "resolved": "https://registry.npmjs.org/@vitest/spy/-/spy-4.1.11.tgz",
++      "integrity": "sha512-apNa/prQy2qCeywhnixOHPRCgGNhvg7T4Dapfl1GahLp/R+uhBm5cPyFoNVyqsNd2h1nJxL6BqqdIjiABL60YA==",
+       "dev": true,
+       "license": "MIT",
+       "funding": {
+@@ -3773,15 +3765,15 @@
+       }
+     },
+     "node_modules/@vitest/utils": {
+-      "version": "4.1.0",
+-      "resolved": "https://registry.npmjs.org/@vitest/utils/-/utils-4.1.0.tgz",
+-      "integrity": "sha512-XfPXT6a8TZY3dcGY8EdwsBulFCIw+BeeX0RZn2x/BtiY/75YGh8FeWGG8QISN/WhaqSrE2OrlDgtF8q5uhOTmw==",
++      "version": "4.1.11",
++      "resolved": "https://registry.npmjs.org/@vitest/utils/-/utils-4.1.11.tgz",
++      "integrity": "sha512-zTCVGpyFsGWBhllOyKlTw/vnr6D9qxsfSDyfbyZmTyjHw5N/VuvzHpHoQjm2ZJzn4RJgx5w4r7V0er69CmLgPQ==",
+       "dev": true,
+       "license": "MIT",
+       "dependencies": {
+-        "@vitest/pretty-format": "4.1.0",
++        "@vitest/pretty-format": "4.1.11",
+         "convert-source-map": "^2.0.0",
+-        "tinyrainbow": "^3.0.3"
++        "tinyrainbow": "^3.1.0"
+       },
+       "funding": {
+         "url": "https://opencollective.com/vitest"
+@@ -3793,7 +3785,6 @@
+       "integrity": "sha512-UVJyE9MttOsBQIDKw1skb9nAwQuR5wuGD3+82K6JgJlm/Y+KI92oNsMNGZCYdDsVtRHSak0pcV5Dno5+4jh9sw==",
+       "dev": true,
+       "license": "MIT",
+-      "peer": true,
+       "bin": {
+         "acorn": "bin/acorn"
+       },
+@@ -4007,9 +3998,9 @@
+       }
+     },
+     "node_modules/brace-expansion": {
+-      "version": "1.1.16",
+-      "resolved": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-1.1.16.tgz",
+-      "integrity": "sha512-IDw48K2/2kRkg9LdJxurvq3lV3aBgq0REY89duEqFRthjlPdXHKMj7EnQOXVckxzgisinf3nHfrcE2FufFLXMw==",
++      "version": "1.1.21",
++      "resolved": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-1.1.21.tgz",
++      "integrity": "sha512-9zeA+KLZNNzglF2TPKRQEDyx6Yby7daAkuy8MiPzpXPsYDWi/DRM8jmwUDxokQjYqBpv5DgPiwD4h4ZZSy1Ujw==",
+       "dev": true,
+       "license": "MIT",
+       "dependencies": {
+@@ -4049,7 +4040,6 @@
+         }
+       ],
+       "license": "MIT",
+-      "peer": true,
+       "dependencies": {
+         "baseline-browser-mapping": "^2.11.20",
+         "caniuse-lite": "^1.0.30001810",
+@@ -4519,7 +4509,6 @@
+       "resolved": "https://registry.npmjs.org/date-fns/-/date-fns-3.6.0.tgz",
+       "integrity": "sha512-fRHTG8g/Gif+kSh50gaGEdToemgfj74aRX3swtiouboip5JDLAyDE9F11nHMIcvOaXeOC6D7SpNhi7uFyB7Uww==",
+       "license": "MIT",
+-      "peer": true,
+       "funding": {
+         "type": "github",
+         "url": "https://github.com/sponsors/kossnocorp"
+@@ -4627,8 +4616,7 @@
+       "version": "8.6.0",
+       "resolved": "https://registry.npmjs.org/embla-carousel/-/embla-carousel-8.6.0.tgz",
+       "integrity": "sha512-SjWyZBHJPbqxHOzckOfo8lHisEaJWmwd23XppYFYVh10bU66/Pn5tkVkbkCMZVdbUE5eTCI2nD8OyIP4Z+uwkA==",
+-      "license": "MIT",
+-      "peer": true
++      "license": "MIT"
+     },
+     "node_modules/embla-carousel-react": {
+       "version": "8.6.0",
+@@ -4710,7 +4698,6 @@
+       "integrity": "sha512-XoMjdBOwe/esVgEvLmNsD3IRHkm7fbKIUGvrleloJXUZgDHig2IPWNniv+GwjyJXzuNqVjlr5+4yVUZjycJwfQ==",
+       "dev": true,
+       "license": "MIT",
+-      "peer": true,
+       "dependencies": {
+         "@eslint-community/eslint-utils": "^4.8.0",
+         "@eslint-community/regexpp": "^4.12.1",
+@@ -5386,7 +5373,6 @@
+       "resolved": "https://registry.npmjs.org/jiti/-/jiti-1.21.7.tgz",
+       "integrity": "sha512-/imKNG4EbWNrVjoNC/1H5/9GFy+tqjGBHCaSsN+P2RnPqjsLmv6UD3Ej+Kj8nBWaRAwyk7kK5ZUc+OEatnTR3A==",
+       "license": "MIT",
+-      "peer": true,
+       "bin": {
+         "jiti": "bin/jiti.js"
+       }
+@@ -5426,7 +5412,6 @@
+       "integrity": "sha512-0+MoQNYyr2rBHqO1xilltfDjV9G7ymYGlAUazgcDLQaUf8JDHbuGwsxN6U9qWaElZ4w1B2r7yEGIL3GdeW3Rug==",
+       "dev": true,
+       "license": "MIT",
+-      "peer": true,
+       "dependencies": {
+         "@acemir/cssom": "^0.9.31",
+         "@asamuzakjp/dom-selector": "^6.8.1",
+@@ -6715,7 +6700,6 @@
+         }
+       ],
+       "license": "MIT",
+-      "peer": true,
+       "dependencies": {
+         "nanoid": "^3.3.16",
+         "picocolors": "^1.1.1",
+@@ -6945,7 +6929,6 @@
+       "resolved": "https://registry.npmjs.org/react/-/react-18.3.1.tgz",
+       "integrity": "sha512-wS+hAgJShR0KhEvPJArfuPVN1+Hz1t0Y6n5jLrGQbkb4urgPE/0Rve+1kMB1v/oWgHgm4WIcV+i7F2pTVj+2iQ==",
+       "license": "MIT",
+-      "peer": true,
+       "dependencies": {
+         "loose-envify": "^1.1.0"
+       },
+@@ -6984,7 +6967,6 @@
+       "resolved": "https://registry.npmjs.org/react-dom/-/react-dom-18.3.1.tgz",
+       "integrity": "sha512-5m4nQKp+rZRb09LNH59GM4BxTh9251/ylbKIbpe7TpGxfJ+9kv6BLkLBXIjjspbgbnIBNqlI23tRnTWT0snUIw==",
+       "license": "MIT",
+-      "peer": true,
+       "dependencies": {
+         "loose-envify": "^1.1.0",
+         "scheduler": "^0.23.2"
+@@ -7007,7 +6989,6 @@
+       "resolved": "https://registry.npmjs.org/react-hook-form/-/react-hook-form-7.77.0.tgz",
+       "integrity": "sha512-Sslh9YDYc0GDlWT/lxasnIduNo4v3yyvqRGvmGKUre5AFjDs/HV9/OafHGD8d+sB2yoL4UIL9L8X9i0WlZZebg==",
+       "license": "MIT",
+-      "peer": true,
+       "engines": {
+         "node": ">=18.0.0"
+       },
+@@ -7626,7 +7607,6 @@
+       "resolved": "https://registry.npmjs.org/tailwindcss/-/tailwindcss-3.4.19.tgz",
+       "integrity": "sha512-3ofp+LL8E+pK/JuPLPggVAIaEuhvIz4qNcf3nA1Xn2o/7fb7s/TYpHhwGDv1ZU3PkBluUVaF8PyCHcm48cKLWQ==",
+       "license": "MIT",
+-      "peer": true,
+       "dependencies": {
+         "@alloc/quick-lru": "^5.2.0",
+         "arg": "^5.0.2",
+@@ -7706,8 +7686,7 @@
+       "version": "0.177.0",
+       "resolved": "https://registry.npmjs.org/three/-/three-0.177.0.tgz",
+       "integrity": "sha512-EiXv5/qWAaGI+Vz2A+JfavwYCMdGjxVsrn3oBwllUoqYeaBO75J63ZfyaQKoiLrqNHoTlUc6PFgMXnS0kI45zg==",
+-      "license": "MIT",
+-      "peer": true
++      "license": "MIT"
+     },
+     "node_modules/three-mesh-bvh": {
+       "version": "0.7.8",
+@@ -7803,7 +7782,6 @@
+       "resolved": "https://registry.npmjs.org/picomatch/-/picomatch-4.0.4.tgz",
+       "integrity": "sha512-QP88BAKvMam/3NxH6vj2o21R6MjxZUAd6nlwAS/pnGvN9IVLocLHxGYIzFhg6fUQ+5th6P4dv4eW9jX3DSIj7A==",
+       "license": "MIT",
+-      "peer": true,
+       "engines": {
+         "node": ">=12"
+       },
+@@ -7990,7 +7968,6 @@
+       "integrity": "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==",
+       "dev": true,
+       "license": "Apache-2.0",
+-      "peer": true,
+       "bin": {
+         "tsc": "bin/tsc",
+         "tsserver": "bin/tsserver"
+@@ -8198,7 +8175,6 @@
+       "integrity": "sha512-h9bXPmJichP5fLmVQo3PyaGSDE2n3aPuomeAlVRm0JLmt4rY6zmPKd59HYI4LNW8oTK7tlTsuC7l/m7awx9Jcw==",
+       "dev": true,
+       "license": "MIT",
+-      "peer": true,
+       "dependencies": {
+         "lightningcss": "^1.32.0",
+         "picomatch": "^4.0.4",
+@@ -8285,19 +8261,19 @@
+       }
+     },
+     "node_modules/vitest": {
+-      "version": "4.1.0",
+-      "resolved": "https://registry.npmjs.org/vitest/-/vitest-4.1.0.tgz",
+-      "integrity": "sha512-YbDrMF9jM2Lqc++2530UourxZHmkKLxrs4+mYhEwqWS97WJ7wOYEkcr+QfRgJ3PW9wz3odRijLZjHEaRLTNbqw==",
++      "version": "4.1.11",
++      "resolved": "https://registry.npmjs.org/vitest/-/vitest-4.1.11.tgz",
++      "integrity": "sha512-fhACrNXUidIbGSBr5FlbuBkO7VWC1ZyLl0DO4CU2DrQoAPxX84Ysxs+HeGQpii5lZWV1Q4gBZTTu49mF+A6Edw==",
+       "dev": true,
+       "license": "MIT",
+       "dependencies": {
+-        "@vitest/expect": "4.1.0",
+-        "@vitest/mocker": "4.1.0",
+-        "@vitest/pretty-format": "4.1.0",
+-        "@vitest/runner": "4.1.0",
+-        "@vitest/snapshot": "4.1.0",
+-        "@vitest/spy": "4.1.0",
+-        "@vitest/utils": "4.1.0",
++        "@vitest/expect": "4.1.11",
++        "@vitest/mocker": "4.1.11",
++        "@vitest/pretty-format": "4.1.11",
++        "@vitest/runner": "4.1.11",
++        "@vitest/snapshot": "4.1.11",
++        "@vitest/spy": "4.1.11",
++        "@vitest/utils": "4.1.11",
+         "es-module-lexer": "^2.0.0",
+         "expect-type": "^1.3.0",
+         "magic-string": "^0.30.21",
+@@ -8308,8 +8284,8 @@
+         "tinybench": "^2.9.0",
+         "tinyexec": "^1.0.2",
+         "tinyglobby": "^0.2.15",
+-        "tinyrainbow": "^3.0.3",
+-        "vite": "^6.0.0 || ^7.0.0 || ^8.0.0-0",
++        "tinyrainbow": "^3.1.0",
++        "vite": "^6.0.0 || ^7.0.0 || ^8.0.0",
+         "why-is-node-running": "^2.3.0"
+       },
+       "bin": {
+@@ -8325,13 +8301,15 @@
+         "@edge-runtime/vm": "*",
+         "@opentelemetry/api": "^1.9.0",
+         "@types/node": "^20.0.0 || ^22.0.0 || >=24.0.0",
+-        "@vitest/browser-playwright": "4.1.0",
+-        "@vitest/browser-preview": "4.1.0",
+-        "@vitest/browser-webdriverio": "4.1.0",
+-        "@vitest/ui": "4.1.0",
++        "@vitest/browser-playwright": "4.1.11",
++        "@vitest/browser-preview": "4.1.11",
++        "@vitest/browser-webdriverio": "4.1.11",
++        "@vitest/coverage-istanbul": "4.1.11",
++        "@vitest/coverage-v8": "4.1.11",
++        "@vitest/ui": "4.1.11",
+         "happy-dom": "*",
+         "jsdom": "*",
+-        "vite": "^6.0.0 || ^7.0.0 || ^8.0.0-0"
++        "vite": "^6.0.0 || ^7.0.0 || ^8.0.0"
+       },
+       "peerDependenciesMeta": {
+         "@edge-runtime/vm": {
+@@ -8352,6 +8330,12 @@
+         "@vitest/browser-webdriverio": {
+           "optional": true
+         },
++        "@vitest/coverage-istanbul": {
++          "optional": true
++        },
++        "@vitest/coverage-v8": {
++          "optional": true
++        },
+         "@vitest/ui": {
+           "optional": true
+         },
+diff --git a/frontend/src/components/TeleopStopNotice.test.tsx b/frontend/src/components/TeleopStopNotice.test.tsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..60b0678bb86c0e50138d5c4f77647a3102dae90d
+--- /dev/null
++++ b/frontend/src/components/TeleopStopNotice.test.tsx
+@@ -0,0 +1,72 @@
++// @vitest-environment jsdom
++import React, { act } from "react";
++import { createRoot } from "react-dom/client";
++import { beforeEach, expect, test, vi } from "vitest";
++import TeleopStopNotice from "./TeleopStopNotice";
++
++const toast = vi.fn();
++const fetchWithHeaders = vi.fn();
++
++vi.mock("@/hooks/use-toast", () => ({ useToast: () => ({ toast }) }));
++vi.mock("@/contexts/ApiContext", () => ({
++  useApi: () => ({ baseUrl: "http://localhost:8000", fetchWithHeaders }),
++}));
++
++beforeEach(() => {
++  sessionStorage.clear();
++  toast.mockReset();
++  fetchWithHeaders.mockReset();
++  Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
++});
++
++test("only reports a clean unload stop after exact-session status confirms it", async () => {
++  sessionStorage.setItem("lelab:teleop-stop-pending", "session-a");
++  sessionStorage.setItem("lelab:teleop-session", "session-a");
++  fetchWithHeaders.mockResolvedValue({
++    ok: true,
++    json: async () => ({ success: true, teleoperation_active: false, session_id: "session-a" }),
++  });
++  const host = document.createElement("div");
++  const root = createRoot(host);
++  try {
++    await act(async () => {
++      root.render(<TeleopStopNotice />);
++      await Promise.resolve();
++      await Promise.resolve();
++    });
++    expect(fetchWithHeaders).toHaveBeenCalledWith(
++      "http://localhost:8000/teleoperation-status?session_id=session-a",
++    );
++    expect(sessionStorage.getItem("lelab:teleop-stop-pending")).toBeNull();
++    expect(sessionStorage.getItem("lelab:teleop-session")).toBeNull();
++    expect(toast).toHaveBeenCalledWith(expect.objectContaining({ title: "Teleoperation stopped" }));
++  } finally {
++    act(() => root.unmount());
++  }
++});
++
++test("retains the token and warns when exact-session status is unavailable", async () => {
++  sessionStorage.setItem("lelab:teleop-stop-pending", "session-b");
++  sessionStorage.setItem("lelab:teleop-session", "session-b");
++  fetchWithHeaders.mockResolvedValue({
++    ok: false,
++    json: async () => ({ success: false, message: "Stale teleoperation session" }),
++  });
++  const host = document.createElement("div");
++  const root = createRoot(host);
++  try {
++    await act(async () => {
++      root.render(<TeleopStopNotice />);
++      await Promise.resolve();
++      await Promise.resolve();
++    });
++    expect(sessionStorage.getItem("lelab:teleop-stop-pending")).toBe("session-b");
++    expect(sessionStorage.getItem("lelab:teleop-session")).toBe("session-b");
++    expect(toast).toHaveBeenCalledWith(expect.objectContaining({
++      title: "Stop not confirmed",
++      variant: "destructive",
++    }));
++  } finally {
++    act(() => root.unmount());
++  }
++});
 diff --git a/frontend/src/components/TeleopStopNotice.tsx b/frontend/src/components/TeleopStopNotice.tsx
 index d8a12bd6c53f10d360f77c02d929c8625f32866e..4d4e7688a093c29fc2baccc392537682ca62f9b9 100644
 --- a/frontend/src/components/TeleopStopNotice.tsx
@@ -177,6 +696,21 @@ index 60e0b59f1a38fbf9d88c72735af36e0aba9dab3c..0cb5549a1f36c9d406577765430432d4
            </div>
          </div>
        )}
+diff --git a/frontend/src/components/control/MetricsPanel.tsx b/frontend/src/components/control/MetricsPanel.tsx
+index d66d6c63feacc604de91708e6c0f103cd103f21a..61151e6f3b28fdcf1bdfc53919ecd20027e101bf 100644
+--- a/frontend/src/components/control/MetricsPanel.tsx
++++ b/frontend/src/components/control/MetricsPanel.tsx
+@@ -6,8 +6,8 @@ import { Camera, MicOff } from 'lucide-react';
+ interface MetricsPanelProps {
+   activeTab: 'SENSORS' | 'MOTORS';
+   setActiveTab: (tab: 'SENSORS' | 'MOTORS') => void;
+-  sensorData: any[];
+-  motorData: any[];
++  sensorData: Record<string, number | string>[];
++  motorData: Record<string, number | string>[];
+   hasPermissions: boolean;
+   streamRef: React.RefObject<MediaStream | null>;
+   isVoiceActive: boolean;
 diff --git a/frontend/src/components/control/VisualizerPanel.tsx b/frontend/src/components/control/VisualizerPanel.tsx
 index 9dca7861db3cc1e0cf8def14d85bdcc0083859d1..53a1b9d0b14295a9a72ac272e2d3918860e0a571 100644
 --- a/frontend/src/components/control/VisualizerPanel.tsx
@@ -511,6 +1045,60 @@ index 83f19b7e4b9a1a198af853cbf1efffccee658f41..09c6b32a089380ceb3af5c3ea32722fb
                />
                <span className="absolute left-2 top-2 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-gray-300">
                  {c.name}
+diff --git a/frontend/src/components/dataset/FilmStrip.test.tsx b/frontend/src/components/dataset/FilmStrip.test.tsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..c9682c3e464317de13f910b25305eee7323eab24
+--- /dev/null
++++ b/frontend/src/components/dataset/FilmStrip.test.tsx
+@@ -0,0 +1,48 @@
++// @vitest-environment jsdom
++import React, { act } from "react";
++import { createRoot } from "react-dom/client";
++import { expect, test, vi } from "vitest";
++import FilmStrip from "./FilmStrip";
++import { getThumbnails } from "@/lib/datasetApi";
++
++vi.mock("@/contexts/ApiContext", () => ({
++  useApi: () => ({ baseUrl: "http://localhost:8000", fetchWithHeaders: vi.fn() }),
++}));
++vi.mock("@/lib/datasetApi", async (importOriginal) => {
++  const original = await importOriginal<typeof import("@/lib/datasetApi")>();
++  return { ...original, getThumbnails: vi.fn() };
++});
++
++test("surfaces partial thumbnail decode instead of silently showing a shorter strip", async () => {
++  Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
++  vi.mocked(getThumbnails).mockResolvedValue({
++    success: true,
++    complete: false,
++    issues: ["decoded 1 of 2 requested thumbnails"],
++    episode_index: 0,
++    camera: "arm",
++    thumbnails: [{ frame_index: 0, data_uri: "data:image/png;base64,AA==" }],
++  });
++  const host = document.createElement("div");
++  const root = createRoot(host);
++  try {
++    act(() => {
++      root.render(
++        <FilmStrip
++          repoId="local/demo"
++          episodeIndex={0}
++          camera="arm"
++          currentFrame={0}
++          onSeekFrame={() => undefined}
++          count={2}
++        />,
++      );
++    });
++    await vi.waitFor(() => {
++      expect(host.textContent).toContain("Partial video evidence");
++      expect(host.textContent).toContain("decoded 1 of 2 requested thumbnails");
++    });
++  } finally {
++    act(() => root.unmount());
++  }
++});
 diff --git a/frontend/src/components/dataset/FilmStrip.tsx b/frontend/src/components/dataset/FilmStrip.tsx
 index 9475aa24eb3196b9a74627fd95117c9fdb25e956..bbe2177358c9bab9aa078eb3ea383943779d008e 100644
 --- a/frontend/src/components/dataset/FilmStrip.tsx
@@ -588,6 +1176,19 @@ index de3f50456c8699238112b731cb0678d0adbfe41e..f140dbb0fbd40cecba2bea5591ba92db
   *
   * Collapsing all joints into a single trace is the point: it makes the shape of
   * a demonstration legible at a glance (idle head, the busy middle, idle tail)
+diff --git a/frontend/src/components/landing/DatasetPicker.tsx b/frontend/src/components/landing/DatasetPicker.tsx
+index aca33fef057dbf4f1f494dcc93d20a547ce99f85..fd581abbc1358a48b7469606ae5bd0bce53f16a8 100644
+--- a/frontend/src/components/landing/DatasetPicker.tsx
++++ b/frontend/src/components/landing/DatasetPicker.tsx
+@@ -24,7 +24,7 @@ interface DatasetPickerProps {
+   children: React.ReactNode;
+ }
+ 
+-const REPO_ID_RE = /^[\w.\-]+\/[\w.\-]+$/;
++const REPO_ID_RE = /^[\w.-]+\/[\w.-]+$/;
+ const NAME_RE = /^[A-Za-z0-9._-]+$/;
+ 
+ const DatasetPicker: React.FC<DatasetPickerProps> = ({
 diff --git a/frontend/src/components/landing/InferenceModal.tsx b/frontend/src/components/landing/InferenceModal.tsx
 index e60527e38b4bd7b46883582819859113b8021cab..c157fe006a4c8deedc4ddcf107bbeea389edff53 100644
 --- a/frontend/src/components/landing/InferenceModal.tsx
@@ -866,6 +1467,19 @@ index fed18c4dbd09bef3ecee267e1ff4bca2a29d501f..82f2bebc9f37a73db41692dd48dc654d
        } else {
          toast({
            title: "Error Starting Teleoperation",
+diff --git a/frontend/src/components/ui/command.tsx b/frontend/src/components/ui/command.tsx
+index a6047d380c6df25c728da69343e10c4fb9736e75..49e1f2c31a37b00215d41842ce4f3d9cc394b2ac 100644
+--- a/frontend/src/components/ui/command.tsx
++++ b/frontend/src/components/ui/command.tsx
+@@ -21,7 +21,7 @@ const Command = React.forwardRef<
+ ))
+ Command.displayName = CommandPrimitive.displayName
+ 
+-interface CommandDialogProps extends DialogProps {}
++type CommandDialogProps = DialogProps
+ 
+ const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
+   return (
 diff --git a/frontend/src/hooks/useRealTimeJoints.ts b/frontend/src/hooks/useRealTimeJoints.ts
 index 0e74a69ebeff90580bcfe68a41e009441c7a2716..1b72e300f032eccf00c285dcc67a11e3390ac68c 100644
 --- a/frontend/src/hooks/useRealTimeJoints.ts
@@ -1712,12 +2326,13 @@ index 5e8faa6d6390491043f534a0e0840fff6de8be35..c51fdb447ef1654897b8a666fcf012bb
      } catch (e) {
        toast({
 diff --git a/frontend/src/pages/Landing.tsx b/frontend/src/pages/Landing.tsx
-index 5aa7ae23a5eb2bf2dc192a01e2d122778bbe0558..239dfa8072ac398251b214e75c2c5a9b03d040d9 100644
+index 5aa7ae23a5eb2bf2dc192a01e2d122778bbe0558..2f9bce0d0e93ed5f222cfb34ecc2c2df0bf81a7e 100644
 --- a/frontend/src/pages/Landing.tsx
 +++ b/frontend/src/pages/Landing.tsx
 @@ -1,5 +1,5 @@
- import React, { useState, useRef, useEffect } from "react";
+-import React, { useState, useRef, useEffect } from "react";
 -import { useNavigate } from "react-router-dom";
++import React, { useState, useRef, useEffect, useCallback } from "react";
 +import { useLocation, useNavigate } from "react-router-dom";
  import { ChevronsUpDown } from "lucide-react";
  import { Button } from "@/components/ui/button";
@@ -1740,7 +2355,7 @@ index 5aa7ae23a5eb2bf2dc192a01e2d122778bbe0558..239dfa8072ac398251b214e75c2c5a9b
  
  const ON_SPACE = isHostedSpace();
  
-@@ -43,12 +48,17 @@ const Landing = () => {
+@@ -43,41 +48,115 @@ const Landing = () => {
    const [numEpisodes, setNumEpisodes] = useState(5);
    const [episodeTimeS, setEpisodeTimeS] = useState(60);
    const [resetTimeS, setResetTimeS] = useState(15);
@@ -1752,13 +2367,49 @@ index 5aa7ae23a5eb2bf2dc192a01e2d122778bbe0558..239dfa8072ac398251b214e75c2c5a9b
 +  const [resumeDatasetId, setResumeDatasetId] = useState<string | null>(null);
  
    const releaseStreamsRef = useRef<(() => void) | null>(null);
++  const releaseCameraStreams = useCallback(() => {
++    const release = releaseStreamsRef.current;
++    if (!release) return false;
++    release();
++    return true;
++  }, []);
  
    const navigate = useNavigate();
 +  const location = useLocation();
    const { toast } = useToast();
  
    // Clear camera state and release streams when returning to landing page
-@@ -75,9 +85,73 @@ const Landing = () => {
+   useEffect(() => {
+-    if (cameras.length > 0) {
+-      console.log(
+-        "🧹 Landing page: Cleaning up camera state from previous session",
+-      );
+-      if (releaseStreamsRef.current) {
+-        releaseStreamsRef.current();
++    setCameras((current) => {
++      if (current.length > 0) {
++        console.log(
++          "🧹 Landing page: Cleaning up camera state from previous session",
++        );
++        releaseCameraStreams();
+       }
+-      setCameras([]);
+-    }
+-  }, []);
++      return [];
++    });
++  }, [releaseCameraStreams]);
+ 
+   useEffect(() => {
+     return () => {
+-      if (releaseStreamsRef.current) {
++      if (releaseCameraStreams()) {
+         console.log("🧹 Landing page: Cleaning up camera streams on unmount");
+-        releaseStreamsRef.current();
+       }
+     };
+-  }, []);
++  }, [releaseCameraStreams]);
  
    const openRecordingModal = () => {
      setCameras(selectedRecord ? [...(selectedRecord.cameras ?? [])] : []);
@@ -1832,7 +2483,7 @@ index 5aa7ae23a5eb2bf2dc192a01e2d122778bbe0558..239dfa8072ac398251b214e75c2c5a9b
    const handleRecordingModalClose = (open: boolean) => {
      setShowRecordingModal(open);
      if (!open && releaseStreamsRef.current) {
-@@ -114,6 +188,7 @@ const Landing = () => {
+@@ -114,6 +193,7 @@ const Landing = () => {
    };
  
    const handleCreateDataset = (name: string) => {
@@ -1840,7 +2491,7 @@ index 5aa7ae23a5eb2bf2dc192a01e2d122778bbe0558..239dfa8072ac398251b214e75c2c5a9b
      setDatasetName(name);
      openRecordingModal();
    };
-@@ -145,10 +220,26 @@ const Landing = () => {
+@@ -145,10 +225,26 @@ const Landing = () => {
        return;
      }
  
@@ -1869,7 +2520,7 @@ index 5aa7ae23a5eb2bf2dc192a01e2d122778bbe0558..239dfa8072ac398251b214e75c2c5a9b
  
      if (cameras.length > 0 && releaseStreamsRef.current) {
        console.log("🔓 Releasing camera streams before starting recording...");
-@@ -166,53 +257,25 @@ const Landing = () => {
+@@ -166,53 +262,25 @@ const Landing = () => {
        });
      }
  
@@ -1940,7 +2591,7 @@ index 5aa7ae23a5eb2bf2dc192a01e2d122778bbe0558..239dfa8072ac398251b214e75c2c5a9b
    };
  
    return (
-@@ -309,8 +372,15 @@ const Landing = () => {
+@@ -309,8 +377,15 @@ const Landing = () => {
          setEpisodeTimeS={setEpisodeTimeS}
          resetTimeS={resetTimeS}
          setResetTimeS={setResetTimeS}
@@ -1956,6 +2607,72 @@ index 5aa7ae23a5eb2bf2dc192a01e2d122778bbe0558..239dfa8072ac398251b214e75c2c5a9b
          cameras={cameras}
          setCameras={setCameras}
          onStart={handleStartRecording}
+diff --git a/frontend/src/pages/Recording.test.tsx b/frontend/src/pages/Recording.test.tsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..911ec89614aa3adc33917f912bc5be846e80dcb2
+--- /dev/null
++++ b/frontend/src/pages/Recording.test.tsx
+@@ -0,0 +1,60 @@
++// @vitest-environment jsdom
++import React, { act } from "react";
++import { createRoot } from "react-dom/client";
++import { expect, test } from "vitest";
++import { RecordingStartReceipt, StartReceipt } from "./Recording";
++
++test("shows backend-effective profile and exact resume arithmetic", () => {
++  Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
++  const receipt: StartReceipt = {
++    dataset_id: "local/demo_20260918_120000",
++    session_id: "fixture-session",
++    existing_episodes: 1,
++    additional_episodes: 2,
++    final_expected_episodes: 3,
++    effective_config: {
++      dataset_fps: 15,
++      cameras: {
++        arm: { camera_index: 1, width: 640, height: 480, fps: 30, backend: "DSHOW" },
++        table_veiw: { camera_index: 2, width: 640, height: 480, fps: 30, backend: "DSHOW" },
++      },
++      rgb_encoder: {
++        vcodec: "h264",
++        pix_fmt: "yuv420p",
++        video_backend: "pyav",
++        crf: 23,
++        g: 2,
++      },
++      max_relative_target: {
++        shoulder_pan: 5,
++        shoulder_lift: 5,
++        elbow_flex: 5,
++        wrist_flex: 5,
++        wrist_roll: 5,
++        gripper: 5,
++      },
++      max_relative_target_units: {
++        shoulder_pan: "degree",
++        shoulder_lift: "degree",
++        elbow_flex: "degree",
++        wrist_flex: "degree",
++        wrist_roll: "degree",
++        gripper: "normalized_0_100",
++      },
++    },
++  };
++  const host = document.createElement("div");
++  const root = createRoot(host);
++  try {
++    act(() => root.render(<RecordingStartReceipt receipt={receipt} />));
++    expect(host.textContent).toContain("1 existing + 2 additional = 3 expected");
++    expect(host.textContent).toContain("Dataset 15 Hz");
++    expect(host.textContent).toContain("arm: index 1 · 640×480 @ 30 Hz · backend DSHOW");
++    expect(host.textContent).toContain("table_veiw: index 2 · 640×480 @ 30 Hz · backend DSHOW");
++    expect(host.textContent).toContain("h264/yuv420p/pyav");
++    expect(host.textContent).toContain("shoulder_pan=5 degree");
++    expect(host.textContent).toContain("gripper=5 normalized_0_100");
++  } finally {
++    act(() => root.unmount());
++  }
++});
 diff --git a/frontend/src/pages/Recording.tsx b/frontend/src/pages/Recording.tsx
 index 0520130e46fe5255dea5d62007945291b4f50003..7832788dda4f4fc7f8e1496c8694f9cfe54f7c8e 100644
 --- a/frontend/src/pages/Recording.tsx
@@ -2577,8 +3294,38 @@ index b72db2a8ce69dec4d117d2761ae85e476a10ccd8..5fd28c0918df099ffa9724ca13c80b8b
            className="lg:w-full"
            rightSlot={<TeleopCameraPanel />}
          />
+diff --git a/frontend/src/pages/Upload.tsx b/frontend/src/pages/Upload.tsx
+index d620913f107454ecc16feef12867f9e255461695..8ef42968f0aecdfa491202f715b255a019272bb0 100644
+--- a/frontend/src/pages/Upload.tsx
++++ b/frontend/src/pages/Upload.tsx
+@@ -130,7 +130,7 @@ const Upload = () => {
+     };
+ 
+     loadDatasetInfo();
+-  }, [initialDatasetInfo, navigate, toast]);
++  }, [baseUrl, fetchWithHeaders, initialDatasetInfo, navigate, toast]);
+ 
+   const openInHubViewer = (repoId: string) => {
+     const spacePath = `/spaces/lerobot/visualize_dataset?path=${encodeURIComponent(`/${repoId}`)}`;
+diff --git a/frontend/tailwind.config.ts b/frontend/tailwind.config.ts
+index 8706086e12b025e554ac5e9b4c7b07022008921b..4ff3fdd840b6216dddafd0375ede0f681fc273d9 100644
+--- a/frontend/tailwind.config.ts
++++ b/frontend/tailwind.config.ts
+@@ -1,4 +1,5 @@
+ import type { Config } from "tailwindcss";
++import animate from "tailwindcss-animate";
+ 
+ export default {
+ 	darkMode: ["class"],
+@@ -92,5 +93,5 @@ export default {
+ 			}
+ 		}
+ 	},
+-	plugins: [require("tailwindcss-animate")],
++	plugins: [animate],
+ } satisfies Config;
 diff --git a/lelab/calibrate.py b/lelab/calibrate.py
-index 58a9bda005832b675bc3e4e303f565bfb262b361..d67158b90ff09a5e0c592b65cdf5fbfbe0ecd0fe 100644
+index 58a9bda005832b675bc3e4e303f565bfb262b361..943874561ec3a268e77c44864cdebe9fb5f23afb 100644
 --- a/lelab/calibrate.py
 +++ b/lelab/calibrate.py
 @@ -19,6 +19,7 @@ This module provides calibration functionality similar to the CLI calibrate.py,
@@ -2589,17 +3336,18 @@ index 58a9bda005832b675bc3e4e303f565bfb262b361..d67158b90ff09a5e0c592b65cdf5fbfb
  import logging
  import threading
  import time
-@@ -38,7 +39,8 @@ from lerobot.teleoperators import (
+@@ -38,7 +39,9 @@ from lerobot.teleoperators import (
  )
  from lerobot.utils.utils import init_logging
  
 -from .utils.devices import safe_disconnect_device
 +from .mode import HardwareLease, hardware_mode_gate
++from .utils.config import is_valid_calibration_id
 +from .utils.devices import DeviceCleanupResult, safe_disconnect_device
  
  logger = logging.getLogger(__name__)
  
-@@ -88,6 +90,9 @@ class CalibrationStatus:
+@@ -88,6 +91,9 @@ class CalibrationStatus:
      total_steps: int = 1  # Total number of calibration steps
      current_positions: dict[str, float] = None
      recorded_ranges: dict[str, dict[str, float]] = None  # {motor: {min: val, max: val, current: val}}
@@ -2609,7 +3357,7 @@ index 58a9bda005832b675bc3e4e303f565bfb262b361..d67158b90ff09a5e0c592b65cdf5fbfb
  
  
  @dataclass
-@@ -108,7 +113,7 @@ class CalibrationManager:
+@@ -108,7 +114,7 @@ class CalibrationManager:
          self.device: Robot | Teleoperator | None = None
          self.calibration_thread: threading.Thread | None = None
          self.stop_calibration = False
@@ -2618,7 +3366,7 @@ index 58a9bda005832b675bc3e4e303f565bfb262b361..d67158b90ff09a5e0c592b65cdf5fbfb
          self._step_complete = threading.Event()
          self._recording_active = False
          self._start_positions = {}
-@@ -116,57 +121,16 @@ class CalibrationManager:
+@@ -116,57 +122,16 @@ class CalibrationManager:
          self._maxes = {}
          self._homing_offsets = {}
          self._current_request: CalibrationRequest | None = None
@@ -2680,10 +3428,12 @@ index 58a9bda005832b675bc3e4e303f565bfb262b361..d67158b90ff09a5e0c592b65cdf5fbfb
  
      def _update_status(self, **kwargs):
          """Update calibration status thread-safely"""
-@@ -177,8 +141,13 @@ class CalibrationManager:
+@@ -177,8 +142,15 @@ class CalibrationManager:
  
      def start_calibration(self, request: CalibrationRequest) -> dict[str, Any]:
          """Start calibration process"""
++        if not is_valid_calibration_id(request.config_file):
++            return {"success": False, "status_code": 400, "message": "Invalid calibration config ID"}
 +        lease, owner = hardware_mode_gate.claim("calibration")
 +        if lease is None:
 +            return {"success": False, "message": f"{owner.title()} is currently active. Stop it first."}
@@ -2694,7 +3444,7 @@ index 58a9bda005832b675bc3e4e303f565bfb262b361..d67158b90ff09a5e0c592b65cdf5fbfb
                  return {"success": False, "message": "Calibration already active"}
  
              # Reset status and clear any previous calibration data
-@@ -186,6 +155,8 @@ class CalibrationManager:
+@@ -186,6 +158,8 @@ class CalibrationManager:
              self._mins = {}
              self._maxes = {}
              self._homing_offsets = {}
@@ -2703,7 +3453,7 @@ index 58a9bda005832b675bc3e4e303f565bfb262b361..d67158b90ff09a5e0c592b65cdf5fbfb
  
              self._update_status(
                  calibration_active=True,
-@@ -196,79 +167,94 @@ class CalibrationManager:
+@@ -196,79 +170,94 @@ class CalibrationManager:
                  step=0,
                  current_positions=None,
                  recorded_ranges=None,
@@ -2831,7 +3581,7 @@ index 58a9bda005832b675bc3e4e303f565bfb262b361..d67158b90ff09a5e0c592b65cdf5fbfb
          """Worker thread for calibration process"""
          try:
              logger.info(f"Starting calibration worker for {request.device_type}")
-@@ -298,7 +284,7 @@ class CalibrationManager:
+@@ -298,7 +287,7 @@ class CalibrationManager:
  
              if self.stop_calibration:
                  logger.info("Calibration stopped after device connection")
@@ -2840,7 +3590,7 @@ index 58a9bda005832b675bc3e4e303f565bfb262b361..d67158b90ff09a5e0c592b65cdf5fbfb
                  return
  
              # Start Step 1: Homing
-@@ -306,7 +292,7 @@ class CalibrationManager:
+@@ -306,7 +295,7 @@ class CalibrationManager:
  
              if self.stop_calibration:
                  logger.info("Calibration stopped after homing step")
@@ -2849,7 +3599,7 @@ index 58a9bda005832b675bc3e4e303f565bfb262b361..d67158b90ff09a5e0c592b65cdf5fbfb
                  return
  
              # Start Step 2: Range Recording
-@@ -314,32 +300,32 @@ class CalibrationManager:
+@@ -314,32 +303,32 @@ class CalibrationManager:
  
              if self.stop_calibration:
                  logger.info("Calibration stopped after recording step")
@@ -2888,7 +3638,7 @@ index 58a9bda005832b675bc3e4e303f565bfb262b361..d67158b90ff09a5e0c592b65cdf5fbfb
  
      def _step_homing(self):
          """Auto-capture homing offsets from the device's current position."""
-@@ -450,6 +436,20 @@ class CalibrationManager:
+@@ -450,6 +439,20 @@ class CalibrationManager:
                              if motor in self._mins:
                                  self._mins[motor] = min(self._mins[motor], pos)
                                  self._maxes[motor] = max(self._maxes[motor], pos)
@@ -2909,7 +3659,7 @@ index 58a9bda005832b675bc3e4e303f565bfb262b361..d67158b90ff09a5e0c592b65cdf5fbfb
  
                  time.sleep(0.05)  # 20Hz update rate
              except CalibrationDiscontinuityError:
-@@ -543,13 +543,32 @@ class CalibrationManager:
+@@ -543,13 +546,32 @@ class CalibrationManager:
              except Exception as e:
                  logger.warning(f"Robot-record write-back failed for {request.robot_name}: {e}")
  
@@ -2948,7 +3698,7 @@ index 58a9bda005832b675bc3e4e303f565bfb262b361..d67158b90ff09a5e0c592b65cdf5fbfb
          """Clean up device connection.
  
          Uses safe_disconnect_device so a failed disconnect (flaky USB/serial)
-@@ -558,8 +577,10 @@ class CalibrationManager:
+@@ -558,8 +580,10 @@ class CalibrationManager:
          """
          if self.device:
              logger.info("Disconnecting device...")
@@ -2960,11 +3710,176 @@ index 58a9bda005832b675bc3e4e303f565bfb262b361..d67158b90ff09a5e0c592b65cdf5fbfb
  
  
  # Global calibration manager instance
+diff --git a/lelab/dataset_repair.py b/lelab/dataset_repair.py
+index 8fe1e90a5c060488726fe99743765035bd796a86..67e9d9946c30fb3bb5493ba0a87826aa34de6abf 100644
+--- a/lelab/dataset_repair.py
++++ b/lelab/dataset_repair.py
+@@ -33,6 +33,14 @@ import shutil
+ from pathlib import Path
+ from typing import Any
+ 
++from .episode_media import (
++    DatasetNotFoundError,
++    UnsafeDatasetPathError,
++    ensure_safe_dataset_path,
++    iter_safe_files,
++    resolve_dataset_candidate,
++)
++
+ logger = logging.getLogger(__name__)
+ 
+ _CHUNK_FILE_RE = re.compile(r"chunk-(\d+)/file-(\d+)\.")
+@@ -54,7 +62,7 @@ def _video_files(root: Path, video_key: str) -> list[tuple[int, int, float]]:
+     import av
+ 
+     files = []
+-    for path in sorted((root / "videos" / video_key).rglob("*.mp4"), key=_chunk_file):
++    for path in sorted(iter_safe_files(root / "videos" / video_key, suffix=".mp4"), key=_chunk_file):
+         try:
+             with av.open(str(path)) as container:
+                 duration = float(container.duration) / av.time_base if container.duration else 0.0
+@@ -78,13 +86,14 @@ def _episodes_from_data(root: Path) -> tuple[list[dict[str, Any]], list[Path]]:
+ 
+     # Written with the first saved episode, so its absence means the session
+     # died before one completed.
+-    if not (root / "meta" / "tasks.parquet").exists():
++    tasks_path = ensure_safe_dataset_path(root, root / "meta" / "tasks.parquet")
++    if not tasks_path.exists():
+         return [], []
+ 
+-    tasks = pd.read_parquet(root / "meta" / "tasks.parquet")
++    tasks = pd.read_parquet(tasks_path)
+     task_by_index = {int(index): task for task, index in tasks["task_index"].items()}
+ 
+-    data_files = sorted((root / "data").rglob("*.parquet"), key=_chunk_file)
++    data_files = sorted(iter_safe_files(root / "data", suffix=".parquet"), key=_chunk_file)
+     rows: list[dict[str, Any]] = []
+     next_index = 0
+     for position, path in enumerate(data_files):
+@@ -157,7 +166,7 @@ def _trim_data(root: Path, keep_through: int) -> int:
+     import pyarrow.parquet as pq
+ 
+     dropped = 0
+-    for path in sorted((root / "data").rglob("*.parquet"), key=_chunk_file):
++    for path in sorted(iter_safe_files(root / "data", suffix=".parquet"), key=_chunk_file):
+         table = pq.read_table(path)
+         kept = table.filter(pc.less_equal(table["episode_index"], keep_through))
+         if kept.num_rows == table.num_rows:
+@@ -181,7 +190,11 @@ def _episode_video_frames(root: Path, video_key: str, row: dict[str, Any]) -> "n
+     start = row[f"videos/{video_key}/from_timestamp"]
+     end = row[f"videos/{video_key}/to_timestamp"]
+ 
+-    path = next((root / "videos" / video_key).rglob(f"*file-{file_index:03d}.mp4"))
++    path = next(
++        path
++        for path in iter_safe_files(root / "videos" / video_key, suffix=".mp4")
++        if path.name == f"file-{file_index:03d}.mp4"
++    )
+     with av.open(str(path)) as container:
+         frames = [
+             frame
+@@ -211,7 +224,7 @@ def _recompute_stats(root: Path, info: dict[str, Any], rows: list[dict[str, Any]
+     from lerobot.datasets.io_utils import write_stats
+ 
+     columns: dict[str, np.ndarray] = {}  # noqa: F821
+-    for path in sorted((root / "data").rglob("*.parquet"), key=_chunk_file):
++    for path in sorted(iter_safe_files(root / "data", suffix=".parquet"), key=_chunk_file):
+         table = pq.read_table(path)
+         for key in table.schema.names:
+             values = np.stack(table[key].to_numpy(zero_copy_only=False).tolist())
+@@ -243,6 +256,7 @@ def _write_episodes(root: Path, rows: list[dict[str, Any]]) -> None:
+     import pyarrow.parquet as pq
+ 
+     episodes_dir = root / "meta" / "episodes"
++    ensure_safe_dataset_path(root, episodes_dir)
+     shutil.rmtree(episodes_dir, ignore_errors=True)
+     path = episodes_dir / "chunk-000" / "file-000.parquet"
+     path.parent.mkdir(parents=True, exist_ok=True)
+@@ -257,26 +271,29 @@ def repair_local_dataset(repo_id: str) -> str | None:
+     to recover.
+     """
+     from lerobot.datasets.io_utils import load_episodes
+-    from lerobot.utils.constants import HF_LEROBOT_HOME
+-
+-    cache_root = Path(HF_LEROBOT_HOME).resolve()
+-    root = (cache_root / repo_id).resolve()
+-
+-    # repo_id reaches here straight from the request body, and this function
+-    # rewrites info.json and renames files. Keep it inside the cache.
+-    if root == cache_root or cache_root not in root.parents:
+-        raise DatasetRepairError(f"Invalid dataset id: {repo_id}")
++    try:
++        root = resolve_dataset_candidate(repo_id)
++    except DatasetNotFoundError as exc:
++        raise DatasetRepairError(f"Invalid dataset id: {repo_id}") from exc
+ 
+-    if not (root / "meta" / "info.json").exists():
++    info_path = ensure_safe_dataset_path(root, root / "meta" / "info.json")
++    if not info_path.exists():
+         return None
+ 
++    # This path can rewrite or remove descendants. Reject the entire tree before
++    # inspecting file content so a junction cannot redirect repair outside it.
++    try:
++        iter_safe_files(root)
++    except UnsafeDatasetPathError as exc:
++        raise DatasetRepairError(f"Unsafe dataset tree for {repo_id}: {exc}") from exc
++
+     try:
+         load_episodes(root)
+         return None
+     except Exception as e:
+         logger.info("%s has no usable episode index (%s) — rebuilding it from disk", repo_id, e)
+ 
+-    info = json.loads((root / "meta" / "info.json").read_text())
++    info = json.loads(info_path.read_text())
+     fps = info["fps"]
+     recorded_episodes = info.get("total_episodes", 0)
+ 
+@@ -308,7 +325,7 @@ def repair_local_dataset(repo_id: str) -> str | None:
+     info["total_episodes"] = len(rows)
+     info["total_frames"] = sum(row["length"] for row in rows)
+     info["splits"] = {"train": f"0:{len(rows)}"}
+-    (root / "meta" / "info.json").write_text(json.dumps(info, indent=4))
++    info_path.write_text(json.dumps(info, indent=4))
+ 
+     message = f"Recovered {len(rows)} episode(s) from an interrupted recording of {repo_id}"
+     if lost > 0:
 diff --git a/lelab/datasets.py b/lelab/datasets.py
-index 2948fe51f19ed7224d2db6d96fd60aea3acccd2f..3074c36ae3a11f20dbb8635ca8a2be1de6491694 100644
+index 2948fe51f19ed7224d2db6d96fd60aea3acccd2f..e50919fd690a4e92aa420ea4cbb8e7e8347733c4 100644
 --- a/lelab/datasets.py
 +++ b/lelab/datasets.py
-@@ -200,12 +200,52 @@ def handle_list_episodes(repo_id: str) -> dict[str, Any]:
+@@ -33,7 +33,10 @@ def _lerobot_cache_root() -> Path:
+ def _is_dataset_dir(path: Path) -> bool:
+     """A directory is a LeRobot dataset iff <dir>/meta/info.json exists."""
+     try:
+-        return (path / "meta" / "info.json").is_file()
++        if episode_media.is_link_or_reparse(path):
++            return False
++        info_path = episode_media.ensure_safe_dataset_path(path, path / "meta" / "info.json")
++        return info_path.is_file()
+     except OSError:
+         return False
+ 
+@@ -66,7 +69,7 @@ def list_local_datasets() -> list[dict[str, Any]]:
+ 
+     for top in top_entries:
+         try:
+-            if not top.is_dir():
++            if episode_media.is_link_or_reparse(top) or not top.is_dir():
+                 continue
+         except OSError:
+             continue
+@@ -88,7 +91,7 @@ def list_local_datasets() -> list[dict[str, Any]]:
+             continue
+         for sub in sub_entries:
+             try:
+-                if not sub.is_dir():
++                if episode_media.is_link_or_reparse(sub) or not sub.is_dir():
+                     continue
+             except OSError:
+                 continue
+@@ -200,12 +203,52 @@ def handle_list_episodes(repo_id: str) -> dict[str, Any]:
              "message": f"{repo_id} has no episode index: the recording was interrupted before it finished writing.",
          }
  
@@ -3018,7 +3933,7 @@ index 2948fe51f19ed7224d2db6d96fd60aea3acccd2f..3074c36ae3a11f20dbb8635ca8a2be1d
          "total_frames": info.get("total_frames"),
          "cameras": cameras,
          "episodes": [
-@@ -242,11 +282,14 @@ def handle_episode_detail(repo_id: str, episode_index: int) -> dict[str, Any]:
+@@ -242,11 +285,14 @@ def handle_episode_detail(repo_id: str, episode_index: int) -> dict[str, Any]:
          return {"success": False, "message": f"Episode {episode_index} not found in {repo_id}"}
  
      cameras: list[dict[str, Any]] = []
@@ -3034,7 +3949,7 @@ index 2948fe51f19ed7224d2db6d96fd60aea3acccd2f..3074c36ae3a11f20dbb8635ca8a2be1d
              continue
          cameras.append(
              {
-@@ -263,6 +306,8 @@ def handle_episode_detail(repo_id: str, episode_index: int) -> dict[str, Any]:
+@@ -263,6 +309,8 @@ def handle_episode_detail(repo_id: str, episode_index: int) -> dict[str, Any]:
  
      return {
          "success": True,
@@ -3043,7 +3958,7 @@ index 2948fe51f19ed7224d2db6d96fd60aea3acccd2f..3074c36ae3a11f20dbb8635ca8a2be1d
          "repo_id": repo_id,
          "episode_index": episode_index,
          "length": row.length,
-@@ -330,6 +375,12 @@ def handle_episode_thumbnails(
+@@ -330,6 +378,12 @@ def handle_episode_thumbnails(
  
      return {
          "success": True,
@@ -3057,10 +3972,265 @@ index 2948fe51f19ed7224d2db6d96fd60aea3acccd2f..3074c36ae3a11f20dbb8635ca8a2be1d
          "camera": location.camera,
          "thumbnails": [
 diff --git a/lelab/episode_media.py b/lelab/episode_media.py
-index 90b193d3e8fd75fa9a771eccce46cb95411c663c..423f8b4953896e5d2bd74b91b4e8e5d75d6c1a3d 100644
+index 90b193d3e8fd75fa9a771eccce46cb95411c663c..0b8cf651daad17cd149b09752b2adcd4b75c3b98 100644
 --- a/lelab/episode_media.py
 +++ b/lelab/episode_media.py
-@@ -432,9 +432,9 @@ def _frame_time(location: EpisodeVideoLocation, frame_index: int) -> float:
+@@ -42,6 +42,8 @@ import io
+ import json
+ import logging
+ import os
++import re
++import stat
+ from dataclasses import dataclass
+ from pathlib import Path
+ from typing import Any
+@@ -49,6 +51,8 @@ from typing import Any
+ logger = logging.getLogger(__name__)
+ 
+ VIDEO_KEY_PREFIX = "observation.images."
++_REPO_COMPONENT_RE = re.compile(r"^[A-Za-z0-9._-]+$")
++_WINDOWS_REPARSE_POINT = 0x400
+ 
+ 
+ class DatasetNotFoundError(LookupError):
+@@ -59,6 +63,10 @@ class EpisodeNotFoundError(LookupError):
+     """The requested episode/camera/frame combination doesn't exist on disk."""
+ 
+ 
++class UnsafeDatasetPathError(RuntimeError):
++    """A dataset path contains a link, junction, or other special entry."""
++
++
+ # ── dataset resolution ──────────────────────────────────────────────────────
+ 
+ 
+@@ -73,6 +81,106 @@ def lerobot_cache_root() -> Path:
+     return Path(os.environ.get("HF_LEROBOT_HOME", "~/.cache/huggingface/lerobot")).expanduser().resolve()
+ 
+ 
++def repo_id_parts(repo_id: str) -> tuple[str, ...]:
++    """Validate a local/Hub-style dataset id without touching the filesystem."""
++
++    if not isinstance(repo_id, str) or not repo_id or repo_id != repo_id.strip():
++        raise DatasetNotFoundError(f"Invalid dataset path: {repo_id}")
++    if "\\" in repo_id or repo_id.startswith("/") or repo_id.count("/") > 1:
++        raise DatasetNotFoundError(f"Invalid dataset path: {repo_id}")
++    parts = tuple(repo_id.split("/"))
++    if any(part in {"", ".", ".."} or _REPO_COMPONENT_RE.fullmatch(part) is None for part in parts):
++        raise DatasetNotFoundError(f"Invalid dataset path: {repo_id}")
++    return parts
++
++
++def is_link_or_reparse(path: Path) -> bool:
++    """Check one existing path entry without following it."""
++
++    try:
++        metadata = path.lstat()
++    except FileNotFoundError:
++        return False
++    return stat.S_ISLNK(metadata.st_mode) or bool(
++        getattr(metadata, "st_file_attributes", 0) & _WINDOWS_REPARSE_POINT
++    )
++
++
++def ensure_safe_dataset_path(dataset_dir: Path, candidate: Path, *, require_file: bool = False) -> Path:
++    """Keep a lexical descendant inside a dataset and reject linked components."""
++
++    root = Path(os.path.abspath(dataset_dir))
++    target = Path(os.path.abspath(candidate))
++    try:
++        relative = target.relative_to(root)
++    except ValueError as exc:
++        raise UnsafeDatasetPathError(f"Dataset path escaped its root: {candidate}") from exc
++
++    current = root
++    for part in relative.parts:
++        current /= part
++        if is_link_or_reparse(current):
++            raise UnsafeDatasetPathError(f"Dataset path contains a link or reparse point: {current}")
++    if require_file and (not target.exists() or not stat.S_ISREG(target.lstat().st_mode)):
++        raise UnsafeDatasetPathError(f"Dataset file is missing or not regular: {target}")
++    return target
++
++
++def iter_safe_files(root: Path, *, suffix: str | None = None) -> list[Path]:
++    """List regular files recursively without following links or junctions."""
++
++    root = Path(os.path.abspath(root))
++    if is_link_or_reparse(root):
++        raise UnsafeDatasetPathError(f"Dataset tree root is unsafe: {root}")
++    if not root.exists():
++        return []
++    if not stat.S_ISDIR(root.lstat().st_mode):
++        raise UnsafeDatasetPathError(f"Dataset tree root is unsafe: {root}")
++
++    files: list[Path] = []
++    pending = [root]
++    while pending:
++        current = pending.pop()
++        try:
++            entries = list(os.scandir(current))
++        except OSError as exc:
++            raise UnsafeDatasetPathError(f"Unable to inspect dataset tree: {current}") from exc
++        for entry in entries:
++            path = Path(entry.path)
++            try:
++                metadata = entry.stat(follow_symlinks=False)
++            except OSError as exc:
++                raise UnsafeDatasetPathError(f"Unable to inspect dataset entry: {path}") from exc
++            if entry.is_symlink() or getattr(metadata, "st_file_attributes", 0) & _WINDOWS_REPARSE_POINT:
++                raise UnsafeDatasetPathError(f"Dataset tree contains a link or reparse point: {path}")
++            if stat.S_ISDIR(metadata.st_mode):
++                pending.append(path)
++            elif stat.S_ISREG(metadata.st_mode):
++                if suffix is None or path.name.endswith(suffix):
++                    files.append(path)
++            else:
++                raise UnsafeDatasetPathError(f"Dataset tree contains a special entry: {path}")
++    return sorted(files)
++
++
++def resolve_dataset_candidate(repo_id: str) -> Path:
++    """Resolve a validated dataset id inside the local cache, whether or not it exists."""
++
++    root = lerobot_cache_root()
++    lexical_target = root.joinpath(*repo_id_parts(repo_id))
++    try:
++        ensure_safe_dataset_path(root, lexical_target)
++    except UnsafeDatasetPathError as exc:
++        raise DatasetNotFoundError(f"Invalid dataset path: {repo_id}") from exc
++    try:
++        target = lexical_target.resolve()
++    except (ValueError, OSError) as exc:
++        raise DatasetNotFoundError(f"Invalid dataset path: {repo_id}") from exc
++    if target == root or root not in target.parents:
++        raise DatasetNotFoundError(f"Invalid dataset path: {repo_id}")
++    return target
++
++
+ def resolve_dataset_dir(repo_id: str) -> Path:
+     """Resolve ``repo_id`` to a local dataset directory.
+ 
+@@ -80,15 +188,9 @@ def resolve_dataset_dir(repo_id: str) -> Path:
+     resolved target must stay strictly inside the cache root. ``repo_id`` comes
+     from a query string, so this is load-bearing rather than defensive.
+     """
+-    root = lerobot_cache_root()
+-    try:
+-        target = (root / repo_id).resolve()
+-    except (ValueError, OSError) as e:
+-        # e.g. an embedded NUL byte; a garbage repo_id is a 404, not a 500.
+-        raise DatasetNotFoundError(f"Invalid dataset path: {repo_id}") from e
+-    if target == root or root not in target.parents:
+-        raise DatasetNotFoundError(f"Invalid dataset path: {repo_id}")
+-    if not (target / "meta" / "info.json").is_file():
++    target = resolve_dataset_candidate(repo_id)
++    info_path = ensure_safe_dataset_path(target, target / "meta" / "info.json")
++    if not info_path.is_file():
+         raise DatasetNotFoundError(f"Dataset not found locally: {repo_id}")
+     return target
+ 
+@@ -96,9 +198,12 @@ def resolve_dataset_dir(repo_id: str) -> Path:
+ def read_info(dataset_dir: Path) -> dict[str, Any]:
+     """Parsed ``meta/info.json``."""
+     try:
+-        with open(dataset_dir / "meta" / "info.json") as f:
++        path = ensure_safe_dataset_path(
++            dataset_dir, dataset_dir / "meta" / "info.json", require_file=True
++        )
++        with open(path) as f:
+             return json.load(f)
+-    except (OSError, json.JSONDecodeError) as e:
++    except (OSError, json.JSONDecodeError, UnsafeDatasetPathError) as e:
+         raise DatasetNotFoundError(f"Unreadable meta/info.json in {dataset_dir}: {e}") from e
+ 
+ 
+@@ -151,6 +256,7 @@ def read_episode_index(dataset_dir: Path) -> list[EpisodeIndexRow]:
+     import pyarrow.parquet as pq
+ 
+     eps_dir = dataset_dir / "meta" / "episodes"
++    eps_dir = ensure_safe_dataset_path(dataset_dir, eps_dir)
+     if not eps_dir.is_dir():
+         return []
+ 
+@@ -164,7 +270,7 @@ def read_episode_index(dataset_dir: Path) -> list[EpisodeIndexRow]:
+     to_col = f"videos/{VIDEO_KEY_PREFIX}{cam}/to_timestamp" if cam else None
+ 
+     rows: list[EpisodeIndexRow] = []
+-    for f in sorted(eps_dir.rglob("*.parquet")):
++    for f in iter_safe_files(eps_dir, suffix=".parquet"):
+         try:
+             schema = pq.read_schema(f)
+         except Exception as e:
+@@ -231,6 +337,7 @@ def _locate_via_meta(
+     import pyarrow.parquet as pq
+ 
+     eps_dir = dataset_dir / "meta" / "episodes"
++    eps_dir = ensure_safe_dataset_path(dataset_dir, eps_dir)
+     if not eps_dir.is_dir():
+         return None
+ 
+@@ -238,7 +345,7 @@ def _locate_via_meta(
+     chunk_col, file_col = f"{base}/chunk_index", f"{base}/file_index"
+     from_col, to_col = f"{base}/from_timestamp", f"{base}/to_timestamp"
+ 
+-    for f in sorted(eps_dir.rglob("*.parquet")):
++    for f in iter_safe_files(eps_dir, suffix=".parquet"):
+         try:
+             schema = pq.read_schema(f)
+         except Exception:
+@@ -284,8 +391,9 @@ def _resolve_action_file(dataset_dir: Path, episode_idx: int) -> Path | None:
+     import pyarrow.parquet as pq
+ 
+     eps_dir = dataset_dir / "meta" / "episodes"
++    eps_dir = ensure_safe_dataset_path(dataset_dir, eps_dir)
+     if eps_dir.is_dir():
+-        for f in sorted(eps_dir.rglob("*.parquet")):
++        for f in iter_safe_files(eps_dir, suffix=".parquet"):
+             try:
+                 schema = pq.read_schema(f)
+             except Exception:
+@@ -305,10 +413,12 @@ def _resolve_action_file(dataset_dir: Path, episode_idx: int) -> Path | None:
+                 chunk = int(t["data/chunk_index"][i]) if "data/chunk_index" in t else 0
+                 file_idx = int(t["data/file_index"][i]) if "data/file_index" in t else 0
+                 target = dataset_dir / "data" / f"chunk-{chunk:03d}" / f"file-{file_idx:03d}.parquet"
++                target = ensure_safe_dataset_path(dataset_dir, target)
+                 if target.is_file():
+                     return target
+ 
+     fallback = dataset_dir / "data" / "chunk-000" / "file-000.parquet"
++    fallback = ensure_safe_dataset_path(dataset_dir, fallback)
+     return fallback if fallback.is_file() else None
+ 
+ 
+@@ -364,6 +474,7 @@ def _locate_fallback(
+         cam_dir / "chunk-000" / f"file-{episode_idx:03d}.mp4",
+         cam_dir / f"episode_{episode_idx:06d}.mp4",
+     ):
++        candidate = ensure_safe_dataset_path(dataset_dir, candidate)
+         if candidate.exists():
+             return EpisodeVideoLocation(
+                 camera=camera,
+@@ -392,6 +503,7 @@ def resolve_video_file(dataset_dir: Path, camera: str, chunk: int, file_index: i
+         / f"chunk-{int(chunk):03d}"
+         / f"file-{int(file_index):03d}.mp4"
+     )
++    path = ensure_safe_dataset_path(dataset_dir, path)
+     if not path.is_file():
+         raise EpisodeNotFoundError(f"No video at {path.name} for camera {camera!r}")
+     return path
+@@ -413,8 +525,9 @@ def locate_episode_video(
+     location = _locate_via_meta(dataset_dir, episode_idx, cam, fps) or _locate_fallback(
+         dataset_dir, episode_idx, cam, fps
+     )
+-    if location is None or not location.path.exists():
++    if location is None:
+         raise EpisodeNotFoundError(f"Episode {episode_idx} for camera {cam!r} not found on disk")
++    ensure_safe_dataset_path(dataset_dir, location.path, require_file=True)
+     return location
+ 
+ 
+@@ -432,9 +545,9 @@ def _frame_time(location: EpisodeVideoLocation, frame_index: int) -> float:
  def _decode_at(container, stream, target_s: float):
      """Decode the first frame at or after ``target_s``.
  
@@ -3073,7 +4243,7 @@ index 90b193d3e8fd75fa9a771eccce46cb95411c663c..423f8b4953896e5d2bd74b91b4e8e5d7
      """
      # Every real mp4 stream carries a time_base; the fallback keeps a synthetic
      # or damaged stream from dividing by None.
-@@ -444,12 +444,52 @@ def _decode_at(container, stream, target_s: float):
+@@ -444,12 +557,52 @@ def _decode_at(container, stream, target_s: float):
      except Exception:
          container.seek(0)
  
@@ -3129,7 +4299,7 @@ index 90b193d3e8fd75fa9a771eccce46cb95411c663c..423f8b4953896e5d2bd74b91b4e8e5d7
  
  
  def extract_frame_png(
-@@ -479,6 +519,11 @@ def extract_frame_png(
+@@ -479,6 +632,11 @@ def extract_frame_png(
              frame = _decode_at(container, stream, target)
              if frame is None:
                  raise EpisodeNotFoundError(f"No frame at {target:.3f}s in {location.path.name}")
@@ -3141,7 +4311,7 @@ index 90b193d3e8fd75fa9a771eccce46cb95411c663c..423f8b4953896e5d2bd74b91b4e8e5d7
              img = frame.to_image()
      except EpisodeNotFoundError:
          raise
-@@ -526,8 +571,11 @@ def extract_thumbnails(
+@@ -526,8 +684,11 @@ def extract_thumbnails(
              stream = container.streams.video[0]
              stream.thread_type = "AUTO"
              for idx in targets:
@@ -3290,7 +4460,7 @@ index 0000000000000000000000000000000000000000..46c2fc4d1b0f0be2f3f282f909f5a29c
 +
 +hardware_mode_gate = HardwareModeGate()
 diff --git a/lelab/record.py b/lelab/record.py
-index 07e13f27b4e3504a145c593e4919fa0450ffdbbf..155e544712e4fc68478835687c23e1b1c57ce6fd 100644
+index 07e13f27b4e3504a145c593e4919fa0450ffdbbf..52806f39033eaf704ce645606c459885cdcc0707 100644
 --- a/lelab/record.py
 +++ b/lelab/record.py
 @@ -12,18 +12,33 @@
@@ -3330,22 +4500,25 @@ index 07e13f27b4e3504a145c593e4919fa0450ffdbbf..155e544712e4fc68478835687c23e1b1
  from lerobot.datasets import LeRobotDataset
  from lerobot.robots.so_follower import SO101FollowerConfig
  
-@@ -32,6 +47,14 @@ from lerobot.scripts.lerobot_record import RecordConfig
+@@ -32,6 +47,17 @@ from lerobot.scripts.lerobot_record import RecordConfig
  from lerobot.teleoperators.so_leader import SO101LeaderConfig
  
  from .dataset_repair import DatasetRepairError, repair_local_dataset
 +from .episode_media import (
-+    lerobot_cache_root,
++    DatasetNotFoundError,
++    UnsafeDatasetPathError,
++    iter_safe_files,
 +    list_cameras,
 +    read_episode_index,
 +    read_info,
++    resolve_dataset_candidate,
 +    resolve_dataset_dir,
 +)
 +from .mode import HardwareLease, hardware_mode_gate
  from .utils.config import setup_calibration_files, with_lelab_tag
  from .utils.devices import safe_disconnect_device
  
-@@ -50,6 +73,20 @@ recording_start_time = None  # Track when recording started
+@@ -50,6 +76,20 @@ recording_start_time = None  # Track when recording started
  session_end_elapsed_seconds = None  # Final session duration after the run ends
  current_episode = 1  # Track current episode number
  saved_episodes = 0  # Track how many episodes have been saved
@@ -3366,7 +4539,7 @@ index 07e13f27b4e3504a145c593e4919fa0450ffdbbf..155e544712e4fc68478835687c23e1b1
  current_phase = "preparing"  # Track current phase: "preparing", "recording", "resetting", "completed"
  phase_start_time = None  # Track when current phase started
  last_recording_info: dict[str, Any] | None = (
-@@ -58,27 +95,150 @@ last_recording_info: dict[str, Any] | None = (
+@@ -58,27 +98,150 @@ last_recording_info: dict[str, Any] | None = (
  # Guards the start path so two concurrent POST /start-recording calls cannot
  # both pass the active-flag check.
  _state_lock = threading.Lock()
@@ -3524,7 +4697,7 @@ index 07e13f27b4e3504a145c593e4919fa0450ffdbbf..155e544712e4fc68478835687c23e1b1
  
  
  class UploadRequest(BaseModel):
-@@ -91,6 +251,238 @@ class DatasetInfoRequest(BaseModel):
+@@ -91,6 +254,237 @@ class DatasetInfoRequest(BaseModel):
      dataset_repo_id: str
  
  
@@ -3556,11 +4729,10 @@ index 07e13f27b4e3504a145c593e4919fa0450ffdbbf..155e544712e4fc68478835687c23e1b1
 +def _dataset_root(repo_id: str, *, must_exist: bool) -> Path:
 +    if must_exist:
 +        return resolve_dataset_dir(repo_id)
-+    root = lerobot_cache_root()
-+    target = (root / repo_id).resolve()
-+    if target == root or root not in target.parents:
-+        raise ValueError("dataset_repo_id escaped the local LeRobot cache")
-+    return target
++    try:
++        return resolve_dataset_candidate(repo_id)
++    except DatasetNotFoundError as exc:
++        raise ValueError("dataset_repo_id escaped the local LeRobot cache") from exc
 +
 +
 +def _recording_evidence_root() -> Path:
@@ -3763,7 +4935,7 @@ index 07e13f27b4e3504a145c593e4919fa0450ffdbbf..155e544712e4fc68478835687c23e1b1
  def _platform_backend():
      """Pin the OpenCV backend per-platform so the index→camera mapping matches
      what the /available-cameras thumbnails were captured with. cv2.CAP_ANY can
-@@ -112,7 +504,7 @@ def _platform_backend():
+@@ -112,7 +506,7 @@ def _platform_backend():
      return Cv2Backends.ANY
  
  
@@ -3772,7 +4944,7 @@ index 07e13f27b4e3504a145c593e4919fa0450ffdbbf..155e544712e4fc68478835687c23e1b1
      """Convert the frontend camera dict into OpenCVCameraConfig objects.
  
      `backend` (a Cv2Backends name) and `fourcc` (a 4-char code) are optional per
-@@ -123,28 +515,29 @@ def _build_camera_configs(cameras: dict, default_backend) -> dict:
+@@ -123,28 +517,29 @@ def _build_camera_configs(cameras: dict, default_backend) -> dict:
  
      camera_configs: dict = {}
      for camera_name, camera_data in cameras.items():
@@ -3812,7 +4984,7 @@ index 07e13f27b4e3504a145c593e4919fa0450ffdbbf..155e544712e4fc68478835687c23e1b1
              f"fourcc={fourcc})"
          )
      return camera_configs
-@@ -152,6 +545,10 @@ def _build_camera_configs(cameras: dict, default_backend) -> dict:
+@@ -152,6 +547,10 @@ def _build_camera_configs(cameras: dict, default_backend) -> dict:
  
  def create_record_config(request: RecordingRequest) -> RecordConfig:
      """Create a RecordConfig from the recording request"""
@@ -3823,7 +4995,7 @@ index 07e13f27b4e3504a145c593e4919fa0450ffdbbf..155e544712e4fc68478835687c23e1b1
      # Setup calibration files
      leader_config_name, follower_config_name = setup_calibration_files(
          request.leader_config, request.follower_config
-@@ -160,12 +557,31 @@ def create_record_config(request: RecordingRequest) -> RecordConfig:
+@@ -160,12 +559,31 @@ def create_record_config(request: RecordingRequest) -> RecordConfig:
      # Convert the frontend camera dict into OpenCVCameraConfig objects. Backend
      # defaults to the platform pin unless the request overrides it per camera.
      camera_configs = _build_camera_configs(request.cameras, _platform_backend())
@@ -3855,7 +5027,7 @@ index 07e13f27b4e3504a145c593e4919fa0450ffdbbf..155e544712e4fc68478835687c23e1b1
      )
  
      # Create teleop config
-@@ -177,6 +593,7 @@ def create_record_config(request: RecordingRequest) -> RecordConfig:
+@@ -177,6 +595,7 @@ def create_record_config(request: RecordingRequest) -> RecordConfig:
      # Create dataset config
      dataset_config = DatasetRecordConfig(
          repo_id=request.dataset_repo_id,
@@ -3863,7 +5035,7 @@ index 07e13f27b4e3504a145c593e4919fa0450ffdbbf..155e544712e4fc68478835687c23e1b1
          single_task=request.single_task,
          num_episodes=request.num_episodes,
          episode_time_s=request.episode_time_s,
-@@ -189,6 +606,8 @@ def create_record_config(request: RecordingRequest) -> RecordConfig:
+@@ -189,6 +608,8 @@ def create_record_config(request: RecordingRequest) -> RecordConfig:
          tags=with_lelab_tag(request.tags) if request.push_to_hub else None,
          private=request.private,
          streaming_encoding=request.streaming_encoding,
@@ -3872,7 +5044,7 @@ index 07e13f27b4e3504a145c593e4919fa0450ffdbbf..155e544712e4fc68478835687c23e1b1
      )
  
      # Create the main record config
-@@ -201,294 +620,436 @@ def create_record_config(request: RecordingRequest) -> RecordConfig:
+@@ -201,294 +622,436 @@ def create_record_config(request: RecordingRequest) -> RecordConfig:
          play_sounds=False,  # Don't play sounds in API mode
      )
  
@@ -4033,14 +5205,14 @@ index 07e13f27b4e3504a145c593e4919fa0450ffdbbf..155e544712e4fc68478835687c23e1b1
 +            _recording_lease = lease
 +
 +        effective_config = record_config._lelab_effective_config
-+
+ 
 +        def recording_worker():
 +            global recording_active, recording_start_time, session_end_elapsed_seconds
 +            global current_phase, phase_start_time, last_recording_info, _recording_lease
 +            global current_end_reason
 +            global recording_cleanup_warnings, recording_cleanup_errors
 +            global recording_device_cleanup_errors, recording_finalize_ok
- 
++
 +            recording_start_time = time.time()
 +            dataset = None
              try:
@@ -4531,7 +5703,7 @@ index 07e13f27b4e3504a145c593e4919fa0450ffdbbf..155e544712e4fc68478835687c23e1b1
      """Yield multipart-MJPEG chunks of one recording camera's latest frames.
  
      Reads via the camera's non-blocking `read_latest()` peek, so it shares the
-@@ -504,16 +1065,28 @@ def camera_feed_frames(cam_key: str, fps: float = 15.0):
+@@ -504,16 +1067,28 @@ def camera_feed_frames(cam_key: str, fps: float = 15.0):
      # The session sets `current_robot` only after the robot connects (which is
      # preceded by a ~2s camera-release wait), so give it a moment to appear.
      deadline = time.time() + 15.0
@@ -4564,7 +5736,7 @@ index 07e13f27b4e3504a145c593e4919fa0450ffdbbf..155e544712e4fc68478835687c23e1b1
              break
          cam = robot.cameras.get(cam_key)
          if cam is None:
-@@ -540,31 +1113,48 @@ def camera_feed_frames(cam_key: str, fps: float = 15.0):
+@@ -540,31 +1115,48 @@ def camera_feed_frames(cam_key: str, fps: float = 15.0):
  
  
  def handle_get_dataset_info(request: DatasetInfoRequest) -> dict[str, Any]:
@@ -4633,7 +5805,39 @@ index 07e13f27b4e3504a145c593e4919fa0450ffdbbf..155e544712e4fc68478835687c23e1b1
      except Exception as e:
          logger.warning(f"Could not load local dataset {request.dataset_repo_id}: {e}")
          return {
-@@ -655,17 +1245,264 @@ def handle_upload_dataset(request: UploadRequest) -> dict[str, Any]:
+@@ -576,23 +1168,22 @@ def handle_get_dataset_info(request: DatasetInfoRequest) -> dict[str, Any]:
+ def handle_delete_dataset(request: DatasetInfoRequest) -> dict[str, Any]:
+     """Remove a recorded dataset's directory from local disk."""
+     global last_recording_info
+-    from pathlib import Path
+-
+-    from lerobot.utils.constants import HF_LEROBOT_HOME
+-
+     repo_id = request.dataset_repo_id
+-    root = Path(HF_LEROBOT_HOME).resolve()
+-    target = (root / repo_id).resolve()
+-
+-    # Reject path traversal: target must stay strictly inside HF_LEROBOT_HOME.
+-    if target == root or root not in target.parents:
++    try:
++        target = resolve_dataset_candidate(repo_id)
++    except DatasetNotFoundError:
+         return {"success": False, "message": "Invalid dataset path"}
+ 
+     if not target.exists():
+         return {"success": False, "message": f"Dataset not found on disk: {repo_id}"}
+ 
+     try:
++        # Deletion is explicit, but it must never traverse a linked descendant.
++        iter_safe_files(target)
+         shutil.rmtree(target)
++    except UnsafeDatasetPathError as e:
++        logger.error(f"Refused unsafe dataset deletion {repo_id}: {e}")
++        return {"success": False, "message": "Dataset contains an unsafe linked path"}
+     except Exception as e:
+         logger.error(f"Failed to delete dataset {repo_id}: {e}")
+         return {"success": False, "message": f"Failed to delete dataset: {e}"}
+@@ -655,17 +1246,264 @@ def handle_upload_dataset(request: UploadRequest) -> dict[str, Any]:
          return {"success": False, "message": f"Failed to upload dataset: {str(e)}"}
  
  
@@ -4904,7 +6108,7 @@ index 07e13f27b4e3504a145c593e4919fa0450ffdbbf..155e544712e4fc68478835687c23e1b1
      from lerobot.processor import make_default_processors
      from lerobot.robots import make_robot_from_config
      from lerobot.scripts.lerobot_record import record_loop
-@@ -674,316 +1511,252 @@ def record_with_web_events(cfg: RecordConfig, web_events: dict) -> LeRobotDatase
+@@ -674,316 +1512,252 @@ def record_with_web_events(cfg: RecordConfig, web_events: dict) -> LeRobotDatase
      from lerobot.utils.utils import log_say
  
      global current_phase, phase_start_time, current_episode, saved_episodes, current_robot
@@ -5808,7 +7012,7 @@ index de1bd874086f6e1ba1fd99b4e450536d42328516..399466d5f4c7cfcc6669515d09f81fb2
      for proc in procs:
          with contextlib.suppress(psutil.NoSuchProcess):
 diff --git a/lelab/server.py b/lelab/server.py
-index 08d5d53afce0b1d8efd5b0297a9a93682b1a74b0..b3937848c5212001acd1b248c8bba5c96daa889c 100644
+index 08d5d53afce0b1d8efd5b0297a9a93682b1a74b0..6a8a61b5462e905b4b056a003ca2cbe528cad0ad 100644
 --- a/lelab/server.py
 +++ b/lelab/server.py
 @@ -18,13 +18,13 @@ import glob
@@ -5839,7 +7043,15 @@ index 08d5d53afce0b1d8efd5b0297a9a93682b1a74b0..b3937848c5212001acd1b248c8bba5c9
      UploadRequest,
      handle_delete_dataset,
      handle_exit_early,
-@@ -142,16 +145,67 @@ _FLAVOR_CACHE_TTL_SECONDS = 300.0
+@@ -93,6 +96,7 @@ from .utils.config import (
+     get_robot_record,
+     get_saved_robot_port,
+     is_robot_record_clean,
++    is_valid_calibration_id,
+     is_valid_robot_name,
+     list_robot_records,
+     save_robot_port,
+@@ -142,16 +146,67 @@ _FLAVOR_CACHE_TTL_SECONDS = 300.0
  
  app = FastAPI()
  
@@ -5910,7 +7122,7 @@ index 08d5d53afce0b1d8efd5b0297a9a93682b1a74b0..b3937848c5212001acd1b248c8bba5c9
  
  FRONTEND_DIST = Path(__file__).parent.parent / "frontend" / "dist"
  
-@@ -163,27 +217,32 @@ logger.info(f"LeRobot path: {LEROBOT_PATH}")
+@@ -163,27 +218,32 @@ logger.info(f"LeRobot path: {LEROBOT_PATH}")
  class ConnectionManager:
      def __init__(self):
          self.active_connections: list[WebSocket] = []
@@ -5948,7 +7160,7 @@ index 08d5d53afce0b1d8efd5b0297a9a93682b1a74b0..b3937848c5212001acd1b248c8bba5c9
                  count = len(self.active_connections)
                  logger.info(f"WebSocket disconnected. Total connections: {count}")
              else:
-@@ -193,54 +252,25 @@ class ConnectionManager:
+@@ -193,54 +253,25 @@ class ConnectionManager:
              self.stop_broadcast_thread()
  
      def start_broadcast_thread(self):
@@ -6015,7 +7227,7 @@ index 08d5d53afce0b1d8efd5b0297a9a93682b1a74b0..b3937848c5212001acd1b248c8bba5c9
          if not connections:
              return
  
-@@ -256,12 +286,21 @@ class ConnectionManager:
+@@ -256,12 +287,21 @@ class ConnectionManager:
              self.disconnect(connection)
  
      def broadcast_joint_data_sync(self, data: dict[str, Any]):
@@ -6043,7 +7255,7 @@ index 08d5d53afce0b1d8efd5b0297a9a93682b1a74b0..b3937848c5212001acd1b248c8bba5c9
  
      def notify_jobs_changed(self) -> None:
          """Push a 'jobs_changed' event to all WS clients so they refetch.
-@@ -271,8 +310,7 @@ class ConnectionManager:
+@@ -271,8 +311,7 @@ class ConnectionManager:
          initial fetch on mount, so a missed broadcast is self-healing.
          """
          if self.is_running and self.active_connections:
@@ -6053,7 +7265,7 @@ index 08d5d53afce0b1d8efd5b0297a9a93682b1a74b0..b3937848c5212001acd1b248c8bba5c9
  
      def notify_job_progress(self, snapshots: list[dict]) -> None:
          """Push a 'job_progress' event with per-running-job snapshots.
-@@ -282,10 +320,9 @@ class ConnectionManager:
+@@ -282,10 +321,9 @@ class ConnectionManager:
          (let alone /jobs/hub, which hits the HF API on every call).
          """
          if self.is_running and self.active_connections:
@@ -6067,7 +7279,7 @@ index 08d5d53afce0b1d8efd5b0297a9a93682b1a74b0..b3937848c5212001acd1b248c8bba5c9
  
  
  manager = ConnectionManager()
-@@ -309,37 +346,43 @@ def teleoperate_arm(request: TeleoperateRequest):
+@@ -309,37 +347,43 @@ def teleoperate_arm(request: TeleoperateRequest):
  
  
  @app.post("/stop-teleoperation")
@@ -6123,7 +7335,7 @@ index 08d5d53afce0b1d8efd5b0297a9a93682b1a74b0..b3937848c5212001acd1b248c8bba5c9
      if not result.get("success"):
          raise HTTPException(
              status_code=result.get("status_code", 500),
-@@ -349,8 +392,11 @@ def stop_inference():
+@@ -349,8 +393,11 @@ def stop_inference():
  
  
  @app.get("/inference-status")
@@ -6137,7 +7349,7 @@ index 08d5d53afce0b1d8efd5b0297a9a93682b1a74b0..b3937848c5212001acd1b248c8bba5c9
  
  
  @app.get("/health")
-@@ -359,6 +405,39 @@ def health_check():
+@@ -359,6 +406,39 @@ def health_check():
      return {"status": "ok", "message": "FastAPI server is running"}
  
  
@@ -6177,7 +7389,7 @@ index 08d5d53afce0b1d8efd5b0297a9a93682b1a74b0..b3937848c5212001acd1b248c8bba5c9
  @app.get("/hf-auth-status")
  def hf_auth_status():
      """Check whether the local HF CLI is authenticated and return user info."""
-@@ -394,7 +473,14 @@ def datasets_list(scope: str = "all"):
+@@ -394,7 +474,14 @@ def datasets_list(scope: str = "all"):
  @app.get("/dataset-episodes")
  def dataset_episodes(repo_id: str):
      """List the episodes of a local dataset."""
@@ -6193,7 +7405,7 @@ index 08d5d53afce0b1d8efd5b0297a9a93682b1a74b0..b3937848c5212001acd1b248c8bba5c9
  
  
  @app.get("/dataset-episode")
-@@ -468,10 +554,13 @@ def websocket_test():
+@@ -468,10 +555,13 @@ def websocket_test():
  
  
  @app.websocket("/ws/joint-data")
@@ -6209,7 +7421,7 @@ index 08d5d53afce0b1d8efd5b0297a9a93682b1a74b0..b3937848c5212001acd1b248c8bba5c9
          logger.info("✅ WebSocket connection established")
  
          while True:
-@@ -502,47 +591,63 @@ async def websocket_endpoint(websocket: WebSocket):
+@@ -502,47 +592,63 @@ async def websocket_endpoint(websocket: WebSocket):
  @app.post("/start-recording")
  def start_recording(request: RecordingRequest):
      """Start a dataset recording session"""
@@ -6288,7 +7500,7 @@ index 08d5d53afce0b1d8efd5b0297a9a93682b1a74b0..b3937848c5212001acd1b248c8bba5c9
  
  
  @app.post("/upload-dataset")
-@@ -888,24 +993,35 @@ def start_calibration(request: CalibrationRequest):
+@@ -888,24 +994,35 @@ def start_calibration(request: CalibrationRequest):
  
  
  @app.post("/stop-calibration")
@@ -6329,6 +7541,15 @@ index 08d5d53afce0b1d8efd5b0297a9a93682b1a74b0..b3937848c5212001acd1b248c8bba5c9
  
  
  @app.get("/calibration-configs/{device_type}")
+@@ -960,7 +1077,7 @@ def delete_calibration_config(device_type: str, config_name: str):
+         # characters (/, \, ..) before touching the filesystem. Defense-in-depth:
+         # FastAPI path params already block a literal "/", but not "\" or "..".
+         # Reuses the same guard already applied to robot-record deletes.
+-        if not is_valid_robot_name(config_name):
++        if not is_valid_calibration_id(config_name):
+             return {"success": False, "message": "Invalid configuration name"}
+ 
+         # Construct the file path
 diff --git a/lelab/teleoperate.py b/lelab/teleoperate.py
 index a7b9bc50c806a9b41f569c2ffb967fe639494563..68b491a216c7ae1f45b94c0d866bc6feda4ae6af 100644
 --- a/lelab/teleoperate.py
@@ -6749,10 +7970,74 @@ index a7b9bc50c806a9b41f569c2ffb967fe639494563..68b491a216c7ae1f45b94c0d866bc6fe
 +        return {"success": False, "status_code": 409, "message": "Stale telemetry cache"}
 +    return {"success": snapshot.get("status") != "error", "active": active, **snapshot}
 diff --git a/lelab/utils/config.py b/lelab/utils/config.py
-index f5ae25da8b4d5404ce636dff4c8e8fe824616397..d10a8341a1ba10b35a67c94bb4bfb3440fdd976b 100644
+index f5ae25da8b4d5404ce636dff4c8e8fe824616397..c2737689f2220842d73ade0a9e967f220ac16121 100644
 --- a/lelab/utils/config.py
 +++ b/lelab/utils/config.py
-@@ -329,6 +329,7 @@ def get_default_robot_config(robot_type: str, available_configs: list):
+@@ -16,6 +16,7 @@ import json
+ import logging
+ import os
+ import platform
++import re
+ import shutil
+ import time
+ from pathlib import Path
+@@ -47,6 +48,7 @@ ROBOTS_PATH = os.path.expanduser("~/.cache/huggingface/lerobot/robots")
+ # Tag stamped on every dataset pushed to the Hub from LeLab, so we can later
+ # query the Hub for LeLab-produced datasets and compute usage metrics.
+ LELAB_TAG = "LeLab"
++_CALIBRATION_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
+ 
+ 
+ def with_lelab_tag(tags: list[str] | None) -> list[str]:
+@@ -57,6 +59,25 @@ def with_lelab_tag(tags: list[str] | None) -> list[str]:
+     return out
+ 
+ 
++def is_valid_calibration_id(value: str) -> bool:
++    """Whether a calibration ID is one safe filename stem."""
++
++    return bool(
++        isinstance(value, str)
++        and ".." not in value
++        and _CALIBRATION_ID_RE.fullmatch(value)
++    )
++
++
++def _calibration_id_from_filename(filename: str) -> str:
++    if not isinstance(filename, str) or not filename.endswith(".json"):
++        raise ValueError("calibration config must be a safe .json filename")
++    config_id = filename[:-5]
++    if not is_valid_calibration_id(config_id) or filename != f"{config_id}.json":
++        raise ValueError("calibration config must be a safe .json filename")
++    return config_id
++
++
+ def _atomic_write_text(path: str, content: str) -> None:
+     """Write to <path>.tmp then os.replace, so a crash mid-write never leaves
+     a half-written file on disk."""
+@@ -87,9 +108,8 @@ def _config_file_for(robot_type: RobotSide) -> str:
+ 
+ def setup_calibration_files(leader_config: str, follower_config: str):
+     """Setup calibration files in the correct locations for teleoperation and recording"""
+-    # Extract config names from file paths (remove .json extension)
+-    leader_config_name = os.path.splitext(leader_config)[0]
+-    follower_config_name = os.path.splitext(follower_config)[0]
++    leader_config_name = _calibration_id_from_filename(leader_config)
++    follower_config_name = _calibration_id_from_filename(follower_config)
+ 
+     # Log the full paths to check if files exist
+     leader_config_full_path = os.path.join(LEADER_CONFIG_PATH, leader_config)
+@@ -134,8 +154,7 @@ def setup_calibration_files(leader_config: str, follower_config: str):
+ 
+ def setup_follower_calibration_file(follower_config: str):
+     """Setup follower calibration file in the correct location for replay functionality"""
+-    # Extract config name from file path (remove .json extension)
+-    follower_config_name = os.path.splitext(follower_config)[0]
++    follower_config_name = _calibration_id_from_filename(follower_config)
+ 
+     # Log the full path to check if file exists
+     follower_config_full_path = os.path.join(FOLLOWER_CONFIG_PATH, follower_config)
+@@ -329,6 +348,7 @@ def get_default_robot_config(robot_type: str, available_configs: list):
  _INVALID_NAME_CHARS = ("/", "\\", "..")
  _ROBOT_STRING_FIELDS = ("leader_port", "follower_port", "leader_config", "follower_config")
  _ROBOT_LIST_FIELDS = ("cameras",)
@@ -6760,7 +8045,7 @@ index f5ae25da8b4d5404ce636dff4c8e8fe824616397..d10a8341a1ba10b35a67c94bb4bfb344
  
  
  def _robot_record_path(name: str) -> str:
-@@ -350,6 +351,8 @@ def _empty_record(name: str) -> dict:
+@@ -350,6 +370,8 @@ def _empty_record(name: str) -> dict:
          record[field] = ""
      for field in _ROBOT_LIST_FIELDS:
          record[field] = []
@@ -6769,7 +8054,7 @@ index f5ae25da8b4d5404ce636dff4c8e8fe824616397..d10a8341a1ba10b35a67c94bb4bfb344
      return record
  
  
-@@ -413,6 +416,9 @@ def save_robot_record(name: str, data: dict, allow_create: bool = True) -> bool:
+@@ -413,6 +435,9 @@ def save_robot_record(name: str, data: dict, allow_create: bool = True) -> bool:
      for field in _ROBOT_LIST_FIELDS:
          if field in data and isinstance(data[field], list):
              record[field] = data[field]
@@ -6779,6 +8064,18 @@ index f5ae25da8b4d5404ce636dff4c8e8fe824616397..d10a8341a1ba10b35a67c94bb4bfb344
      record["name"] = name
  
      path = _robot_record_path(name)
+@@ -445,6 +470,11 @@ def is_robot_record_clean(record: dict) -> bool:
+         value = record.get(field, "")
+         if not isinstance(value, str) or not value.strip():
+             return False
++    try:
++        _calibration_id_from_filename(record["leader_config"])
++        _calibration_id_from_filename(record["follower_config"])
++    except ValueError:
++        return False
+     leader_path = os.path.join(LEADER_CONFIG_PATH, record["leader_config"])
+     follower_path = os.path.join(FOLLOWER_CONFIG_PATH, record["follower_config"])
+     return os.path.exists(leader_path) and os.path.exists(follower_path)
 diff --git a/lelab/utils/devices.py b/lelab/utils/devices.py
 index 3b9497440f5084a973a628dfc9d5c86b54dae71a..b611d9166ed7623cf8d8ebf62dd4d91990f3c55f 100644
 --- a/lelab/utils/devices.py
@@ -6883,11 +8180,67 @@ index 3a233bc04d1603b610525ec509c214bfa9ac08a4..b770560a23b12b9dacf70925dc3784aa
          yield c
  
  
+diff --git a/tests/test_calibrate.py b/tests/test_calibrate.py
+index 8fdccb53b47d48057577fea6727f1132fe039f41..afca559affb6f44ea5dba0ab1db220559a678549 100644
+--- a/tests/test_calibrate.py
++++ b/tests/test_calibrate.py
+@@ -98,6 +98,23 @@ def test_calibration_manager_rejects_double_start_via_message() -> None:
+     assert "already" in result.get("message", "").lower()
+ 
+ 
++def test_calibration_manager_rejects_unsafe_config_id_before_claiming_hardware() -> None:
++    from lelab.calibrate import CalibrationManager, CalibrationRequest
++    from lelab.mode import hardware_mode_gate
++
++    hardware_mode_gate.reset_for_test()
++    mgr = CalibrationManager()
++    result = mgr.start_calibration(
++        CalibrationRequest(device_type="teleop", port="FIXTURE", config_file="../escape")
++    )
++    assert result == {
++        "success": False,
++        "status_code": 400,
++        "message": "Invalid calibration config ID",
++    }
++    assert hardware_mode_gate.current() is None
++
++
+ def test_cleanup_device_force_releases_and_clears_when_disconnect_fails() -> None:
+     """A failed device.disconnect() must still force-close the port and clear the
+     device handle — otherwise the COM port stays busy and blocks the next run."""
 diff --git a/tests/test_dataset_repair.py b/tests/test_dataset_repair.py
-index a47182e26a5affae87c0d91732021b474f0f7254..ae460a71e80e157766625e47e57fe2952e3e18f1 100644
+index a47182e26a5affae87c0d91732021b474f0f7254..8b996ee4eeea2086f8b8c4136dc375d345fec1bc 100644
 --- a/tests/test_dataset_repair.py
 +++ b/tests/test_dataset_repair.py
-@@ -122,7 +122,7 @@ def test_missing_episode_index_is_rebuilt_from_the_data_files(lerobot_home: Path
+@@ -39,6 +39,7 @@ def lerobot_home(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+     """
+     home = tmp_path / "lerobot"
+     home.mkdir()
++    monkeypatch.setenv("HF_LEROBOT_HOME", str(home))
+     monkeypatch.setattr("lerobot.utils.constants.HF_LEROBOT_HOME", home)
+     monkeypatch.setattr("lerobot.datasets.dataset_metadata.HF_LEROBOT_HOME", home)
+     return home
+@@ -99,7 +100,18 @@ def test_readable_dataset_is_not_touched(lerobot_home: Path) -> None:
+     assert repair_local_dataset(REPO_ID) is None
+ 
+ 
+-@pytest.mark.parametrize("repo_id", ["../escape", "repair_test/../../escape", "/etc"])
++@pytest.mark.parametrize(
++    "repo_id",
++    [
++        "../escape",
++        "repair_test/../../escape",
++        "/etc",
++        r"\\server\share",
++        "//server/share",
++        r"repair_test\session",
++        "C:/dataset",
++    ],
++)
+ def test_repo_id_cannot_escape_the_cache_directory(lerobot_home: Path, repo_id: str) -> None:
+     from lelab.dataset_repair import DatasetRepairError, repair_local_dataset
+ 
+@@ -122,7 +134,7 @@ def test_missing_episode_index_is_rebuilt_from_the_data_files(lerobot_home: Path
      assert message is not None
      assert f"Recovered {EPISODES} episode(s)" in message
  
@@ -6896,7 +8249,7 @@ index a47182e26a5affae87c0d91732021b474f0f7254..ae460a71e80e157766625e47e57fe295
      assert repaired.num_episodes == EPISODES
      assert repaired.num_frames == EPISODES * FRAMES
  
-@@ -159,7 +159,7 @@ def test_truncated_data_file_is_moved_out_of_the_readers_way(lerobot_home: Path)
+@@ -159,7 +171,7 @@ def test_truncated_data_file_is_moved_out_of_the_readers_way(lerobot_home: Path)
      assert repair_local_dataset(REPO_ID) is not None
      assert not orphan.exists()
      assert orphan.with_suffix(".parquet.unreadable").exists()
@@ -6905,7 +8258,7 @@ index a47182e26a5affae87c0d91732021b474f0f7254..ae460a71e80e157766625e47e57fe295
  
  
  def test_episodes_without_video_lose_their_frames_and_stats_too(lerobot_home: Path) -> None:
-@@ -183,7 +183,7 @@ def test_episodes_without_video_lose_their_frames_and_stats_too(lerobot_home: Pa
+@@ -183,7 +195,7 @@ def test_episodes_without_video_lose_their_frames_and_stats_too(lerobot_home: Pa
      assert message is not None
      assert "Recovered 1 episode(s)" in message
  
@@ -6914,6 +8267,94 @@ index a47182e26a5affae87c0d91732021b474f0f7254..ae460a71e80e157766625e47e57fe295
      assert repaired.num_episodes == 1
      assert repaired.num_frames == FRAMES
      # The dropped episode's rows are gone from the shards, not just unreferenced.
+diff --git a/tests/test_episode_media.py b/tests/test_episode_media.py
+index c0799053bb6afd3d735a2207e4695a1eacabbb4d..bf1755b8d8dbaf019efa43dbe55c749e7f205b9e 100644
+--- a/tests/test_episode_media.py
++++ b/tests/test_episode_media.py
+@@ -21,11 +21,41 @@ cannot check.
+ 
+ from __future__ import annotations
+ 
++import os
++import subprocess
+ from pathlib import Path
+ 
+ import pytest
+ 
+ 
++def _make_directory_link(link: Path, target: Path) -> None:
++    try:
++        link.symlink_to(target, target_is_directory=True)
++        return
++    except OSError:
++        pass
++    environment = os.environ.copy()
++    environment["LELAB_TEST_LINK"] = str(link)
++    environment["LELAB_TEST_TARGET"] = str(target)
++    result = subprocess.run(
++        [
++            "powershell.exe",
++            "-NoProfile",
++            "-Command",
++            (
++                "New-Item -ItemType Junction -Path $env:LELAB_TEST_LINK "
++                "-Target $env:LELAB_TEST_TARGET | Out-Null"
++            ),
++        ],
++        check=False,
++        capture_output=True,
++        text=True,
++        env=environment,
++    )
++    if result.returncode != 0:
++        pytest.skip(f"directory link unavailable: {result.stderr}")
++
++
+ def _write_dataset(
+     root: Path,
+     repo_id: str,
+@@ -135,6 +165,41 @@ def test_resolve_dataset_dir_rejects_traversal(tmp_lerobot_home: Path) -> None:
+         resolve_dataset_dir("../../../etc")
+ 
+ 
++@pytest.mark.parametrize(
++    "repo_id",
++    [
++        r"\\server\share",
++        "//server/share",
++        r"acme\demo",
++        "C:/dataset",
++        "acme/demo/extra",
++        " acme/demo",
++    ],
++)
++def test_resolve_dataset_dir_rejects_noncanonical_id_before_filesystem_access(
++    tmp_lerobot_home: Path, repo_id: str
++) -> None:
++    from lelab.episode_media import DatasetNotFoundError, resolve_dataset_dir
++
++    with pytest.raises(DatasetNotFoundError, match="Invalid dataset path"):
++        resolve_dataset_dir(repo_id)
++
++
++def test_resolve_dataset_dir_rejects_linked_dataset_root(tmp_lerobot_home: Path) -> None:
++    from lelab.episode_media import DatasetNotFoundError, resolve_dataset_dir
++
++    external = tmp_lerobot_home.parent / "external-dataset"
++    (external / "meta").mkdir(parents=True)
++    (external / "meta" / "info.json").write_text("{}")
++    namespace = tmp_lerobot_home / "acme"
++    namespace.mkdir()
++    linked = namespace / "linked"
++    _make_directory_link(linked, external)
++
++    with pytest.raises(DatasetNotFoundError, match="Invalid dataset path"):
++        resolve_dataset_dir("acme/linked")
++
++
+ def test_resolve_dataset_dir_rejects_root_itself(tmp_lerobot_home: Path) -> None:
+     from lelab.episode_media import DatasetNotFoundError, resolve_dataset_dir
+ 
 diff --git a/tests/test_jobs.py b/tests/test_jobs.py
 index 10384b1f5df8aba1f9017838ed8eed569a0ca13d..9d57c76e3a971d6ea542dddb1f04f0cdc9193cdd 100644
 --- a/tests/test_jobs.py
@@ -6945,10 +8386,52 @@ index 10384b1f5df8aba1f9017838ed8eed569a0ca13d..9d57c76e3a971d6ea542dddb1f04f0cd
  
  def test_list_imported_local_empty_when_no_model(tmp_path) -> None:
 diff --git a/tests/test_record.py b/tests/test_record.py
-index 486eb9595788dbe8575e1b4411d75485276480c9..165f07eaf6cb2b43c27209a508d64bac2b57ffc9 100644
+index 486eb9595788dbe8575e1b4411d75485276480c9..11290e3012ba82cad781d50dd4f8a2865ec09861 100644
 --- a/tests/test_record.py
 +++ b/tests/test_record.py
-@@ -30,19 +30,16 @@ def test_recording_request_rejects_missing_required_fields() -> None:
+@@ -15,9 +15,41 @@
+ 
+ from __future__ import annotations
+ 
++import os
++import subprocess
++from pathlib import Path
++
+ import pytest
+ 
+ 
++def _make_directory_link(link: Path, target: Path) -> None:
++    try:
++        link.symlink_to(target, target_is_directory=True)
++        return
++    except OSError:
++        pass
++    environment = os.environ.copy()
++    environment["LELAB_TEST_LINK"] = str(link)
++    environment["LELAB_TEST_TARGET"] = str(target)
++    result = subprocess.run(
++        [
++            "powershell.exe",
++            "-NoProfile",
++            "-Command",
++            (
++                "New-Item -ItemType Junction -Path $env:LELAB_TEST_LINK "
++                "-Target $env:LELAB_TEST_TARGET | Out-Null"
++            ),
++        ],
++        check=False,
++        capture_output=True,
++        text=True,
++        env=environment,
++    )
++    if result.returncode != 0:
++        pytest.skip(f"directory link unavailable: {result.stderr}")
++
++
+ def test_recording_request_rejects_missing_required_fields() -> None:
+     from pydantic import ValidationError
+ 
+@@ -30,22 +62,55 @@ def test_recording_request_rejects_missing_required_fields() -> None:
  def test_recording_status_handler_exposes_state_fields() -> None:
      from lelab.record import handle_recording_status
  
@@ -6972,7 +8455,46 @@ index 486eb9595788dbe8575e1b4411d75485276480c9..165f07eaf6cb2b43c27209a508d64bac
      assert isinstance(result, dict)
  
  
-@@ -63,18 +60,29 @@ def test_create_record_config_pins_dshow_on_windows(monkeypatch: pytest.MonkeyPa
++@pytest.mark.parametrize(
++    "repo_id", [r"\\server\share", "//server/share", r"owner\dataset", "owner/name/extra"]
++)
++def test_delete_dataset_rejects_noncanonical_id_before_delete(
++    tmp_lerobot_home, monkeypatch: pytest.MonkeyPatch, repo_id: str
++) -> None:
++    import lelab.record as record
++
++    monkeypatch.setattr(
++        record.shutil,
++        "rmtree",
++        lambda *_args, **_kwargs: pytest.fail("delete must not run for an invalid dataset id"),
++    )
++    result = record.handle_delete_dataset(record.DatasetInfoRequest(dataset_repo_id=repo_id))
++
++    assert result == {"success": False, "message": "Invalid dataset path"}
++
++
++def test_delete_dataset_rejects_linked_descendant(tmp_lerobot_home) -> None:
++    import lelab.record as record
++
++    dataset = tmp_lerobot_home / "owner" / "dataset"
++    dataset.mkdir(parents=True)
++    external = tmp_lerobot_home.parent / "must-survive"
++    external.mkdir()
++    sentinel = external / "sentinel.txt"
++    sentinel.write_text("keep")
++    _make_directory_link(dataset / "linked", external)
++
++    result = record.handle_delete_dataset(record.DatasetInfoRequest(dataset_repo_id="owner/dataset"))
++
++    assert result["success"] is False
++    assert "unsafe linked path" in result["message"]
++    assert sentinel.read_text() == "keep"
++
++
+ def test_create_record_config_pins_dshow_on_windows(monkeypatch: pytest.MonkeyPatch) -> None:
+     """On Windows, recording must use the DSHOW backend so a camera_index opens
+     the same device /available-cameras enumerated (via pygrabber, DSHOW order).
+@@ -63,18 +128,29 @@ def test_create_record_config_pins_dshow_on_windows(monkeypatch: pytest.MonkeyPa
          follower_config="follower",
          dataset_repo_id="user/dataset",
          single_task="pick up the cube",
@@ -7006,7 +8528,7 @@ index 486eb9595788dbe8575e1b4411d75485276480c9..165f07eaf6cb2b43c27209a508d64bac
      configs = _build_camera_configs(cameras, Cv2Backends.AVFOUNDATION)
  
      assert configs["cam"].backend == Cv2Backends.AVFOUNDATION
-@@ -83,39 +91,38 @@ def test_build_camera_configs_uses_default_backend_when_unset() -> None:
+@@ -83,39 +159,38 @@ def test_build_camera_configs_uses_default_backend_when_unset() -> None:
  
  
  def test_build_camera_configs_passes_fourcc_through() -> None:
@@ -7158,6 +8680,21 @@ index 746ba90f30f79741c0fca019c305ded42ccaf29d..b10cc54f146b7ab3a1f315eb19282006
  
  
  def test_handle_start_inference_blocked_when_already_active(monkeypatch) -> None:
+diff --git a/tests/test_server.py b/tests/test_server.py
+index 9d8d17a6b1246972d33bb033d907df7f202a2490..eb5e156d3647178b9f80df3fcacdb6d7d0d9efa5 100644
+--- a/tests/test_server.py
++++ b/tests/test_server.py
+@@ -69,7 +69,9 @@ def test_unknown_route_returns_404(client: TestClient) -> None:
+     assert response.status_code == 404
+ 
+ 
+-@pytest.mark.parametrize("unsafe_name", ["evil..name", "..config", "back\\door"])
++@pytest.mark.parametrize(
++    "unsafe_name", ["evil..name", "..config", "back\\door", "name:stream"]
++)
+ def test_delete_calibration_config_rejects_unsafe_name(client: TestClient, unsafe_name: str) -> None:
+     """A config name with path-traversal characters is rejected before any
+     filesystem access — distinct from the "not found" path, so the guard is
 diff --git a/tests/test_teleoperate.py b/tests/test_teleoperate.py
 index 652a2f400b5d34aaad4984fb686a22296ff96821..3e5c889147296fb9dddb96115e51028f51444eeb 100644
 --- a/tests/test_teleoperate.py
@@ -7182,201 +8719,53 @@ index 652a2f400b5d34aaad4984fb686a22296ff96821..3e5c889147296fb9dddb96115e51028f
  
  
  def test_get_joint_positions_from_robot_uses_provided_object() -> None:
-diff --git a/frontend/src/components/TeleopStopNotice.test.tsx b/frontend/src/components/TeleopStopNotice.test.tsx
-new file mode 100644
-index 0000000000000000000000000000000000000000..60b0678bb86c0e50138d5c4f77647a3102dae90d
---- /dev/null
-+++ b/frontend/src/components/TeleopStopNotice.test.tsx
-@@ -0,0 +1,72 @@
-+// @vitest-environment jsdom
-+import React, { act } from "react";
-+import { createRoot } from "react-dom/client";
-+import { beforeEach, expect, test, vi } from "vitest";
-+import TeleopStopNotice from "./TeleopStopNotice";
+diff --git a/tests/test_utils_config.py b/tests/test_utils_config.py
+index 9403e6c7bc7728054dc6991d57b6d993fc66fa26..ba6bcd10787ef2b5a0b59ce48d249a7b4d528060 100644
+--- a/tests/test_utils_config.py
++++ b/tests/test_utils_config.py
+@@ -99,6 +99,13 @@ def test_is_valid_robot_name_rejects_leading_trailing_whitespace(
+     assert not cfg.is_valid_robot_name("robot ")
+ 
+ 
++@pytest.mark.parametrize("value", [".", "..", "evil..name", "name:stream", "back\\door"])
++def test_is_valid_calibration_id_rejects_unsafe_stems(value: str) -> None:
++    from lelab.utils import config as cfg
 +
-+const toast = vi.fn();
-+const fetchWithHeaders = vi.fn();
++    assert not cfg.is_valid_calibration_id(value)
 +
-+vi.mock("@/hooks/use-toast", () => ({ useToast: () => ({ toast }) }));
-+vi.mock("@/contexts/ApiContext", () => ({
-+  useApi: () => ({ baseUrl: "http://localhost:8000", fetchWithHeaders }),
-+}));
 +
-+beforeEach(() => {
-+  sessionStorage.clear();
-+  toast.mockReset();
-+  fetchWithHeaders.mockReset();
-+  Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
-+});
+ def test_robot_record_save_get_delete_round_trip(tmp_lerobot_home: Path) -> None:
+     from lelab.utils import config as cfg
+ 
+@@ -168,6 +175,31 @@ def test_setup_calibration_files_copies_configs(
+     assert src_follower.is_file()
+ 
+ 
++@pytest.mark.parametrize(
++    "unsafe_name",
++    ["../escape.json", "..\\escape.json", "sub/config.json", "name:stream.json", "config.txt"],
++)
++def test_setup_calibration_files_rejects_non_basename_paths(
++    tmp_lerobot_home: Path, unsafe_name: str
++) -> None:
++    from lelab.utils import config as cfg
 +
-+test("only reports a clean unload stop after exact-session status confirms it", async () => {
-+  sessionStorage.setItem("lelab:teleop-stop-pending", "session-a");
-+  sessionStorage.setItem("lelab:teleop-session", "session-a");
-+  fetchWithHeaders.mockResolvedValue({
-+    ok: true,
-+    json: async () => ({ success: true, teleoperation_active: false, session_id: "session-a" }),
-+  });
-+  const host = document.createElement("div");
-+  const root = createRoot(host);
-+  try {
-+    await act(async () => {
-+      root.render(<TeleopStopNotice />);
-+      await Promise.resolve();
-+      await Promise.resolve();
-+    });
-+    expect(fetchWithHeaders).toHaveBeenCalledWith(
-+      "http://localhost:8000/teleoperation-status?session_id=session-a",
-+    );
-+    expect(sessionStorage.getItem("lelab:teleop-stop-pending")).toBeNull();
-+    expect(sessionStorage.getItem("lelab:teleop-session")).toBeNull();
-+    expect(toast).toHaveBeenCalledWith(expect.objectContaining({ title: "Teleoperation stopped" }));
-+  } finally {
-+    act(() => root.unmount());
-+  }
-+});
++    with pytest.raises(ValueError, match="safe .json filename"):
++        cfg.setup_calibration_files(unsafe_name, "demo_follower.json")
 +
-+test("retains the token and warns when exact-session status is unavailable", async () => {
-+  sessionStorage.setItem("lelab:teleop-stop-pending", "session-b");
-+  sessionStorage.setItem("lelab:teleop-session", "session-b");
-+  fetchWithHeaders.mockResolvedValue({
-+    ok: false,
-+    json: async () => ({ success: false, message: "Stale teleoperation session" }),
-+  });
-+  const host = document.createElement("div");
-+  const root = createRoot(host);
-+  try {
-+    await act(async () => {
-+      root.render(<TeleopStopNotice />);
-+      await Promise.resolve();
-+      await Promise.resolve();
-+    });
-+    expect(sessionStorage.getItem("lelab:teleop-stop-pending")).toBe("session-b");
-+    expect(sessionStorage.getItem("lelab:teleop-session")).toBe("session-b");
-+    expect(toast).toHaveBeenCalledWith(expect.objectContaining({
-+      title: "Stop not confirmed",
-+      variant: "destructive",
-+    }));
-+  } finally {
-+    act(() => root.unmount());
-+  }
-+});
-diff --git a/frontend/src/components/dataset/FilmStrip.test.tsx b/frontend/src/components/dataset/FilmStrip.test.tsx
-new file mode 100644
-index 0000000000000000000000000000000000000000..c9682c3e464317de13f910b25305eee7323eab24
---- /dev/null
-+++ b/frontend/src/components/dataset/FilmStrip.test.tsx
-@@ -0,0 +1,48 @@
-+// @vitest-environment jsdom
-+import React, { act } from "react";
-+import { createRoot } from "react-dom/client";
-+import { expect, test, vi } from "vitest";
-+import FilmStrip from "./FilmStrip";
-+import { getThumbnails } from "@/lib/datasetApi";
 +
-+vi.mock("@/contexts/ApiContext", () => ({
-+  useApi: () => ({ baseUrl: "http://localhost:8000", fetchWithHeaders: vi.fn() }),
-+}));
-+vi.mock("@/lib/datasetApi", async (importOriginal) => {
-+  const original = await importOriginal<typeof import("@/lib/datasetApi")>();
-+  return { ...original, getThumbnails: vi.fn() };
-+});
++def test_robot_record_with_unsafe_calibration_path_is_not_clean(tmp_lerobot_home: Path) -> None:
++    from lelab.utils import config as cfg
 +
-+test("surfaces partial thumbnail decode instead of silently showing a shorter strip", async () => {
-+  Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
-+  vi.mocked(getThumbnails).mockResolvedValue({
-+    success: true,
-+    complete: false,
-+    issues: ["decoded 1 of 2 requested thumbnails"],
-+    episode_index: 0,
-+    camera: "arm",
-+    thumbnails: [{ frame_index: 0, data_uri: "data:image/png;base64,AA==" }],
-+  });
-+  const host = document.createElement("div");
-+  const root = createRoot(host);
-+  try {
-+    act(() => {
-+      root.render(
-+        <FilmStrip
-+          repoId="local/demo"
-+          episodeIndex={0}
-+          camera="arm"
-+          currentFrame={0}
-+          onSeekFrame={() => undefined}
-+          count={2}
-+        />,
-+      );
-+    });
-+    await vi.waitFor(() => {
-+      expect(host.textContent).toContain("Partial video evidence");
-+      expect(host.textContent).toContain("decoded 1 of 2 requested thumbnails");
-+    });
-+  } finally {
-+    act(() => root.unmount());
-+  }
-+});
-diff --git a/frontend/src/pages/Recording.test.tsx b/frontend/src/pages/Recording.test.tsx
-new file mode 100644
-index 0000000000000000000000000000000000000000..911ec89614aa3adc33917f912bc5be846e80dcb2
---- /dev/null
-+++ b/frontend/src/pages/Recording.test.tsx
-@@ -0,0 +1,60 @@
-+// @vitest-environment jsdom
-+import React, { act } from "react";
-+import { createRoot } from "react-dom/client";
-+import { expect, test } from "vitest";
-+import { RecordingStartReceipt, StartReceipt } from "./Recording";
++    record = {
++        "leader_port": "FIXTURE-L",
++        "follower_port": "FIXTURE-F",
++        "leader_config": "../outside.json",
++        "follower_config": "follower.json",
++    }
++    assert cfg.is_robot_record_clean(record) is False
 +
-+test("shows backend-effective profile and exact resume arithmetic", () => {
-+  Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
-+  const receipt: StartReceipt = {
-+    dataset_id: "local/demo_20260918_120000",
-+    session_id: "fixture-session",
-+    existing_episodes: 1,
-+    additional_episodes: 2,
-+    final_expected_episodes: 3,
-+    effective_config: {
-+      dataset_fps: 15,
-+      cameras: {
-+        arm: { camera_index: 1, width: 640, height: 480, fps: 30, backend: "DSHOW" },
-+        table_veiw: { camera_index: 2, width: 640, height: 480, fps: 30, backend: "DSHOW" },
-+      },
-+      rgb_encoder: {
-+        vcodec: "h264",
-+        pix_fmt: "yuv420p",
-+        video_backend: "pyav",
-+        crf: 23,
-+        g: 2,
-+      },
-+      max_relative_target: {
-+        shoulder_pan: 5,
-+        shoulder_lift: 5,
-+        elbow_flex: 5,
-+        wrist_flex: 5,
-+        wrist_roll: 5,
-+        gripper: 5,
-+      },
-+      max_relative_target_units: {
-+        shoulder_pan: "degree",
-+        shoulder_lift: "degree",
-+        elbow_flex: "degree",
-+        wrist_flex: "degree",
-+        wrist_roll: "degree",
-+        gripper: "normalized_0_100",
-+      },
-+    },
-+  };
-+  const host = document.createElement("div");
-+  const root = createRoot(host);
-+  try {
-+    act(() => root.render(<RecordingStartReceipt receipt={receipt} />));
-+    expect(host.textContent).toContain("1 existing + 2 additional = 3 expected");
-+    expect(host.textContent).toContain("Dataset 15 Hz");
-+    expect(host.textContent).toContain("arm: index 1 · 640×480 @ 30 Hz · backend DSHOW");
-+    expect(host.textContent).toContain("table_veiw: index 2 · 640×480 @ 30 Hz · backend DSHOW");
-+    expect(host.textContent).toContain("h264/yuv420p/pyav");
-+    expect(host.textContent).toContain("shoulder_pan=5 degree");
-+    expect(host.textContent).toContain("gripper=5 normalized_0_100");
-+  } finally {
-+    act(() => root.unmount());
-+  }
-+});
++
+ # DISCOVERED: `setup_calibration_files` sets `leader_calibration_dir = LEADER_CONFIG_PATH`
+ # (not CALIBRATION_BASE_PATH_TELEOP) and `follower_calibration_dir = FOLLOWER_CONFIG_PATH`
+ # (not CALIBRATION_BASE_PATH_ROBOTS). This means source and destination are the same

@@ -4,9 +4,11 @@
 from __future__ import annotations
 
 import json
+import os
 import re
+import subprocess
+from collections.abc import Iterable
 from pathlib import Path
-
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -40,11 +42,11 @@ REQUIRED_FILES = PUBLIC_MARKDOWN + JSON_FILES + (
     Path("tools/audit_dataset.py"),
     Path("tools/bootstrap_upstream.ps1"),
     Path("tools/validate_docs.py"),
-    Path("patches/lelab-6091a458-so101-lab.patch"),
 )
 
 MARKDOWN_LINK = re.compile(r"!?\[[^\]]*\]\(([^)]+)\)")
 WINDOWS_ABSOLUTE_PATH = re.compile(r"(?<![\w])(?:[A-Za-z]:[\\/])")
+URI_SCHEME = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*:")
 HEX_COMMIT = re.compile(r"^[0-9a-f]{40}$")
 INVISIBLE = {"\ufeff", "\u200b", "\u200c", "\u200d", "\u2060"}
 PRIVATE_TERMS = (
@@ -53,6 +55,60 @@ PRIVATE_TERMS = (
     "context " + "pack",
     "sub" + "agent",
 )
+
+
+def _tracked_files(
+    root: Path,
+    errors: list[str],
+    supplied: Iterable[Path | str] | None,
+) -> tuple[Path, ...]:
+    if supplied is not None:
+        candidates = tuple(Path(value) for value in supplied)
+    else:
+        try:
+            result = subprocess.run(
+                ["git", "-C", str(root), "ls-files", "-z", "--cached"],
+                check=False,
+                capture_output=True,
+            )
+        except OSError as exc:
+            errors.append(f"unable to enumerate Git-tracked files: {exc}")
+            return ()
+        if result.returncode != 0:
+            detail = result.stderr.decode("utf-8", errors="replace").strip()
+            errors.append(f"unable to enumerate Git-tracked files: {detail or 'git failed'}")
+            return ()
+        candidates = tuple(Path(value.decode("utf-8")) for value in result.stdout.split(b"\0") if value)
+
+    normalized: list[Path] = []
+    for relative in candidates:
+        if relative.is_absolute() or ".." in relative.parts:
+            errors.append(f"tracked path escapes repository: {relative.as_posix()}")
+            continue
+        normalized.append(Path(relative.as_posix()))
+    return tuple(normalized)
+
+
+def _validate_tracked_surface(root: Path, tracked: tuple[Path, ...], errors: list[str]) -> None:
+    tracked_set = set(tracked)
+    expected_markdown = set(PUBLIC_MARKDOWN)
+    tracked_markdown = {relative for relative in tracked_set if relative.suffix.casefold() == ".md"}
+
+    for relative in sorted(expected_markdown - tracked_markdown):
+        errors.append(f"public Markdown is not Git-tracked: {relative.as_posix()}")
+    for relative in sorted(tracked_markdown - expected_markdown):
+        errors.append(f"unexpected tracked Markdown: {relative.as_posix()}")
+
+    encoded_terms = tuple(term.encode("utf-8") for term in PRIVATE_TERMS)
+    for relative in sorted(tracked_set):
+        path = root / relative
+        try:
+            content = path.read_bytes().lower()
+        except OSError as exc:
+            errors.append(f"{relative.as_posix()}: unable to inspect tracked content: {exc}")
+            continue
+        if any(term in content for term in encoded_terms):
+            errors.append(f"{relative.as_posix()}: contains an internal workflow term")
 
 
 def _load_json(root: Path, relative: Path, errors: list[str]) -> object | None:
@@ -87,18 +143,33 @@ def _validate_markdown(root: Path, errors: list[str]) -> None:
 
         for match in MARKDOWN_LINK.finditer(text):
             target = match.group(1).strip().strip("<>")
-            if not target or target.startswith(("#", "http://", "https://", "mailto:")):
+            if not target or target.startswith(("#", "http://", "https://", "mailto:", "//")):
+                continue
+            if URI_SCHEME.match(target):
+                errors.append(f"{relative.as_posix()}: unsupported link scheme: {target}")
                 continue
             target = target.split("#", 1)[0].split("?", 1)[0]
             if not target:
                 continue
-            resolved = (path.parent / target).resolve()
-            try:
-                resolved.relative_to(root.resolve())
-            except ValueError:
+            candidate = Path(target)
+            if candidate.is_absolute() or candidate.drive or target.startswith(("/", "\\")):
                 errors.append(f"{relative.as_posix()}: link escapes repository: {target}")
                 continue
-            if not resolved.exists():
+            from_root = path.parent.relative_to(root) / candidate
+            normalized = Path(os.path.normpath(from_root))
+            if normalized.is_absolute() or normalized.drive or ".." in normalized.parts:
+                errors.append(f"{relative.as_posix()}: link escapes repository: {target}")
+                continue
+            resolved = root / normalized
+            cursor = root
+            symlinked = False
+            for part in normalized.parts:
+                cursor /= part
+                if cursor.is_symlink() or cursor.is_junction():
+                    errors.append(f"{relative.as_posix()}: link traverses a linked path: {target}")
+                    symlinked = True
+                    break
+            if not symlinked and not resolved.exists():
                 errors.append(f"{relative.as_posix()}: broken relative link: {target}")
 
 
@@ -116,6 +187,19 @@ def _validate_examples(root: Path, errors: list[str]) -> None:
                 errors.append(f"configs/upstream-pins.json: {component}.commit is not a full commit")
         if pins.get("python", {}).get("minor") != "3.12":
             errors.append("configs/upstream-pins.json: Python minor must remain 3.12")
+        patch_set = pins.get("patch_set")
+        if not isinstance(patch_set, list) or len(patch_set) != 1 or not isinstance(patch_set[0], str):
+            errors.append("configs/upstream-pins.json: patch_set must contain exactly one path")
+        else:
+            patch_relative = Path(patch_set[0])
+            if (
+                patch_relative.is_absolute()
+                or ".." in patch_relative.parts
+                or patch_relative.suffix.casefold() != ".patch"
+            ):
+                errors.append("configs/upstream-pins.json: patch_set path is unsafe or not a patch")
+            elif not (root / patch_relative).is_file():
+                errors.append(f"configs/upstream-pins.json: patch is missing: {patch_relative.as_posix()}")
 
     if isinstance(lab, dict):
         if lab.get("server", {}).get("host") not in {"127.0.0.1", "localhost"}:
@@ -148,9 +232,14 @@ def _validate_examples(root: Path, errors: list[str]) -> None:
             errors.append("configs/run.example.json: template cannot claim a real execution")
 
 
-def validate(root: Path = ROOT) -> list[str]:
+def validate(
+    root: Path = ROOT,
+    *,
+    tracked_files: Iterable[Path | str] | None = None,
+) -> list[str]:
     root = root.resolve()
     errors: list[str] = []
+    tracked = _tracked_files(root, errors, tracked_files)
     for relative in REQUIRED_FILES:
         if not (root / relative).is_file():
             errors.append(f"missing required file: {relative.as_posix()}")
@@ -158,6 +247,7 @@ def validate(root: Path = ROOT) -> list[str]:
     if errors:
         return errors
 
+    _validate_tracked_surface(root, tracked, errors)
     _validate_markdown(root, errors)
     _validate_examples(root, errors)
     return errors
