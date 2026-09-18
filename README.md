@@ -5,8 +5,8 @@
 [LeRobot](https://github.com/huggingface/lerobot) 设备、数据集和训练能力，为一套
 leader/follower SO-101 与 wrist/front 双相机建立可重复、可审计的工作流。
 
-> 当前状态：7 个真实双视角回合已完成只读技术审计和官方 CPU loader 读回；真实 resume
-> 采集路径尚未现场执行，ACT 训练尚未开始。
+> 当前状态：7 个真实双视角回合已完成只读技术审计和官方 CPU loader 读回；ACT 已完成
+> 1-step CPU 解码/反向传播 smoke。真实 resume、完整基线训练和策略评估尚未执行。
 > 这不是 Hugging Face 官方仓库，也不是工业安全控制系统。
 
 ## 项目解决什么问题
@@ -39,7 +39,7 @@ leader/follower SO-101 与 wrist/front 双相机建立可重复、可审计的�
 | 数据浏览与审计 | 只读检查 Parquet、视频、回合边界、动作与时序 |
 | 回合编号 | UI 显示人类序号 1–N，同时保留 Dataset 的零基 `episode_index` |
 | 训练设备 | 默认 `Auto`，按当前 PyTorch 能力选择 CUDA、MPS、XPU 或 CPU |
-| ACT 训练 / 真机策略评估 | 尚未开始 |
+| ACT 训练 / 真机策略评估 | 1-step CPU smoke 已通过；完整基线、checkpoint 验证和真机评估尚未执行 |
 
 详细、非历史堆叠的当前状态见 [Project Status](docs/PROJECT_STATUS.md)。
 
@@ -54,7 +54,8 @@ flowchart LR
     LR --> R[SO-101 Follower]
     LR --> D[Local LeRobotDataset v3]
     D --> A[Read-only audit]
-    D -. later .-> T[ACT training]
+    D --> S[ACT 1-step CPU smoke]
+    S -. later .-> T[Full ACT baseline]
 ```
 
 本机保存的相机键保持兼容：
@@ -99,6 +100,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\lab.ps1 status
 训练页默认使用 `Auto`。当前环境检测到 CPU 时会使用 CPU；迁移到已安装兼容加速版 PyTorch 的
 GPU 电脑后会在任务启动时自动选择可用后端。若操作系统看见 NVIDIA GPU、但 PyTorch 不能使用
 CUDA，页面会明确提示环境不匹配，不会假装已经启用 GPU。
+
+本地训练请求固定使用 PyAV 解码；任务目录和模型进程创建前会先用官方 Dataset loader
+读取一个真实样本。旧客户端发送的 `torchcodec` 值会迁移为 PyAV，其他后端会被拒绝。
 
 ```powershell
 # 查看最新日志

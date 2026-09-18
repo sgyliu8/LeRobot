@@ -104,5 +104,9 @@ Dataset 名义时间轴是 `frame_index / dataset_fps`。它不等于：
 本地训练默认把 device 留给 LeRobot 自动选择，优先级是 CUDA、MPS、XPU、CPU。自动选择依据
 当前项目环境中 PyTorch 实际暴露的后端，而不是仅依据电脑商品规格或设备管理器中出现“GPU”。
 
+训练视频后端固定为 PyAV。UI 会显式发送该值，后端会把旧 `torchcodec` 请求迁移到 PyAV，
+并在创建任务记录或模型进程前由官方 `LeRobotDataset` 解码一个真实样本。预检失败只阻止该次
+训练，不会 repair、删除或改写数据集；它也不替代全量视频/Parquet 审计。
+
 只有三个真实回合通过 finalize、视频/Parquet 审计和官方 loader 检查后，才进入 ACT 训练准备。
 本项目默认不开启 Hugging Face Hub 上传、Weights & Biases 或云训练。

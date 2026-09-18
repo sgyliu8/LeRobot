@@ -21,7 +21,7 @@
 | 视频末尾缺帧 | 视频实际帧数、EOF、Dataset 窗口 | 保留失败证据；不要用最后一帧无限填补 |
 | Browse 改变文件 | 比较审计前后 manifest/hash | 立即停止，保留原始数据副本并报告为失败 |
 | 有 NVIDIA GPU 但训练仍显示 CPU | `/system/cuda-status` 的 `gpu_present`、`cuda_available` 与 `mismatch` | 按官方选择器安装兼容 CUDA PyTorch；不强制选择不可用的 `cuda` |
-| 首个 DataLoader batch 报 TorchCodec/FFmpeg DLL | 是否绕过了项目训练入口或显式 PyAV loader | 使用项目默认的 `--dataset.video_backend pyav`；不要把设备自动选择误当成视频解码后端 |
+| 首个 DataLoader batch 报 TorchCodec/FFmpeg DLL | 是否绕过了项目训练入口 | 更新并重建固定补丁；项目入口会把旧 `torchcodec` 请求迁移到 PyAV，并在模型启动前解码一个样本 |
 
 ## 服务诊断
 
