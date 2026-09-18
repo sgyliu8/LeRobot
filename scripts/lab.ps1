@@ -108,9 +108,20 @@ function Read-ProcessState {
     }
     try {
         $recordedProjectRoot = [IO.Path]::GetFullPath([string]$state.project_root)
-        $recordedExecutable = [IO.Path]::GetFullPath([string]$state.executable)
+        $rawExecutable = [string]$state.executable
+        $recordedExecutable = [IO.Path]::GetFullPath($rawExecutable)
         $stdoutLog = [IO.Path]::GetFullPath([string]$state.stdout_log)
         $stderrLog = [IO.Path]::GetFullPath([string]$state.stderr_log)
+        # On Windows a venv launcher can start a process whose image path is the
+        # base CPython executable. The recorded image is checked against the live
+        # process in Resolve-OwnedProcess; here it only needs to be a local Python
+        # executable, not the launcher path.
+        $validExecutable = (
+            $rawExecutable -match '^[A-Za-z]:[\\/]' -and
+            [IO.Path]::GetFileName($recordedExecutable).Equals(
+                'python.exe', [StringComparison]::OrdinalIgnoreCase
+            )
+        )
         $validNumbers = (
             [int]$state.schema_version -eq 1 -and
             [int]$state.pid -gt 0 -and
@@ -122,8 +133,8 @@ function Read-ProcessState {
         throw 'Project process state failed ownership validation: invalid field type or path.'
     }
     if (-not $validNumbers -or
+        -not $validExecutable -or
         -not $recordedProjectRoot.Equals($projectRoot, [StringComparison]::OrdinalIgnoreCase) -or
-        -not $recordedExecutable.Equals($pythonExe, [StringComparison]::OrdinalIgnoreCase) -or
         -not (Test-ContainedPath -Root $logRoot -Candidate $stdoutLog) -or
         -not (Test-ContainedPath -Root $logRoot -Candidate $stderrLog) -or
         $stdoutLog -eq $stderrLog -or
