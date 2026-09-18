@@ -25,6 +25,7 @@ import pyarrow.parquet as pq
 from lelab.episode_media import (
     UnsafeDatasetPathError,
     ensure_safe_dataset_path,
+    is_before_episode_window_end,
     iter_safe_files,
     list_cameras,
     locate_episode_video,
@@ -295,7 +296,7 @@ def _video_window_summary(dataset_dir: Path, episode_idx: int, camera: str) -> d
             stamp = float(frame.time)
             if stamp + 1e-6 < start:
                 continue
-            if end is not None and stamp >= end:
+            if not is_before_episode_window_end(stamp, end):
                 break
             times.append(stamp)
             decoded += 1

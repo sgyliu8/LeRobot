@@ -43,6 +43,20 @@ uv run --frozen lelab --help
 输出路径应来自本项目的 `.venv` 与 `_vendor/lelab`。不要从其他 Python 环境、全局
 site-packages 或另一个 LeRobot 工作区导入。
 
+## 计算设备自动识别
+
+训练配置默认是 `Auto`。启动工作台后可以只读查询本环境的实际选择：
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8000/system/cuda-status
+```
+
+`recommended_device` 会按 CUDA → MPS → XPU → CPU 选择。当前 Windows 锁定环境可能安装 CPU
+版 PyTorch；即使另一台电脑有 NVIDIA GPU，只有 `cuda_available=true` 才代表这个 Python 环境
+真的能使用 CUDA。若返回 `gpu_present=true` 且 `mismatch=true`，请按
+[PyTorch 官方安装选择器](https://pytorch.org/get-started/locally/)为项目环境安装与当前版本兼容的
+CUDA build，然后重启并重新查询。项目不会在普通 start 时静默下载或替换大型 PyTorch 包。
+
 ## 启动与停止
 
 ```powershell

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import os
 import subprocess
 import tempfile
@@ -22,6 +23,7 @@ from tools.audit_dataset import (
     _parse_parquet_rows,
     _read_parquet_rows,
     _validate_episode_end_semantics,
+    _video_window_summary,
     audit,
 )
 
@@ -206,6 +208,40 @@ class M5DataIntegrityTests(unittest.TestCase):
             with av.open(str(path)) as container:
                 stream = container.streams.video[0]
                 self.assertIsNone(episode_media._decode_at(container, stream, 10.0))
+
+    def test_video_audit_uses_a_float_tolerant_half_open_episode_boundary(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            dataset_root = Path(temporary)
+            path = dataset_root / "packed.mp4"
+            with av.open(str(path), mode="w") as container:
+                stream = container.add_stream("h264", rate=15)
+                stream.width = 32
+                stream.height = 32
+                stream.pix_fmt = "yuv420p"
+                for value in (20, 100, 200):
+                    frame = av.VideoFrame.from_ndarray(
+                        np.full((32, 32, 3), value, dtype=np.uint8), format="rgb24"
+                    )
+                    for packet in stream.encode(frame):
+                        container.mux(packet)
+                for packet in stream.encode():
+                    container.mux(packet)
+
+            location = episode_media.EpisodeVideoLocation(
+                camera="arm",
+                chunk=0,
+                file_index=0,
+                episode_idx=0,
+                path=path,
+                fps=15,
+                from_timestamp=0.0,
+                # Same logical boundary as frame 2, but one float step larger.
+                to_timestamp=math.nextafter(2 / 15, math.inf),
+            )
+            with patch("tools.audit_dataset.locate_episode_video", return_value=location):
+                summary = _video_window_summary(dataset_root, 0, "arm")
+
+        self.assertEqual(summary["decoded_frames"], 2)
 
     def test_http_actual_id_offline_one_then_exact_resume_two_and_loader(self):
         fps = 15

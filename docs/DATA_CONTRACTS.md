@@ -16,6 +16,10 @@ LeRobotDataset 拥有 frames、episodes、features、tasks、视频索引与 met
 
 设备路径、序列号、校准、原始视频和完整 trace 保持本地，不进入 Git。
 
+`episode_index` 是 Dataset 的零基稳定键，所以 7 个连续回合的合法索引是 `0..6`。面向人的 UI
+另行派生一基 `episode_ordinal`（`1..7`）；分页、URL、API 和 Parquet 始终继续使用
+`episode_index`，不能把显示序号写回数据身份。
+
 ## 身份链
 
 ```text
@@ -89,6 +93,10 @@ Dataset 名义时间保持 `frame_index / dataset_fps`。实测控制循环、�
 Interrupted 数据必须保留。需要 repair 时先复制或快照，并使用经过验证的官方流程生成可追踪派生物。
 Browse、dataset-info 与 `tools/audit_dataset.py` 保持只读；视频越过真实 EOF 时返回 missing/error，
 不能用最后一帧无限填充。
+
+Packed MP4 的 episode window 使用半开区间 `[from_timestamp, to_timestamp)`。容器 PTS 与 metadata
+转成浮点后可能只差一个 ULP；审计与浏览共用微小边界容差，只用于识别同一个窗口端点，不用于
+补帧、改视频或放宽帧数一致性要求。
 
 ## 数据准入
 
