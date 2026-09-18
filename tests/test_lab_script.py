@@ -83,6 +83,52 @@ def test_logs_reject_state_that_points_outside_project(tmp_path: Path) -> None:
     assert "failed ownership validation" in result.stderr
 
 
+def test_logs_accept_state_recorded_with_windows_base_python(tmp_path: Path) -> None:
+    project = tmp_path / "project"
+    scripts = project / "scripts"
+    runtime = project / ".local" / "runtime"
+    logs = project / ".local" / "logs"
+    scripts.mkdir(parents=True)
+    runtime.mkdir(parents=True)
+    logs.mkdir(parents=True)
+    shutil.copy2(ROOT / "scripts" / "lab.ps1", scripts / "lab.ps1")
+
+    stdout_log = logs / "lelab-fixture.stdout.log"
+    stderr_log = logs / "lelab-fixture.stderr.log"
+    stdout_log.write_text("BASE_PYTHON_STATE_OK\n", encoding="utf-8")
+    stderr_log.write_text("", encoding="utf-8")
+    state = {
+        "schema_version": 1,
+        "pid": 1,
+        "start_filetime_utc": 1,
+        "executable": str(tmp_path / "python-install" / "python.exe"),
+        "project_root": str(project),
+        "port": 8000,
+        "stdout_log": str(stdout_log),
+        "stderr_log": str(stderr_log),
+    }
+    (runtime / "lelab-process.json").write_text(json.dumps(state), encoding="utf-8")
+
+    result = subprocess.run(
+        [
+            "powershell.exe",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(scripts / "lab.ps1"),
+            "logs",
+        ],
+        cwd=project,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert "BASE_PYTHON_STATE_OK" in result.stdout
+
+
 def test_logs_reject_link_inside_project_that_targets_external_file(tmp_path: Path) -> None:
     project = tmp_path / "project"
     scripts = project / "scripts"
