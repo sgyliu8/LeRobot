@@ -56,7 +56,12 @@ uv run --frozen python -X utf8 .\tools\audit_dataset.py <dataset-id> `
 审计会读取而不修复数据，并检查 profile、回合、视频窗口、帧、动作与时间语义。Browse/audit
 不会自动补帧、删除文件或改变原始数据。短视频不能用最后一帧无限替代缺失帧。
 
-还必须用官方本地 loader 打开同一数据集，并让 CPU DataLoader 成功产生一个 batch。
+界面中的 “Episode 7 of 7” 是第七个可见回合；其 Dataset `episode_index` 仍是 6。UI 同时显示
+两者以避免把一基阅读序号误当成 Parquet/API 身份。
+
+还必须用官方本地 loader 打开同一数据集，并让 CPU DataLoader 成功产生一个 batch。本项目在
+Windows 上显式使用 LeRobot 的 `video_backend="pyav"`；这避免 TorchCodec 虽可 import、但本机
+FFmpeg 共享 DLL 不可加载时把训练延迟到首个 batch 才失败。
 
 ### 第三阶段：精确续录两个回合
 
@@ -95,6 +100,9 @@ Dataset 名义时间轴是 `frame_index / dataset_fps`。它不等于：
 - **Browse / audit**：只读数据，不应连接机械臂。
 - **Replay**：向 follower 发送历史 action，会产生运动。
 - **Training**：读取已验收数据，不应隐式连接硬件或上传数据。
+
+本地训练默认把 device 留给 LeRobot 自动选择，优先级是 CUDA、MPS、XPU、CPU。自动选择依据
+当前项目环境中 PyTorch 实际暴露的后端，而不是仅依据电脑商品规格或设备管理器中出现“GPU”。
 
 只有三个真实回合通过 finalize、视频/Parquet 审计和官方 loader 检查后，才进入 ACT 训练准备。
 本项目默认不开启 Hugging Face Hub 上传、Weights & Biases 或云训练。

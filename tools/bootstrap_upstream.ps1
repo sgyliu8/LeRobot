@@ -130,7 +130,11 @@ function Assert-ExactPatchedSource {
             continue
         }
         if ($null -ne $currentPath -and $line -match '^index [0-9a-f]{40}\.\.([0-9a-f]{40})(?: [0-7]{6})?$') {
-            $expectedBlobs[$currentPath] = $Matches[1]
+            # dist is a reviewed, packaged output in the patch, but it is not
+            # source inventory: npm build below regenerates and verifies it.
+            if (-not $currentPath.StartsWith('frontend/dist/', [StringComparison]::Ordinal)) {
+                $expectedBlobs[$currentPath] = $Matches[1]
+            }
         }
     }
     if (-not $expectedBlobs.Count) {

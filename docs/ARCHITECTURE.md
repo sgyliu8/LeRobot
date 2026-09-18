@@ -69,6 +69,8 @@ patches/lelab-6091a458-so101-lab.patch
 - telemetry cache 与缺失/陈旧状态；
 - 本地 Host、Origin 与 WebSocket 边界；
 - Dataset resume、视频 EOF 和只读 browse/audit 完整性；
+- 零基 Dataset 回合身份与一基用户显示的分离；
+- 训练配置的可迁移 `Auto` compute device 选择与能力诊断；
 - Windows 服务进程身份与停止 fence。
 
 ## 目录职责

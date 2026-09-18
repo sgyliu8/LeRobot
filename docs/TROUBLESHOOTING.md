@@ -17,8 +17,11 @@
 | 机械臂突跳或方向异常 | 校准身份、端口角色、单位、关节映射 | 立即停止发送并隔离能量，不重发目标 |
 | 录制反复重来 | Accept/Timeout/Discard/Stop 选择与日志 | Stop 应结束会话；不要用重启覆盖已接受数据 |
 | Dataset 无法 resume | 使用的是否为第一次返回的准确 ID，profile 是否一致 | 不手工拼目录或在原数据上修补 metadata |
+| 第七个视频显示 index 6 | Dataset `episode_index` 本来从 0 开始 | 使用 UI 的 Episode 7 of 7；API/Parquet 继续保留 index 6 |
 | 视频末尾缺帧 | 视频实际帧数、EOF、Dataset 窗口 | 保留失败证据；不要用最后一帧无限填补 |
 | Browse 改变文件 | 比较审计前后 manifest/hash | 立即停止，保留原始数据副本并报告为失败 |
+| 有 NVIDIA GPU 但训练仍显示 CPU | `/system/cuda-status` 的 `gpu_present`、`cuda_available` 与 `mismatch` | 按官方选择器安装兼容 CUDA PyTorch；不强制选择不可用的 `cuda` |
+| 首个 DataLoader batch 报 TorchCodec/FFmpeg DLL | 是否绕过了项目训练入口或显式 PyAV loader | 使用项目默认的 `--dataset.video_backend pyav`；不要把设备自动选择误当成视频解码后端 |
 
 ## 服务诊断
 

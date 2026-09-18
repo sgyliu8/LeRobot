@@ -10,6 +10,13 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def test_bootstrap_excludes_generated_frontend_from_source_inventory() -> None:
+    script = (ROOT / "tools" / "bootstrap_upstream.ps1").read_text(encoding="utf-8")
+
+    assert "$currentPath.StartsWith('frontend/dist/'" in script
+    assert "npm run build --prefix $frontendRoot" in script
+
+
 def _make_directory_link(link: Path, target: Path) -> None:
     try:
         link.symlink_to(target, target_is_directory=True)
