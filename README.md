@@ -1,75 +1,188 @@
-# PhysicalAI SO101 Lab — Golden Context Pack
+# PhysicalAI SO101 Lab
 
-**交付版本：1.0.0 · 2026-09-17 · 项目阶段：规划已交付，运行时尚未部署。**
+面向 Windows 的本地 SO-ARM101 学习与实验工作台。项目复用 Hugging Face 的
+[LeLab](https://github.com/huggingface/leLab) 图形界面与
+[LeRobot](https://github.com/huggingface/lerobot) 设备、数据集和训练能力，为一套
+leader/follower SO-101 与 wrist/front 双相机建立可重复、可审计的工作流。
 
-这是 Yang Liu 的 SO-ARM101 主从双臂、腕部/桌面双摄像头实验工作台。
-优先复用官方 LeLab 图形工作台与 LeRobot 工具链，逐步完成配置、遥操作、示范采集、数据浏览、ACT 训练、真机评估与 PhysicalAI 研究关联。
-它不是 Hugging Face LeRobot 的官方仓库或完整源码 fork，也不是重新实现机器人控制框架。
+> 当前状态：软件与合成数据闭环已就绪；真实三回合采集仍需有人在场完成。
+> 这不是 Hugging Face 官方仓库，也不是工业安全控制系统。
 
-## 1. 放置位置与立即开始
+## 项目解决什么问题
 
-将 ZIP **内的内容**解压到 `C:\Project\Physical_AI\Lerobot`，使本文件位于该目录根部，不要再套一层同名文件夹。
-目标远端为 `https://github.com/sgyliu8/LeRobot.git`；父项目为 `C:\Project\Physical_AI`。
-在 Codex 中直接打开子目录，粘贴 [完整启动提示词](docs/prompts/CODEX_START.md)。
+从一套已经装好的 SO-101 台架出发，本项目把容易混在一起的步骤拆成清晰路径：
 
-离线检查本包只需 Python 标准库：
-
-```powershell
-Set-Location C:\Project\Physical_AI\Lerobot
-python tools/validate_pack.py
+```text
+固定依赖 → 启动 LeLab → 识别设备 → 校准与遥操作
+         → 录制双视角回合 → 只读审计 → ACT 训练 → 有分母的真机评估
 ```
 
-这个命令不联网、不安装依赖、不初始化 Git、不打开摄像头或串口。
-本次实际执行的静态检查与 14 项回归测试结果见 [包验证报告](docs/reviews/PACK_VALIDATION.md)。
-本包**没有**伪装成已完成的安装器、控制程序或已通过真机验收的软件。
-Codex 必须按 roadmap 实施并验证，而不是把文档中的目标打勾。
+核心原则：
 
-## 2. 当前事实
+- **上游优先**：不重写机器人 UI、串口驱动、相机驱动、Dataset 格式或训练器。
+- **本地优先**：服务只监听 loopback；数据、视频、校准、日志和模型默认不上传。
+- **证据分层**：软件测试、相机观察、真机运动和任务成功分别验收，不互相替代。
+- **可重建**：Python、LeLab、LeRobot 和必要补丁均固定到明确版本。
+- **一次只做一件危险的事**：Browse 是只读；Replay、Record、Teleoperate 和 Inference 都可能驱动机械臂。
 
-用户报告：两只机械臂与两台摄像头已通过 USB 接入电脑。
-本次 MCP 在 YangHome 上的枚举却只发现一个普通 COM1 和一台 UGREEN Camera 2K；未建立主从端口和双摄像头映射。
-这两个观察并存，原因未确定。不能把 COM1 自动绑定成机器人，也不能推断用户没有连接硬件。
-详细观察、证据范围和待确认项见 [来源核查](docs/research/SOURCE_AUDIT.md)。
+## 已实现能力
 
-已核实的上游候选：LeLab `6091a45811ef926a06b9b3622a9ab69fefb8bb7b`；它声明的 LeRobot v0.6.0 解析为 `30da8e687a6dfc617fcd94afc367ac7071c376ce`。
-这是**候选部署基线，不是本机兼容性保证**。具体约束见 [依赖合同](docs/DEPENDENCIES.md)。
-
-## 3. 从哪里阅读
-
-| 阅读目标 | 单一权威文件 |
+| 能力 | 当前结果 |
 |---|---|
-| Codex 怎样执行、何时继续/停止 | [AGENTS.md](AGENTS.md) |
-| 当前实际完成到哪里 | [HANDOFF.md](HANDOFF.md) |
-| 项目要交付什么 | [需求](docs/REQUIREMENTS.md) |
-| 软件边界与目录所有权 | [架构](docs/ARCHITECTURE.md) |
-| 分阶段任务、退出条件、学习目标 | [路线图](docs/ROADMAP.md) |
-| 复用界面、交互状态与信息布局 | [UI 规范](docs/UI_SPEC.md) |
-| 图像、状态、动作、回合、模型身份 | [数据合同](docs/DATA_CONTRACTS.md) |
-| 实测、负测试和证据标准 | [测试计划](docs/TEST_PLAN.md) |
-| Git、验证、发布与 CI | [CI 策略](docs/CI_POLICY.md) |
-| 硬件、权限、隐私、网络 | [安全与授权](docs/SECURITY.md) |
-| 依赖、缓存和补丁 | [依赖合同](docs/DEPENDENCIES.md) |
+| 官方 LeLab 本地工作台 | 可启动、查看状态、记录日志并由项目脚本停止 |
+| LeRobot SO-101 支持 | 使用固定 LeRobot v0.6.0，不创建同名替代包 |
+| Leader / Follower | 已完成受监督校准和遥操作验证 |
+| Wrist / Front 双相机 | 角色已确认；相机读取与句柄释放已验证 |
+| 录制控制 | Accept、Timeout、Discard、Stop 具有独立语义 |
+| Dataset v3 | 本地创建、finalize、加载、CPU batch 和精确 ID 续录的软件路径已验证 |
+| 数据浏览与审计 | 只读检查 Parquet、视频、回合边界、动作与时序 |
+| ACT 训练 / 真机策略评估 | 尚未开始 |
 
-根目录只保留四个 Markdown：README、AGENTS、HANDOFF、CHANGELOG。
-不创建小写/大写两套同名文件，不复制第二份 requirements 或 roadmap。
-其余内容按 operations / architecture / research / reviews / prompts 分层。
+详细、非历史堆叠的当前状态见 [Project Status](docs/PROJECT_STATUS.md)。
 
-## 4. 成功的第一阶段
+## 硬件拓扑
 
-不是自制漂亮首页，而是：可重复启动官方工作台 → 设备身份明确 → 经现场确认的校准和小范围遥操作 → 双视角三个短回合 → 无机械运动的数据浏览。
-先完成 M0–M3 的软件和相机工作；进入电机连接/配置或运动前完成 M4 现场准入。
-M4 不能用截图、模拟设备、绿色图标或“USB 已连接”替代。
+```mermaid
+flowchart LR
+    L[SO-101 Leader] -->|operator targets| LL[LeLab]
+    W[Wrist camera] --> LL
+    F[Front camera] --> LL
+    LL --> LR[LeRobot]
+    LR --> R[SO-101 Follower]
+    LR --> D[Local LeRobotDataset v3]
+    D --> A[Read-only audit]
+    D -. later .-> T[ACT training]
+```
 
-## 5. 包内是什么、不是什么
+本机保存的相机键保持兼容：
 
-包内是完整工程合同、可解析配置示例、来源登记、五角色三轮评审结果、启动/恢复提示词及离线包验证器。
-`configs/lab.example.json` 是**本项目规范示例**，不是可直接提交到 LeLab API 的请求。
-`configs/upstream-pins.json` 是上游候选身份，不是 Python 依赖锁；`uv.lock` 由 M1 实际解析生成。
-没有安装或运行 LeLab/LeRobot，没有打开设备，没有进行模型训练、真机试验或独立外部评审。
-评审是同一助手执行的五专业视角三轮交叉审查，见 [评审记录](docs/reviews/THREE_ROUND_REVIEW.md)。
+- `arm`：wrist camera
+- `table_veiw`：front camera（保留现有拼写，不能在同一数据集中静默改名）
 
-## 6. 操作原则
+端口、USB instance ID、校准路径和家庭画面属于本地状态，不写入仓库。完整硬件流程见
+[Hardware Setup](docs/HARDWARE.md)。
 
-使用现成能力 → 正确配置 → 必要的薄封装 → 有复现证据的小补丁；最后才考虑新开发。
-连接页面不是安全认证；3D 示意不是物理仿真；关节校准不是手眼标定；本地数据浏览不是动作重放。
-默认不上传数据、不运行付费训练、不使用公司设备或数据、不更改父项目受控文件。
+## 快速开始
+
+### 1. 前置条件
+
+- Windows 11 与 PowerShell
+- Git
+- [uv](https://docs.astral.sh/uv/) 0.12.4 或兼容版本
+- Python 3.12（项目锁定环境当前解析为 3.12.13）
+- Node.js/npm 仅在首次构建或重建 LeLab 前端时需要
+
+### 2. 获取并构建固定上游
+
+```powershell
+git clone https://github.com/sgyliu8/LeRobot.git PhysicalAI-SO101-Lab
+Set-Location .\PhysicalAI-SO101-Lab
+
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\bootstrap_upstream.ps1
+uv sync --frozen
+```
+
+这一步会取得固定的 LeLab checkout、应用仓库内补丁并准备打包前端。它不是日常启动命令。
+
+### 3. 启动工作台
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\lab.ps1 start
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\lab.ps1 status
+```
+
+打开 [http://127.0.0.1:8000/](http://127.0.0.1:8000/)。日常启动不会升级依赖、下载模型、重新校准或自动连接机器人。
+
+```powershell
+# 查看最新日志
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\lab.ps1 logs
+
+# 仅在没有活动硬件任务时停止项目拥有的服务
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\lab.ps1 stop
+```
+
+更完整的安装、重建和故障恢复说明见 [Getting Started](docs/GETTING_STARTED.md)。
+
+## 推荐使用顺序
+
+1. 启动 UI，确认服务状态为空闲。
+2. 在操作系统与实物之间确认 leader、follower、wrist、front 身份。
+3. 检查已有校准；不要把重新 setup motors 当成普通启动步骤。
+4. 在有人现场、机械臂固定和独立断电方式可用时进行有限遥操作。
+5. 冻结任务、Dataset FPS、相机配置、编码设置和六关节限幅。
+6. 新数据集先录 1 个短回合，finalize、浏览、审计并加载一个 CPU batch。
+7. 使用第一次返回的精确 dataset ID 和同一 profile 再追加 2 个回合。
+8. 三个真实回合全部通过后，才进入 ACT 训练准备。
+
+录制与数据检查详见 [Data Workflow](docs/DATA_WORKFLOW.md)。
+
+## 安全边界
+
+- USB 已连接不等于舵机供电正确，也不等于机械臂可以运动。
+- `Robot.connect()`、Calibrate、Teleoperate、Record、Replay 和 Inference 可能产生设备写入或运动。
+- 页面中的 Stop 是软件任务停止，不是经过认证的 emergency stop，也不保证 torque off。
+- 超时不代表动作没有执行；不要盲目重发运动请求。
+- 真实运动必须有人在场，并有不依赖浏览器或键盘焦点的独立停止/断电方式。
+- `max_relative_target` 只限制相邻位置目标差，不是速度、碰撞或力安全保证。
+
+开始硬件操作前请完整阅读 [Safety](docs/SAFETY.md)。
+
+## 验证
+
+```powershell
+# 公共文档、链接和配置示例
+uv run --frozen python -X utf8 tools\validate_docs.py
+
+# 项目回归（全部使用 fixture；不会连接机器人）
+uv run --frozen --with pytest -- python -X utf8 -m pytest -q tests
+
+# 固定 LeLab 后端
+uv run --frozen --with pytest -- python -X utf8 -m pytest -q _vendor\lelab\tests
+
+# 固定 LeLab 前端
+Set-Location .\_vendor\lelab\frontend
+npm test
+npm run lint
+npm run build
+npm audit
+```
+
+绿色测试只证明对应软件范围。测试模式、HTTP 200 或页面可打开都不是硬件在线、运动安全或真实数据质量证明。
+
+## 仓库结构
+
+```text
+.
+├── README.md                 用户入口
+├── docs/                     安装、硬件、数据、安全与开发文档
+├── configs/                  非敏感示例与固定上游身份
+├── schemas/                  项目配置和实验 sidecar schema
+├── scripts/lab.ps1           start / status / logs / stop
+├── tools/                    上游重建与只读数据审计
+├── patches/                  固定 LeLab 的可重建补丁
+├── tests/                    无硬件回归
+├── templates/                实验与评估记录模板
+├── pyproject.toml
+└── uv.lock
+```
+
+`.venv/`、`_vendor/`、`.local/`、数据集、视频、校准、日志和模型均为本地生成内容，不进入 Git。
+
+## 文档导航
+
+| 文档 | 适合什么时候读 |
+|---|---|
+| [Getting Started](docs/GETTING_STARTED.md) | 第一次安装、重建或启动失败 |
+| [Hardware Setup](docs/HARDWARE.md) | 连接、识别、校准、遥操作前 |
+| [Data Workflow](docs/DATA_WORKFLOW.md) | 录制、续录、浏览、审计和训练准备 |
+| [Data Contracts](docs/DATA_CONTRACTS.md) | Dataset、action、时间与 sidecar 的稳定语义 |
+| [Safety](docs/SAFETY.md) | 任何相机隐私或机械运动前 |
+| [Architecture](docs/ARCHITECTURE.md) | 理解 LeLab、LeRobot、补丁和本地数据边界 |
+| [Development](docs/DEVELOPMENT.md) | 修改代码、补丁或运行测试 |
+| [Troubleshooting](docs/TROUBLESHOOTING.md) | 端口、相机、UI、数据或停止问题 |
+| [Project Status](docs/PROJECT_STATUS.md) | 当前完成项、限制和下一验收门槛 |
+
+## 上游与许可
+
+本项目依赖 LeLab 与 LeRobot，并保留其上游许可和归属。固定版本见
+[`configs/upstream-pins.json`](configs/upstream-pins.json)。本仓库尚未为原创部分声明统一许可证；在许可证明确前，不应推断可自由再分发。原始家庭视频、数据集、校准和设备标识不属于代码公开范围。

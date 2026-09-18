@@ -1,0 +1,14 @@
+[project]
+name = "physicalai-so101-lab"
+version = "0.1.0"
+description = "Local, upstream-first SO-ARM101 lab integration"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "LeLab",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+lelab = { path = "_vendor/lelab", editable = true }
