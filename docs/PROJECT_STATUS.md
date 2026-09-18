@@ -4,12 +4,12 @@
 
 ## 当前结论
 
-**M5_DATA_READBACK_PASS / REAL_RESUME_NOT_RUN**
+**M5_DATA_READBACK_PASS / ACT_DECODER_SMOKE_PASS / REAL_RESUME_NOT_RUN**
 
 固定 LeLab/LeRobot 软件路径已经产出 7 个真实双视角回合。只读审计、官方 loader 与 CPU
 DataLoader batch 均通过；数据技术门槛已经超过三个回合。7 个回合是在一个新建 session 中连续
 采集，尚未用同一 ID 现场 resume，因此本页不把先前约定的 resume 程序门槛写成已完成。ACT
-训练和策略评估仍未开始。
+已在 CPU 上完成一次有界的 1-step smoke；完整基线、checkpoint 读回和策略评估仍未开始。
 
 ## 已验证
 
@@ -24,7 +24,11 @@ DataLoader batch 均通过；数据技术门槛已经超过三个回合。7 个�
 - 合成 MP4/Parquet 可完成 create、finalize、Browse/audit、官方 loader、CPU batch 与精确 ID resume；
 - 视频 EOF 不再用末帧无界替代，Browse/audit 保持只读。
 - 数据浏览使用一基 Episode 1–N，同时明确保留零基 Dataset index 0–N-1；
-- 训练页默认自动选择当前 PyTorch 可用的 CUDA、MPS、XPU 或 CPU，并报告 NVIDIA/PyTorch mismatch。
+- 训练页默认自动选择当前 PyTorch 可用的 CUDA、MPS、XPU 或 CPU，并报告 NVIDIA/PyTorch mismatch；
+- UI、API、任务记录和 CLI 均固定训练视频后端为 PyAV；旧 `torchcodec` 请求迁移到 PyAV，
+  无效后端被拒绝；
+- 本地任务在创建任务记录和模型进程前由官方 Dataset loader 解码真实样本；任务元数据与日志
+  固定写为 UTF-8，同时兼容读取旧 Windows ANSI 记录。
 
 ### 真实数据读回
 
@@ -32,6 +36,8 @@ DataLoader batch 均通过；数据技术门槛已经超过三个回合。7 个�
 - Dataset FPS 15，两路 `arm` / `table_veiw` 均为 640×480 H.264/yuv420p；
 - 两路每回合解码帧数与 Parquet 长度一致，PTS 单调，action/state 是有限六维向量；
 - 官方 `LeRobotDataset` 通过明确的 PyAV 视频后端读到 7 回合、3285 帧，CPU DataLoader 同时返回两路图像与 action/state；
+- 同一真实数据在本机 CPU 上完成 ACT 的 1-step、batch-size 1、零 worker smoke；训练进程正常
+  退出，loss、learning rate 和 gradient norm 均为有限值；未保存 checkpoint，因此不构成基线模型验收；
 - 审计和 loader 前后文件 size/mtime/hash 清单不变，未 repair、删除或上传原始数据；
 - 技术写盘成功不等于 7 次任务都成功，任务质量仍需操作者逐回合评价。
 
@@ -46,7 +52,7 @@ DataLoader batch 均通过；数据技术门槛已经超过三个回合。7 个�
 
 - 使用现有精确 dataset ID 的真实 resume 追加路径；
 - 对 7 个回合逐一记录任务成功/失败/中止的人工判定；
-- ACT 训练、Replay、Inference 与有分母的真机评估；
+- 完整 ACT 基线、checkpoint 保存/加载、离线推理、Replay、Inference 与有分母的真机评估；
 - ROS 2、仿真和大型 VLA 不在当前闭环范围。
 
 ## 真实采集候选 profile
@@ -66,4 +72,5 @@ DataLoader batch 均通过；数据技术门槛已经超过三个回合。7 个�
 
 先在只读 Browse 中为 7 个回合记录任务成功/失败与中止判定。若确实还要继续采集，则在新的有人
 现场会话中使用现有精确 dataset ID 和完全相同 profile 做一次真实 resume，再重复只读审计；不要
-为了“补测试”而无目的驱动机械臂。进入 M6 前另行冻结数据分区、ACT smoke 配置、存储与算力预算。
+为了“补测试”而无目的驱动机械臂。进入完整 M6 基线前另行冻结数据分区、训练配置、checkpoint
+存储与算力预算；1-step smoke 只证明当前数据和训练路径可执行，不证明模型质量或实用训练时长。
