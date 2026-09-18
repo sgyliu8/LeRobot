@@ -36,8 +36,8 @@ source revision + dependency lock
 
 ## 4. 动作与物理执行
 
-分别定义 `a_requested`（主臂或 policy 提议）、`a_sent`（限幅后发送的目标）、`q_measured`（之后读取的实际位置）。
-LeRobot `send_action()` 返回可能限幅后的目标；调用方是否把这个返回值写入 Dataset 必须在固定 recording path 中核实。
+分别定义 `a_requested`（主臂或 policy 提议）、`a_to_send`（processor 送给 robot 的目标）、`a_effective_sent`（`send_action()` 返回的限幅后目标）、`q_measured_pre_command`（该控制步发命令前的实测状态）。
+固定 LeRobot v0.6.0 recording path 已核实：官方 Dataset v3 的 `action` 保存 processed operator target，而不是 `_sent_action` 返回值。SO101 Lab 保留这个官方训练标签语义，不静默改成限幅后值；本地 ignored trace 另记 `requested_processed_official_action`、`to_send`、`effective_sent`、逐键 `clipped` 和 `q_measured_pre_command`。
 **Sent 不等于 applied/mechanically achieved。**没有位置反馈/时间对应或力矩传感器，就不声称记录到真实执行轨迹/力。
 
 动作合同至少含：关节顺序、绝对/增量目标、单位、normalisation/processor、control frequency 的来源、限制配置。
@@ -46,7 +46,7 @@ LeRobot `send_action()` 返回可能限幅后的目标；调用方是否把这�
 
 ## 5. 时间与双视角
 
-保存原有帧索引/时间；附加 metadata 说明可测到哪些时钟。
+Dataset v3 的名义 `timestamp` 保持 `frame_index / dataset_fps`；它不是循环实测时间或相机曝光时间。附加 metadata 说明可测到哪些时钟。
 实际能够获取时记录 camera arrival time、joint read time、loop time、write time；不可获取的 exposure timestamp 写 null / unavailable。
 不要为填满 schema 人工生成看似精确的传感器时间。
 首版接受明确标注的软时间关联，不宣称硬同步。需要时间精度的后续实验另设同步测量与误差预算。
@@ -61,10 +61,10 @@ LeRobot `send_action()` 返回可能限幅后的目标；调用方是否把这�
 
 ## 7. 回合生命周期
 
-每个回合记录任务、初始场景范围、采集会话、操作者匿名 ID、开始/结束/重置含义、取消/失败原因。
+每个回合记录任务、初始场景范围、采集会话、操作者匿名 ID、开始/结束/重置含义、取消/失败原因。SO101 Lab 的有限采集状态机固定为：Accept 保存当前非空回合；Timeout 保存并有限推进，不自动无限重录；Discard 是唯一清空当前未保存 buffer 的显式动作；Stop 不进入 reset/下一回合，非空 partial 保存为 interrupted，零帧则不伪造回合。
 按 upstream metadata 确认 reset 帧是否写入，不能口头假定已排除。
 Interrupted recording 保留文件；先复制/快照，再使用经过验证的官方修复流程。修复产生派生状态和报告，不覆盖原始证据而不留记录。
-浏览器播放与 dataset decode 有分离测试；共享 MP4 内 seek 边界正确。
+Browse、`/dataset-info` 和 `tools/audit_dataset.py` 是只读路径，不隐式调用 repair/delete。短视频目标越过物理 EOF 时返回 missing/error，不以最后一帧替代。浏览器播放与 dataset decode 有分离测试；共享 MP4 内 seek 边界正确。
 
 ## 8. 数据分区和模型
 
@@ -77,6 +77,7 @@ Interrupted recording 保留文件；先复制/快照，再使用经过验证的
 
 [实验模板](../templates/EXPERIMENT.md) 与 [评估模板](../templates/EVALUATION.md) 提供最小内容。
 [run 示例](../configs/run.example.json) 是 sidecar，不是 upstream 文件替代。
+M5 recording profile v2 与逐帧 trace 位于 ignored `LELAB_RECORDING_EVIDENCE_ROOT`：profile 冻结 dataset ID、任务、`video=True`、`push_to_hub=False`、Dataset FPS、实际解析后的相机键/backend/参数、逐关节限幅与单位、H.264/PyAV 编码设置和机器人身份；resume 必须使用第一次返回的精确 dataset ID 且 profile 完全一致。Browse 只有在 profile schema 完整、任务与所有 indexed episodes 一致、每个 Parquet/action row 数和两路实际解码帧数都精确匹配 index 时才给出 `resume_ready`。trace 使用 `time.perf_counter` 记录循环间隔和 OpenCV host capture-completion/arrival-age；该相机时间不是 exposure timestamp。
 禁止把 null 当作 0、unknown 当作 false、NOT_RUN 当作 FAIL。schema 的 nullable 字段保留信息不足语义。
 
 ## 10. 存储、备份与隐私

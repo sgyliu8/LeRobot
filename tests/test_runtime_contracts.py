@@ -6,11 +6,10 @@ import unittest
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
-from pydantic import ValidationError
-from starlette.websockets import WebSocketDisconnect
-
 from lelab import record, server, teleoperate
 from lelab.mode import hardware_mode_gate
+from pydantic import ValidationError
+from starlette.websockets import WebSocketDisconnect
 
 
 class _Robot:
@@ -36,10 +35,11 @@ class RuntimeContractTests(unittest.TestCase):
         record.recording_active = False
 
     def test_health_and_static_ui_do_not_construct_robot(self):
-        with patch.object(teleoperate, "SO101Follower") as follower:
-            with TestClient(server.app, headers={"host": "localhost:8000"}) as client:
-                health = client.get("/health")
-                root = client.get("/", headers={"accept": "text/html"})
+        with patch.object(teleoperate, "SO101Follower") as follower, TestClient(
+            server.app, headers={"host": "localhost:8000"}
+        ) as client:
+            health = client.get("/health")
+            root = client.get("/", headers={"accept": "text/html"})
         self.assertEqual(health.status_code, 200)
         self.assertEqual(health.json(), {"status": "ok", "message": "FastAPI server is running"})
         self.assertEqual(root.status_code, 200)
@@ -59,13 +59,15 @@ class RuntimeContractTests(unittest.TestCase):
         save_robot_port.assert_not_called()
 
     def test_untrusted_websocket_origin_is_rejected(self):
-        with TestClient(server.app, headers={"host": "localhost:8000"}) as client:
-            with self.assertRaises(WebSocketDisconnect) as caught:
-                with client.websocket_connect(
-                    "/ws/joint-data",
-                    headers={"origin": "https://evil.example"},
-                ):
-                    self.fail("untrusted WebSocket was accepted")
+        with (
+            TestClient(server.app, headers={"host": "localhost:8000"}) as client,
+            self.assertRaises(WebSocketDisconnect) as caught,
+            client.websocket_connect(
+                "/ws/joint-data",
+                headers={"origin": "https://evil.example"},
+            ),
+        ):
+            self.fail("untrusted WebSocket was accepted")
         self.assertEqual(caught.exception.code, 1008)
 
     def test_mode_gate_has_one_atomic_winner(self):
@@ -75,9 +77,9 @@ class RuntimeContractTests(unittest.TestCase):
 
         def claim():
             barrier.wait()
-            accepted, _ = hardware_mode_gate.claim("teleoperation")
+            lease, _ = hardware_mode_gate.claim("teleoperation")
             with results_lock:
-                results.append(accepted)
+                results.append(lease is not None)
 
         threads = [threading.Thread(target=claim) for _ in range(8)]
         for thread in threads:
@@ -89,32 +91,34 @@ class RuntimeContractTests(unittest.TestCase):
         self.assertEqual(results.count(False), 7)
 
     def test_mode_gate_rejects_repeat_and_allows_retry_after_release(self):
-        accepted, owner = hardware_mode_gate.claim("teleoperation")
-        self.assertTrue(accepted)
+        lease, owner = hardware_mode_gate.claim("teleoperation")
+        self.assertIsNotNone(lease)
         self.assertIsNone(owner)
 
-        accepted, owner = hardware_mode_gate.claim("teleoperation")
-        self.assertFalse(accepted)
+        rejected, owner = hardware_mode_gate.claim("teleoperation")
+        self.assertIsNone(rejected)
         self.assertEqual(owner, "teleoperation")
-        accepted, owner = hardware_mode_gate.claim("recording")
-        self.assertFalse(accepted)
+        rejected, owner = hardware_mode_gate.claim("recording")
+        self.assertIsNone(rejected)
         self.assertEqual(owner, "teleoperation")
 
-        self.assertFalse(hardware_mode_gate.release("recording"))
-        self.assertTrue(hardware_mode_gate.release("teleoperation"))
-        accepted, owner = hardware_mode_gate.claim("recording")
-        self.assertTrue(accepted)
+        other, _ = hardware_mode_gate.claim("recording")
+        self.assertIsNone(other)
+        self.assertFalse(hardware_mode_gate.release(type(lease)("recording", lease.token)))
+        self.assertTrue(hardware_mode_gate.release(lease))
+        next_lease, owner = hardware_mode_gate.claim("recording")
+        self.assertIsNotNone(next_lease)
         self.assertIsNone(owner)
 
     def test_other_mode_blocks_before_hardware_setup(self):
-        accepted, _ = hardware_mode_gate.claim("calibration")
-        self.assertTrue(accepted)
+        lease, _ = hardware_mode_gate.claim("calibration")
+        self.assertIsNotNone(lease)
         request = teleoperate.TeleoperateRequest(
             leader_port="FIXTURE-L",
             follower_port="FIXTURE-F",
             leader_config="leader.json",
             follower_config="follower.json",
-            max_relative_target=5.0,
+            max_relative_target={name: 5.0 for name in record.SO101_LIMIT_UNITS},
         )
         with patch.object(teleoperate, "setup_calibration_files") as setup:
             result = teleoperate.handle_start_teleoperation(request)
@@ -130,11 +134,15 @@ class RuntimeContractTests(unittest.TestCase):
             follower_config="follower.json",
             dataset_repo_id="fixture/dataset",
             single_task="fixture only",
-            max_relative_target=5.0,
+            cameras={
+                "arm": {"camera_index": 1, "width": 640, "height": 480, "fps": 30},
+                "table_veiw": {"camera_index": 2, "width": 640, "height": 480, "fps": 30},
+            },
+            max_relative_target={name: 5.0 for name in record.SO101_LIMIT_UNITS},
         )
         with patch.object(record, "setup_calibration_files", return_value=("leader", "follower")):
             config = record.create_record_config(request)
-        self.assertEqual(config.robot.max_relative_target, 5.0)
+        self.assertEqual(config.robot.max_relative_target, {name: 5.0 for name in record.SO101_LIMIT_UNITS})
 
     def test_relative_target_must_be_positive(self):
         with self.assertRaises(ValidationError):

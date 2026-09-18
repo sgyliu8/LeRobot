@@ -1,6 +1,6 @@
 # PhysicalAI SO101 Lab — Golden Context Pack
 
-**Context Pack：1.0.0 · 2026-09-17 · 项目阶段：M0/M1 已完成，M2/M3 有真实部分证据。软件尚未发布。**
+**Context Pack：1.0.0 · 2026-09-18 · 项目阶段：M0–M2 已完成，M3/M4 部分完成，M5 软件就绪并等待有人在场采集。软件尚未发布。**
 
 这是 Yang Liu 的 SO-ARM101 主从双臂、腕部/桌面双摄像头实验工作台。
 优先复用官方 LeLab 图形工作台与 LeRobot 工具链，逐步完成配置、遥操作、示范采集、数据浏览、ACT 训练、真机评估与 PhysicalAI 研究关联。
@@ -20,7 +20,7 @@ python tools/validate_pack.py
 ```
 
 这个命令不联网、不安装依赖、不初始化 Git、不打开摄像头或串口。
-原始 pack 的 14 项回归结果见 [包验证报告](docs/reviews/PACK_VALIDATION.md)；当前 M1 候选另有 10 项 no-device runtime 回归，共 24 项，实时状态见 [HANDOFF](HANDOFF.md)。
+原始 pack 的 14 项回归结果见 [包验证报告](docs/reviews/PACK_VALIDATION.md)；当前候选共有 54 项项目 Python 回归、268 项固定 LeLab 回归和 15 项前端测试，包含真实编码 synthetic MP4/Parquet 的三回合软件闭环。fixture 不是实机证据，实时状态见 [HANDOFF](HANDOFF.md)。
 
 固定上游、同步环境并启动本地工作台：
 
@@ -36,9 +36,11 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\lab.ps1 status
 
 ## 2. 当前事实
 
-本会话重新确认执行主机为 `YANGHOME`。Windows 当前只枚举出一个可作为控制板候选的 CH343 USB 串口（COM6，角色未分配）；COM1 是 ACPI legacy port，COM7 与 front 相机属于同一复合 USB 设备，均未被当作第二只机械臂。第二个独立控制板仍未在 OS 中出现，所以 M2 尚未完成，也没有打开任何串口。
+执行主机为 `YANGHOME`。Windows 当前枚举两个不同实例的 CH343：既有成功操作把 COM5 映射为 Yang101 leader、COM6 映射为 follower；COM1 是 ACPI legacy port，COM7 与 front 相机属于同一复合 USB 设备，均未被当作机械臂。用户已完成主从校准与 COM5→COM6 遥操作，本轮先备份现有配置、端口记录和两份校准，没有重复初始化、校准或移动机械臂。
 
-两台目标相机已建立本地映射：`LRCP G720P` 为 wrist，`1080P USB Camera` 为 front，均使用 DSHOW、640×480/15 fps 配置。双路 60 秒相机-only 采样与官方 LeRobot `OpenCVCamera` smoke 已通过；既有 `UGREEN Camera 2K` 未打开。原始帧、完整设备 ID 和统计仅保存在忽略的 `.local/evidence/`，不进 Git。重插/换序验证仍为 `NOT_RUN`。
+保存配置保留既有字段：`arm` 是 wrist，`table_veiw` 是 front；当前请求值为 DSHOW 640×480/30 fps，Dataset FPS 候选为 15。此前双路 camera-only 采样和角色确认已通过；本轮两台相机又分别通过固定版官方 `OpenCVCamera` 的 640×480/30 短读并释放。重插/换序仍为 `NOT_RUN`。内嵌验证浏览器不提供 `navigator.mediaDevices`，所以记录窗口缩略图没有渲染；这不算 UI 预览 PASS，也不推翻独立 camera-only 结果。原始帧、完整设备 ID 和统计仅保存在忽略的 `.local/evidence/`，不进 Git。
+
+M5 修复已贯通 UI profile 到真实 request/runtime：六个 SO101 关节限幅键及混合单位、Dataset FPS、H.264/yuv420p/PyAV 编码、本地无 HF 登录的新建/finalize/精确 ID resume；并分开处理 Accept、Timeout、Discard、Stop。官方 Dataset `action` 仍是 processed operator target，ignored sidecar 另存 requested/to-send/effective-sent/裁剪与实测、名义时间和主机时序。三回合真实采集尚未执行，不能标为 M5 complete。
 详细观察、证据范围和待确认项见 [来源核查](docs/research/SOURCE_AUDIT.md)。
 
 已安装的固定基线是 LeLab `6091a45811ef926a06b9b3622a9ab69fefb8bb7b` 加受控补丁，以及 LeRobot v0.6.0 / `30da8e687a6dfc617fcd94afc367ac7071c376ce`。Python 为 3.12.13，完整解析保存在 `uv.lock`。具体身份、构建和限制见 [依赖合同](docs/DEPENDENCIES.md)。
@@ -74,7 +76,7 @@ M4 不能用截图、模拟设备、绿色图标或“USB 已连接”替代。
 仓库内保留工程合同、可解析配置示例、来源登记、单一助手多角色评审记录、启动/恢复提示词、离线 validator、固定依赖锁、可重建补丁和本地服务入口。
 `configs/lab.example.json` 是**本项目规范示例**，不是可直接提交到 LeLab API 的请求。
 `configs/upstream-pins.json` 保存上游与补丁身份，`uv.lock` 是 M1 实际解析的依赖锁。
-LeLab/LeRobot 已安装并运行，浏览器 UI 与两路相机已验证；`Robot.connect()`、校准、遥操作、录制、回放、训练和真机 policy 仍为 `NOT_RUN`。既有评审是同一助手执行的多专业视角检查，不是五名独立评审，见 [评审记录](docs/reviews/THREE_ROUND_REVIEW.md)。
+LeLab/LeRobot 已安装并运行；用户此前完成 Yang101 校准和受监督遥操作。本轮没有调用 `Robot.connect()`、校准、遥操作、录制、回放或真机 policy；真实三回合、训练和评估仍为 `NOT_RUN`。M5 使用三个实际只读子代理分别复核运行时、数据和 UI/交付，只有主代理修改代码和操作本地服务。
 
 ## 6. 操作原则
 

@@ -1,16 +1,16 @@
 # Roadmap — 每步都有真实交付与退出条件
 
-**Current status (2026-09-17):** M0/M1 COMPLETE; M2 PARTIAL/BLOCKED; M3 PARTIAL; M4–M8 NOT_STARTED.
+**Current status (2026-09-18):** M0/M1/M2 COMPLETE; M3 PARTIAL; M4 PARTIAL; M5 SOFTWARE_READY / AWAITING_ATTENDED_CAPTURE; M6–M8 NOT_STARTED.
 各阶段按依赖推进，不按日历作不可靠工期承诺。阻塞硬件时继续不依赖它的软件切片。
 
 | 阶段 | 产出 | 依赖 | 权限 | 当前状态 |
 |---|---|---|---|---|
 | M0 | 独立子仓库、父隔离、上下文与主机身份 | 已解压 pack | A | COMPLETE |
 | M1 | 固定依赖、官方 UI、无设备 smoke 与必要保护补丁 | M0 | A | COMPLETE |
-| M2 | 主机/USB/驱动事实与主从映射计划 | M0；可与 M1 并行 | A/B | PARTIAL / BLOCKED（仅一个控制口候选） |
+| M2 | 主机/USB/驱动事实与主从映射计划 | M0；可与 M1 并行 | A/B | COMPLETE |
 | M3 | wrist/front 身份与稳定双路相机预览 | M1、设备可见 | B | PARTIAL（T-CAM-03 NOT_RUN） |
-| M4 | 现场准入、校准、首轮小幅遥操作 | M1/M2；机械事实已确认 | C/D | NOT_STARTED |
-| M5 | 三个真实双视角短回合与本地检查 | M3/M4 | D；浏览 A | NOT_STARTED |
+| M4 | 现场准入、校准、首轮小幅遥操作 | M1/M2；机械事实已确认 | C/D | PARTIAL（校准/遥操作已完成；新采集会话仍需当次现场确认） |
+| M5 | 三个真实双视角短回合与本地检查 | M3/M4 | D；浏览 A | SOFTWARE_READY / AWAITING_ATTENDED_CAPTURE |
 | M6 | 任务数据、ACT 离线训练基线 | M5 + 算力/存储确认 | A；采集 D；云 E | NOT_STARTED |
 | M7 | 有限、受监督的真机评估 | M6 | D，新模式批准 | NOT_STARTED |
 | M8 | 研究关联与下一实验 | M5 或 M7 的真实结果 | A；父写入另审 | NOT_STARTED |
@@ -45,7 +45,7 @@
 验收：两只独立控制板的 OS 身份、主从角色、重新插拔后的再识别策略；或具体可验证的阻塞原因。
 学习目标：USB 枚举、串口设备、舵机总线与 actuator power 的区别。
 
-**2026-09-17 evidence:** 执行主机确认是 `YANGHOME`。COM1 为 ACPI legacy port；COM6 是当前唯一独立 CH343 USB 串口候选但角色未分配；COM7 与 front camera 共用一个复合 USB container，未作为第二控制板。T-DEV-01 `BLOCKED`：OS 仍未提供两只独立控制板及 leader/follower 差分身份。未打开串口、未安装驱动、未发探测命令。
+**2026-09-18 evidence:** 执行主机为 `YANGHOME`。Windows PnP 当前同时显示两个不同实例的 CH343：COM5 已由成功的主从操作映射为 leader，COM6 映射为 follower；COM1 仍是 ACPI legacy port，COM7 仍属于 front camera 的复合 USB container，不作为机械臂。用户已完成 Yang101 两侧校准和 COM5→COM6 遥操作，既有本地日志佐证开始、运行和正常停止。T-DEV-01 PASS；完整实例标识只保存在本地证据中。
 
 ## M3 — 双视角相机先独立跑稳
 
@@ -70,6 +70,8 @@
 失败：异常力、过热、抖动、撞限位、未知指令或状态陈旧即停止；不自动重复动作，重新评估后另行恢复。
 学习目标：电机设置、校准、位置控制、反馈和安全边界。
 
+**2026-09-18 evidence:** 用户报告 Yang101 leader/follower 校准完成，并报告 COM5 leader、COM6 follower 遥操作成功；项目本地日志与两侧校准文件存在性相符。校准已做备份，本轮没有重写 motor ID/baud/firmware、没有重新校准或再次移动机械臂。由于下一次 recording 的任务、当次在场/固定接电、正常 Stop 与独立断电方法、有限范围尚需集中确认，M4 保持 PARTIAL，而不是把历史成功扩大成当前现场安全批准。
+
 ## M5 — 第一份可用数据，而不是先录几百次
 
 定义一个简单抓放任务与成功条件，固定相机安装和任务文字。用 LeRobotDataset 记录三个 20–30 s 左右的短回合，时长以完整任务为准，不强行截断。
@@ -79,6 +81,8 @@
 故障注入先用合成 fixture 模拟丢失视频/未 finalize；不要在运动中拔线制造试验。
 验收：T-DATA-01..05；三回合完整、两视角可解码、内容/索引相符、没有自动上传；v0.1 可作为实验台候选。
 学习目标：observation/action/episode/task/metadata，以及记录与物理执行之间的差别。
+
+**2026-09-18 software gate:** `M5_SOFTWARE_READY / AWAITING_ATTENDED_CAPTURE`。无硬件回归已覆盖 Accept、Timeout、Discard、Stop、零设备构造、唯一 session/lease、worker telemetry cache、纯只读 browse/audit、短 H.264 越界和 profile/resume。真实合成 H.264 + Parquet Dataset v3 完成“新建 1 回合→finalize→官方 loader/CPU DataLoader→同一 ID resume 追加 2 回合→累计 3 回合”的离线闭环。该结果明确是 synthetic fixture，不是三回合真机证据。真实 dataset ID、真实回合、两路媒体与现场任务均 `NOT_RUN`；达到这些条件前不得标记 M5 COMPLETE。
 
 ## M6 — 一个可解释的 ACT 基线
 

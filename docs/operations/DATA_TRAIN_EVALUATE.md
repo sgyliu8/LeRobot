@@ -7,10 +7,19 @@
 
 ## 2. 三回合 smoke
 
-检查两路camera key/分辨率/实际fps、主从calibration、任务描述、output根和push_to_hub=False。
-先一个完整回合→停止→查看，然后再另外两个。不要先录大量数据再发现相机角色反了。
-检查首/末帧、状态/action字段、reset是否进入episode、提前结束长度与媒体seek。
-优先LeLab已有本地browser；不上传Hub换取查看权限。
+检查两路 camera key/分辨率/请求 fps、主从 calibration、任务描述、output 根和 `push_to_hub=False`。本机既有键固定为 `arm`（wrist）和保留拼写的 `table_veiw`（front），不能在同一 dataset 中改名；Dataset FPS 与相机请求 FPS 是不同字段。
+
+正式创建前冻结一个 recording profile：精确任务文字、Dataset FPS、两路 camera/backend/尺寸/请求 FPS、H.264/yuv420p/PyAV 参数，以及六个裸 SO101 key 的 `max_relative_target`。`shoulder_pan`、`shoulder_lift`、`elbow_flex`、`wrist_flex`、`wrist_roll` 单位是 degree，`gripper` 是 `normalized_0_100`。这些值限制相邻位置目标差，不是速度、碰撞或安全认证。
+
+顺序固定为：
+
+1. 新 dataset 只录一个完整短回合，正常 Accept/Stop 并等待 finalize；记录服务返回的**实际 dataset ID**。
+2. 使用本地 Browse 和只读 audit 检查首/末帧、两路真实视频、Parquet、episode/task/index、状态与 action、结束原因和媒体边界；再用官方 `LeRobotDataset` 和 CPU DataLoader 读取至少一个 batch。
+3. 只用第一次返回的精确 ID 和完全相同的 frozen profile 执行 official resume，再追加两个真实回合。不要手工拼文件、复制 fixture 或在同一 dataset 静默改配置。
+
+Accept 保存当前回合；Timeout 有限结束并保留技术有效回合；Discard 是唯一清空并重录动作；Stop 不进入 reset/下一回合，非空 partial 作为 interrupted 保存。优先 LeLab 已有本地 browser；不上传 Hub 换取查看权限。
+
+严格审计命令为 `uv run --frozen python -X utf8 tools/audit_dataset.py <actual-dataset-id> --camera arm --camera table_veiw`。默认只打印结果且必须保持数据 hash manifest 不变；若要保存报告，`--output` 只能指向忽略的 `.local/evidence/`。Browse/audit 不调用 repair 或 delete。
 
 ## 3. 采集扩展
 
@@ -21,7 +30,8 @@ M5通过后初始30–50条高质量示范只是起点，依据失败和覆盖�
 ## 4. 训练前
 
 按episode/session分区，不以相邻frame随机分区造成泄漏。
-核对实际LeRobot recording path的action semantics；未确定单位或标签源就先修复，不盲训练。
+固定 LeRobot v0.6.0 recording path 的官方 Dataset `action` 是 processed operator target，不是 `send_action()` 返回的 effective-sent 值。训练标签保持官方语义；本地 ignored trace 另存 requested/to-send/effective-sent/裁剪和 pre-command measured state。未确定单位、键顺序或标签源就先修复，不盲训练。
+Dataset `timestamp = frame_index / fps` 是名义时间；循环间隔与 host camera capture-completion/arrival 另存 sidecar，后者不是曝光时间。不能把两者混称为实测同步。
 验证batch、dtype、channel order、camera keys、state order、normalisation、缺失值和视频可读性。
 图像预处理要在训练和推理一致；不套用会改变任务线索的“美化”增强而不评价。
 

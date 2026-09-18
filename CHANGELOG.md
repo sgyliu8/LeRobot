@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased — M5 software-ready recording/data closure — 2026-09-18
+
+- Reconciled the live Yang101 state: distinct CH343 COM5 leader and COM6 follower, completed user calibration/teleoperation, and preserved `arm` wrist plus `table_veiw` front roles. Backed up the existing robot configuration, port records and both calibration files without recalibration or motion.
+- Replaced mode-string ownership with unique leases and session-scoped controls; delayed old cleanup can no longer release a newer task. Calibration/teleoperation HTTP and WebSocket status now consume worker-owned telemetry caches instead of reading the serial bus.
+- Split recording termination into explicit Accept, finite Timeout, destructive Discard and Stop semantics. Stop fences further command dispatch, never enters reset/next episode, and preserves a non-empty interrupted episode; only Discard clears the current buffer.
+- Connected the saved UI profile to the actual runtime request for Dataset FPS, typed camera settings, H.264/yuv420p/PyAV encoding and exact finite positive six-key SO101 target-delta limits with correct mixed units.
+- Preserved official LeRobot Dataset v3 `action` label semantics while adding ignored per-frame evidence for requested/to-send/effective-sent targets, clipping, pre-command state, nominal dataset time and measured host loop/camera timing.
+- Added local-only single-name canonicalisation, exact-ID/profile-locked resume, read-only dataset browse/audit, and short-video EOF handling that no longer substitutes the last physical frame.
+- Added an atomic shutdown fence and exact Windows process/listener revalidation; software stop remains explicitly distinct from physical torque-off.
+- Added M5 runtime and data-integrity regressions plus a strict read-only dataset auditor. The 54 project tests, 268 pinned-LeLab tests, 15 frontend tests, production build and a clean pinned-patch apply/test/build/import passed.
+- Made unload-time teleoperation stops truth-preserving: the UI retains the exact session token and reports a clean disconnect only after cached exact-session status confirms it. Recording receipts now show the resolved camera backend/index/shape/capture rate plus every target-delta value and unit.
+- Hardened packed-video browsing: resume requires Parquet rows and exactly matching decoded frames for every indexed episode/camera, and both the active and secondary all-camera players clamp to their own episode windows.
+- Reconfirmed both configured cameras through pinned LeRobot at 640×480/30 with increasing host timestamps and clean handle release. The in-app browser lacks `navigator.mediaDevices`, so its failed modal thumbnails remain `NOT_RUN` for UI preview rather than being treated as a physical-camera failure or pass.
+- Completed a synthetic H.264/Parquet Dataset v3 path from one episode/finalize through official loader and CPU DataLoader, then exact-ID resume to three episodes. This is software evidence only: the real dataset ID, three attended episodes and current two-camera media audit remain `NOT_RUN`.
+
+No real recording, replay, inference, training, Hub upload, cloud job, merge, release, tag or public deployment occurred. The fixed LeLab/LeRobot revisions and locked dependency set were retained. The final tracked vendor patch SHA-256 is `e5032c005b8264a9138aaa86cb433dbca7a694d933fe33e528802cc91a9c4664`.
+
 ## Unreleased — M0/M1 runtime candidate and M2/M3 observation — 2026-09-17
 
 - Established the independent child Git repository, pushed the clean `main` baseline, and created `codex/bootstrap-so101-lab`; the only parent-side change is local `/Lerobot/` exclusion metadata.

@@ -14,12 +14,14 @@ $ErrorActionPreference = 'Stop'
 $projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $runtimeRoot = [IO.Path]::GetFullPath((Join-Path $projectRoot '.local\runtime'))
 $logRoot = [IO.Path]::GetFullPath((Join-Path $projectRoot '.local\logs'))
+$recordingEvidenceRoot = [IO.Path]::GetFullPath((Join-Path $projectRoot '.local\evidence\recordings'))
 $statePath = [IO.Path]::GetFullPath((Join-Path $runtimeRoot 'lelab-process.json'))
 $pythonExe = [IO.Path]::GetFullPath((Join-Path $projectRoot '.venv\Scripts\python.exe'))
 $healthUrl = 'http://127.0.0.1:8000/health'
 $runtimeStatusUrl = 'http://127.0.0.1:8000/lab-runtime-status'
+$shutdownFenceUrl = 'http://127.0.0.1:8000/lab-shutdown-fence'
 
-foreach ($scopedPath in @($runtimeRoot, $logRoot, $statePath, $pythonExe)) {
+foreach ($scopedPath in @($runtimeRoot, $logRoot, $recordingEvidenceRoot, $statePath, $pythonExe)) {
     if (-not $scopedPath.StartsWith($projectRoot, [StringComparison]::OrdinalIgnoreCase)) {
         throw "Resolved path escaped the project root: $scopedPath"
     }
@@ -69,6 +71,18 @@ function Get-PortOwners {
 function Invoke-LocalJson {
     param([Parameter(Mandatory)][string]$Uri)
     return Invoke-RestMethod -Uri $Uri -Method Get -TimeoutSec 3 -Proxy $null
+}
+
+function Invoke-LocalJsonPost {
+    param(
+        [Parameter(Mandatory)][string]$Uri,
+        [object]$Body = $null
+    )
+    if ($null -eq $Body) {
+        return Invoke-RestMethod -Uri $Uri -Method Post -TimeoutSec 3 -Proxy $null
+    }
+    return Invoke-RestMethod -Uri $Uri -Method Post -TimeoutSec 3 -Proxy $null `
+        -ContentType 'application/json' -Body ($Body | ConvertTo-Json -Compress)
 }
 
 function Show-Status {
@@ -122,7 +136,7 @@ switch ($Action) {
             throw "LeLab is not installed in the project environment. Run uv sync --frozen first."
         }
 
-        New-Item -ItemType Directory -Force -Path $runtimeRoot, $logRoot | Out-Null
+        New-Item -ItemType Directory -Force -Path $runtimeRoot, $logRoot, $recordingEvidenceRoot | Out-Null
         $state = Read-ProcessState
         if ($null -ne $state) {
             $existing = Resolve-OwnedProcess -State $state
@@ -145,9 +159,21 @@ switch ($Action) {
         $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
         $stdoutLog = Join-Path $logRoot "lelab-$stamp.stdout.log"
         $stderrLog = Join-Path $logRoot "lelab-$stamp.stderr.log"
-        $process = Start-Process -FilePath $pythonExe -ArgumentList '-m', 'lelab.scripts.lelab', '--no-open' `
-            -WorkingDirectory $projectRoot -RedirectStandardOutput $stdoutLog `
-            -RedirectStandardError $stderrLog -WindowStyle Hidden -PassThru
+        $previousEvidenceRoot = $env:LELAB_RECORDING_EVIDENCE_ROOT
+        try {
+            $env:LELAB_RECORDING_EVIDENCE_ROOT = $recordingEvidenceRoot
+            $process = Start-Process -FilePath $pythonExe -ArgumentList '-m', 'lelab.scripts.lelab', '--no-open' `
+                -WorkingDirectory $projectRoot -RedirectStandardOutput $stdoutLog `
+                -RedirectStandardError $stderrLog -WindowStyle Hidden -PassThru
+        }
+        finally {
+            if ($null -eq $previousEvidenceRoot) {
+                Remove-Item Env:LELAB_RECORDING_EVIDENCE_ROOT -ErrorAction SilentlyContinue
+            }
+            else {
+                $env:LELAB_RECORDING_EVIDENCE_ROOT = $previousEvidenceRoot
+            }
+        }
         $process.Refresh()
         $state = [ordered]@{
             schema_version = 1
@@ -249,23 +275,42 @@ switch ($Action) {
             break
         }
 
+        $fence = $null
         try {
-            $runtimeStatus = Invoke-LocalJson -Uri $runtimeStatusUrl
+            $fence = Invoke-LocalJsonPost -Uri $shutdownFenceUrl
+            if (-not $fence.success -or [int]$fence.pid -ne $process.Id) {
+                throw "Shutdown fence did not identify the recorded LeLab PID $($process.Id)."
+            }
+            $process = Resolve-OwnedProcess -State $state
+            $owners = @(Get-PortOwners)
+            if ($null -eq $process -or $owners.Count -ne 1 -or [int]$owners[0] -ne $process.Id) {
+                throw 'Owned process identity or port ownership changed after the shutdown fence.'
+            }
+            Stop-Process -Id $process.Id -Force
+            $exited = $process.WaitForExit(5000)
+            if (-not $exited -or -not $process.HasExited) {
+                throw "Owned LeLab PID $($process.Id) did not exit within 5 seconds; process state was preserved."
+            }
+            $remainingOwners = @(Get-PortOwners)
+            if ($remainingOwners -contains $process.Id) {
+                throw "Owned LeLab PID $($process.Id) still owns port 8000 after exit wait; process state was preserved."
+            }
         }
         catch {
-            throw "Cannot prove the owned service is hardware-idle; refusing to terminate PID $($process.Id)."
+            if ($null -ne $fence -and $fence.fence_token) {
+                try {
+                    Invoke-LocalJsonPost -Uri "$shutdownFenceUrl/release" -Body @{ token = [string]$fence.fence_token } | Out-Null
+                }
+                catch {
+                }
+            }
+            throw
         }
-        if ($null -ne $runtimeStatus.hardware_mode) {
-            throw "Hardware mode '$($runtimeStatus.hardware_mode)' is active. Stop it in LeLab and verify the bench before stopping the service."
-        }
-
-        Stop-Process -Id $process.Id -Force
-        $process.WaitForExit(5000) | Out-Null
         Remove-Item -LiteralPath $statePath -Force
         [pscustomobject]@{
             state = 'stopped'
             pid = $process.Id
-            note = 'Software process stopped while hardware_mode was idle; this is not a torque-off guarantee.'
+            note = 'Software process stopped under an atomic idle fence; this is not a torque-off guarantee.'
         } | ConvertTo-Json -Depth 4
     }
 }

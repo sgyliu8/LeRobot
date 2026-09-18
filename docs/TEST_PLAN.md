@@ -43,11 +43,11 @@ P0 文档/配置静态检查；P1 无硬件代码/接口测试；P2 本机 GUI �
 
 本包实际提供 `tools/validate_pack.py` 和其 unittest：检查文档存在、JSON 解析、源 ID、链接、root规范、候选 SHA、示例角色、禁止误设 motion、manifest 完整性。
 这些工具不安装 LeLab、不验证 dependency resolution、不连接设备，不证明以上全部运行矩阵已实现。
-M1 根据实际源码建立对应无设备 tests。测试代码里的 mock 只用于证明分支行为，不输出“robot passed”。
+M1/M5 根据实际源码建立对应无设备 tests。当前本地候选为 54 项项目 Python 回归、268 项固定 LeLab 回归和 15 项前端 Vitest；其中真实编码的 synthetic MP4/Parquet fixture 验证 Dataset v3、finalize、loader、CPU DataLoader、同 ID resume 与三回合累计，但只证明软件路径，不输出“robot passed”或“三个真实回合”。
 
 ## 4. 必要负测试
 
-错误端口；同一路相机绑定两角色；被其他程序占用的相机；清单中缺少calibration；损坏/共享MP4边界；空/NaN字段；跨模式并发；无效Origin；断开的WS；UI截图有静态零值但后台无设备。
+错误端口；同一路相机绑定两角色；被其他程序占用的相机；清单中缺少calibration；损坏/共享MP4边界；空/NaN/Inf限幅；旧 session 控制新任务；延迟 worker release；Stop 后动作/reset；超时无界重录；跨模式并发；无效Origin；断开的WS；UI截图有静态零值但后台无设备。
 动态异常先在 fixture 注入，不自动用拔插带电机械臂做 fault injection。
 未测场景标 NOT_RUN，不把被禁用的按钮当后端保护已通过。
 
