@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "camera_role": "front",
+  "image_width_px": 640,
+  "image_height_px": 480,
+  "charuco": {
+    "squares_x": null,
+    "squares_y": null,
+    "square_length_m": null,
+    "marker_length_m": null,
+    "dictionary": null
+  },
+  "fit_images_glob": null,
+  "holdout_images_glob": null,
+  "intrinsics_json": null,
+  "base_to_board_transform_json": null,
+  "outputs_dir": ".local/vision_geometry/results"
+}

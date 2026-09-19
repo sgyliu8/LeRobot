@@ -195,12 +195,24 @@ if ($origin -ne $upstreamUrl -or $head -ne $upstreamCommit) {
     throw "Existing vendor checkout does not match the pinned source. origin=$origin HEAD=$head"
 }
 
-git -C $vendorRoot apply --reverse --check $patchPath 2>$null
-$alreadyApplied = $LASTEXITCODE -eq 0
-if (-not $alreadyApplied) {
+$vendorChanges = @(git -C $vendorRoot status --porcelain --untracked-files=all)
+if ($LASTEXITCODE -ne 0) { throw 'Unable to inspect the LeLab vendor checkout.' }
+$alreadyApplied = $false
+if ($vendorChanges.Count -gt 0) {
+    # Only a modified tree can already contain the patch. Avoid asking Git to
+    # reverse-check a multi-megabyte patch against a pristine checkout: on
+    # Windows PowerShell the expected error stream can fill the native pipe
+    # and stall a first bootstrap indefinitely.
+    git -C $vendorRoot apply --reverse --check $patchPath 2>$null
+    $alreadyApplied = $LASTEXITCODE -eq 0
+    if (-not $alreadyApplied) {
+        throw 'Vendor checkout has changes that are not exactly the tracked patch; preserve it and inspect the diff.'
+    }
+}
+else {
     git -C $vendorRoot apply --check $patchPath
     if ($LASTEXITCODE -ne 0) {
-        throw 'Vendor checkout is neither clean nor exactly patched; preserve it and inspect the diff.'
+        throw 'Tracked patch does not apply to the clean pinned vendor checkout.'
     }
     git -C $vendorRoot apply $patchPath
     if ($LASTEXITCODE -ne 0) { throw 'Failed to apply the tracked LeLab patch.' }

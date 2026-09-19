@@ -6,8 +6,8 @@
 双相机录制、只读审计和 ACT 训练串成一条可重复的路径。
 
 > 当前已验证：leader/follower 有限遥操作、wrist/front 双相机、7 个真实双视角回合、
-> 官方 Dataset loader/CPU DataLoader 读回，以及 ACT 1-step CPU smoke。
-> 真实 resume、完整基线训练、checkpoint 读回和策略真机评估仍未完成。
+> 官方 Dataset loader/CPU DataLoader 读回、ACT checkpoint 完整状态续训与再次加载，以及一个真实
+> 回合驱动的 MuJoCo 运动学回放。完整基线训练与策略真机评估仍未完成。
 
 本项目不是 Hugging Face 官方仓库，也不是工业安全控制系统。
 
@@ -48,7 +48,9 @@
 | Episode 显示 | UI 使用人类序号 1–N，同时显示零基 Dataset index 0–N-1 |
 | 训练设备 | `Auto` 在任务启动时选择 CUDA、MPS、XPU 或 CPU |
 | 视频解码 | 本地训练固定使用 PyAV，并在创建任务前解码真实样本 |
-| ACT | CPU 1-step smoke 已通过；完整基线与真机评估未运行 |
+| ACT | CPU checkpoint 已从 step 1000 续训到 1002、保存并完整重载；完整基线与真机评估未运行 |
+| MuJoCo 学习实验 | 固定 SO101 模型的真实回合 headless 与原生 viewer 运动学回放已通过 |
+| ROS 2 / 视觉几何 | 离线输入和审计链已准备；本机 ROS 运行与相机几何标定尚未执行 |
 
 完整验收边界见 [Project Status](docs/PROJECT_STATUS.md)。
 
@@ -186,7 +188,11 @@ uv run --frozen python -X utf8 .\tools\audit_dataset.py <owner/dataset-id> `
 ### 8. 开始训练
 
 进入 Training，选择本地 Dataset、ACT 和 `Auto` 设备。保持 PyAV 视频后端；系统会在任务记录和
-训练进程创建前，用官方 Dataset loader 解码真实样本。训练步骤详见
+训练进程创建前，用官方 Dataset loader 解码真实样本。任务记录同时保存请求设备与实际解析设备。
+
+checkpoint 下拉框分别显示 model 与完整恢复文件的静态健康状态。Resume 会创建一个有明确父任务、
+源 step 和目标 global step 的新任务；创建成功只表示“恢复任务已启动”，必须看到模型、优化器、
+随机状态和数据顺序加载成功，随后保存并再次加载，才可称完整恢复成功。训练步骤详见
 [Data Workflow](docs/DATA_WORKFLOW.md)。
 
 ## CPU 与 GPU 训练
@@ -200,7 +206,12 @@ uv run --frozen python -X utf8 .\tools\audit_dataset.py <owner/dataset-id> `
   不会假装正在使用 GPU。
 
 从 GitHub clone 到新 GPU 电脑后仍按“第一次安装”重建锁定环境，不要复制旧电脑的 `.venv/`、
-缓存或设备校准。模型训练前先重新运行一个有界 smoke。
+缓存或设备校准。锁定项目不会凭操作系统中的显卡自动替换 PyTorch 构建；先确认项目环境内
+`torch.cuda.is_available()` 为真，再运行一个有界 smoke。每个训练任务以其记录的
+`requested_device` / `resolved_device` 为准。Windows 锁文件当前可解析为 CPU PyTorch；如果在
+GPU 主机按 PyTorch 官方方式安装兼容 CUDA build，之后再次执行 `uv sync --frozen` 可能恢复锁定
+版本，因此每次同步后都要重新查询 CUDA 状态。自动识别负责选择当前环境已经具备的后端，不负责
+静默安装显卡运行时。
 
 ## 数据与安全边界
 
@@ -218,7 +229,7 @@ uv run --frozen python -X utf8 .\tools\audit_dataset.py <owner/dataset-id> `
 项目发起者与实验操作者 [@sgyliu8](https://github.com/sgyliu8) 的主要贡献包括：
 
 - 定义 SO101 Lab 的本地优先目标、数据合同、阶段验收和安全边界；
-- 搭建并操作 Yang101 leader/follower 与 wrist/front 双相机实验台；
+- 搭建并操作 SO-101 leader/follower 与 wrist/front 双相机实验台；
 - 完成一次受监督校准、有限遥操作和相机角色确认；
 - 采集 7 个真实双视角回合，并推动 Episode 1–N 与零基 Dataset index 的清晰区分；
 - 复现 Windows 训练解码与 CPU 环境问题，推动自动设备检测、PyAV preflight 和错误提示；
@@ -265,6 +276,9 @@ npm run build
 ├── tools/                    上游重建、文档校验与只读数据审计
 ├── patches/                  固定 LeLab 的可重建补丁
 ├── tests/                    无硬件回归
+├── examples/mujoco/          隔离的真实回合运动学回放
+├── integrations/ros2/        只读 JointState / TF / RViz / bag 准备
+├── experiments/              尚未执行的测量实验合同
 ├── templates/                实验与评估记录模板
 ├── pyproject.toml
 └── uv.lock
@@ -285,6 +299,9 @@ npm run build
 | [Troubleshooting](docs/TROUBLESHOOTING.md) | 端口、相机、数据、训练或停止失败 |
 | [Project Status](docs/PROJECT_STATUS.md) | 当前完成项、限制和下一门槛 |
 | [Development](docs/DEVELOPMENT.md) | 修改代码、补丁或运行完整 gate |
+| [MuJoCo playback](examples/mujoco/README.md) | 用本地真实回合驱动固定 SO101 模型 |
+| [ROS 2 playback](integrations/ros2/README.md) | 准备只读 JointState → TF → RViz → rosbag2 |
+| [Vision geometry](experiments/vision_geometry/README.md) | 准备固定 front 相机与 ChArUco 几何实验 |
 
 ## 上游与许可
 

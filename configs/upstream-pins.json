@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "status": "installed_with_tracked_patch",
-  "verified_on": "2026-09-17",
+  "verified_on": "2026-09-19",
   "python": {
     "minor": "3.12",
     "exact_patch": "3.12.13"
@@ -14,6 +14,11 @@
     "repository": "https://github.com/huggingface/lerobot.git",
     "declared_ref": "v0.6.0",
     "commit": "30da8e687a6dfc617fcd94afc367ac7071c376ce"
+  },
+  "mujoco_menagerie": {
+    "repository": "https://github.com/google-deepmind/mujoco_menagerie.git",
+    "component": "robotstudio_so101",
+    "commit": "8161bba264d7fa7c99ca301e91e7fb44737676ad"
   },
   "runtime_lock": {
     "path": "uv.lock",
