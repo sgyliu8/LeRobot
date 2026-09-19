@@ -11,6 +11,16 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def test_quick_start_entry_uses_the_owned_launcher_and_loopback() -> None:
+    launcher = (ROOT / "Start-SO101-Lab.cmd").read_text(encoding="utf-8")
+
+    assert 'scripts\\lab.ps1" start' in launcher
+    assert "http://127.0.0.1:8000/" in launcher
+    assert "uv sync --frozen" in launcher
+    assert "bootstrap_upstream.ps1" in launcher
+    assert "taskkill" not in launcher.casefold()
+
+
 def _make_directory_link(link: Path, target: Path) -> None:
     try:
         link.symlink_to(target, target_is_directory=True)
