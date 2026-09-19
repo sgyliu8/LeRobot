@@ -71,7 +71,11 @@ patches/lelab-6091a458-so101-lab.patch
 - Dataset resume、视频 EOF 和只读 browse/audit 完整性；
 - 零基 Dataset 回合身份与一基用户显示的分离；
 - 训练配置的可迁移 `Auto` compute device 选择与能力诊断；
-- Windows 服务进程身份与停止 fence。
+- Windows 服务进程身份与停止 fence；
+- Windows 训练 worker 的 identity-bound lifecycle、持久 terminal receipt、junction checkpoint alias
+  和精确 full-state resume lineage；
+- 浏览器只用 job ID 与 step 选择 checkpoint；绝对输出/数据路径由后端重新解析、验证归属，且不进入
+  公开 job/checkpoint DTO。
 
 ## 目录职责
 

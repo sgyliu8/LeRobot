@@ -23,6 +23,9 @@ PUBLIC_MARKDOWN = (
     Path("docs/DEVELOPMENT.md"),
     Path("docs/TROUBLESHOOTING.md"),
     Path("docs/PROJECT_STATUS.md"),
+    Path("examples/mujoco/README.md"),
+    Path("integrations/ros2/README.md"),
+    Path("experiments/vision_geometry/README.md"),
     Path("templates/EXPERIMENT.md"),
     Path("templates/EVALUATION.md"),
 )
@@ -33,6 +36,7 @@ JSON_FILES = (
     Path("configs/upstream-pins.json"),
     Path("schemas/lab.schema.json"),
     Path("schemas/run.schema.json"),
+    Path("experiments/vision_geometry/config.example.json"),
 )
 
 REQUIRED_FILES = PUBLIC_MARKDOWN + JSON_FILES + (
@@ -43,6 +47,14 @@ REQUIRED_FILES = PUBLIC_MARKDOWN + JSON_FILES + (
     Path("tools/audit_dataset.py"),
     Path("tools/bootstrap_upstream.ps1"),
     Path("tools/validate_docs.py"),
+    Path("examples/mujoco/bootstrap_model.ps1"),
+    Path("examples/mujoco/pyproject.toml"),
+    Path("examples/mujoco/replay_episode.py"),
+    Path("examples/mujoco/test_replay_episode.py"),
+    Path("examples/mujoco/uv.lock"),
+    Path("integrations/ros2/joint_state_replay.py"),
+    Path("integrations/ros2/prepare_description.py"),
+    Path("integrations/ros2/so101.rviz"),
 )
 
 MARKDOWN_LINK = re.compile(r"!?\[[^\]]*\]\(([^)]+)\)")
@@ -56,6 +68,31 @@ PRIVATE_TERMS = (
     "context " + "pack",
     "sub" + "agent",
 )
+PERSONAL_HOME = re.compile(rb"[a-z]:[\\/]+users[\\/]+[a-z0-9._-]+[\\/]", re.IGNORECASE)
+INTERNAL_PATHS = (
+    b".local/" + b"planning/",
+    b".local\\" + b"planning\\",
+    b".local/" + b"internal-docs/",
+)
+DATED_LOCAL_DATASET = re.compile(rb"\blocal/[a-z0-9._-]+_\d{8}_\d{6}\b", re.IGNORECASE)
+LOCAL_PUBLICATION_DENYLIST = Path(".local/publication-denylist.txt")
+PRIVATE_ARTIFACT_SUFFIXES = {
+    ".avi",
+    ".bag",
+    ".ckpt",
+    ".db3",
+    ".jsonl",
+    ".log",
+    ".mkv",
+    ".mov",
+    ".mp4",
+    ".parquet",
+    ".pt",
+    ".pth",
+    ".safetensors",
+    ".sqlite",
+    ".sqlite3",
+}
 
 
 def _tracked_files(
@@ -90,6 +127,28 @@ def _tracked_files(
     return tuple(normalized)
 
 
+def _local_private_terms(root: Path, errors: list[str]) -> tuple[bytes, ...]:
+    path = root / LOCAL_PUBLICATION_DENYLIST
+    if not path.exists():
+        return ()
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except (OSError, UnicodeError) as exc:
+        errors.append(f"unable to read local publication denylist: {exc}")
+        return ()
+
+    terms: list[bytes] = []
+    for line_number, line in enumerate(lines, start=1):
+        value = line.strip()
+        if not value or value.startswith("#"):
+            continue
+        if len(value) < 4:
+            errors.append(f"local publication denylist line {line_number} is too short")
+            continue
+        terms.append(value.casefold().encode("utf-8"))
+    return tuple(terms)
+
+
 def _validate_tracked_surface(root: Path, tracked: tuple[Path, ...], errors: list[str]) -> None:
     tracked_set = set(tracked)
     expected_markdown = set(PUBLIC_MARKDOWN)
@@ -101,7 +160,10 @@ def _validate_tracked_surface(root: Path, tracked: tuple[Path, ...], errors: lis
         errors.append(f"unexpected tracked Markdown: {relative.as_posix()}")
 
     encoded_terms = tuple(term.encode("utf-8") for term in PRIVATE_TERMS)
+    local_private_terms = _local_private_terms(root, errors)
     for relative in sorted(tracked_set):
+        if relative.suffix.casefold() in PRIVATE_ARTIFACT_SUFFIXES:
+            errors.append(f"{relative.as_posix()}: private runtime artifact must not be Git-tracked")
         path = root / relative
         try:
             content = path.read_bytes().lower()
@@ -110,6 +172,14 @@ def _validate_tracked_surface(root: Path, tracked: tuple[Path, ...], errors: lis
             continue
         if any(term in content for term in encoded_terms):
             errors.append(f"{relative.as_posix()}: contains an internal workflow term")
+        if PERSONAL_HOME.search(content):
+            errors.append(f"{relative.as_posix()}: contains a personal home path")
+        if any(fragment in content for fragment in INTERNAL_PATHS):
+            errors.append(f"{relative.as_posix()}: contains an internal local path")
+        if DATED_LOCAL_DATASET.search(content):
+            errors.append(f"{relative.as_posix()}: contains a dated local dataset identifier")
+        if any(identifier in content for identifier in local_private_terms):
+            errors.append(f"{relative.as_posix()}: contains a private lab identifier")
 
 
 def _load_json(root: Path, relative: Path, errors: list[str]) -> object | None:
@@ -182,7 +252,7 @@ def _validate_examples(root: Path, errors: list[str]) -> None:
     _load_json(root, Path("schemas/run.schema.json"), errors)
 
     if isinstance(pins, dict):
-        for component in ("lelab", "lerobot"):
+        for component in ("lelab", "lerobot", "mujoco_menagerie"):
             commit = pins.get(component, {}).get("commit")
             if not isinstance(commit, str) or not HEX_COMMIT.fullmatch(commit):
                 errors.append(f"configs/upstream-pins.json: {component}.commit is not a full commit")

@@ -35,7 +35,11 @@ def _write_json(root: Path, relative: str, value: dict) -> None:
 
 
 def _validate(root: Path) -> list[str]:
-    tracked = [path.relative_to(root) for path in root.rglob("*") if path.is_file()]
+    tracked = [
+        path.relative_to(root)
+        for path in root.rglob("*")
+        if path.is_file() and ".local" not in path.relative_to(root).parts
+    ]
     return validate_docs.validate(root, tracked_files=tracked)
 
 
@@ -151,6 +155,25 @@ def test_internal_term_in_non_markdown_tracked_file_fails(public_tree: Path) -> 
     term = "Co" + "dex"
     (public_tree / "internal.txt").write_text(term, encoding="utf-8")
     assert any("internal workflow term" in error for error in _validate(public_tree))
+
+
+def test_local_publication_denylist_rejects_matching_tracked_content(public_tree: Path) -> None:
+    denylist = public_tree / ".local" / "publication-denylist.txt"
+    denylist.parent.mkdir(parents=True)
+    denylist.write_text("PRIVATE-PORT-FIXTURE\n", encoding="utf-8")
+    (public_tree / "device.txt").write_text("PRIVATE-PORT-FIXTURE", encoding="utf-8")
+    assert any("private lab identifier" in error for error in _validate(public_tree))
+
+
+def test_dated_local_dataset_identifier_in_tracked_file_fails(public_tree: Path) -> None:
+    synthetic_identifier = "local/fixture_" + "20300102" + "_" + "030405"
+    (public_tree / "dataset.txt").write_text(synthetic_identifier, encoding="utf-8")
+    assert any("dated local dataset identifier" in error for error in _validate(public_tree))
+
+
+def test_private_runtime_artifact_suffix_fails(public_tree: Path) -> None:
+    (public_tree / "training.jsonl").write_text("{}\n", encoding="utf-8")
+    assert any("private runtime artifact" in error for error in _validate(public_tree))
 
 
 def test_bootstrap_reads_the_authoritative_pin_manifest(public_tree: Path) -> None:
