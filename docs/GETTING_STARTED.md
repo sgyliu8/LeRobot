@@ -59,6 +59,11 @@ CUDA build，然后重启并重新查询。项目不会在普通 start 时静默
 
 ## 启动与停止
 
+首次安装完成后，最简单的入口是在仓库根目录双击 `Start-SO101-Lab.cmd`。它检查项目环境、
+调用受控启动脚本，并在服务就绪后打开 loopback 页面；它不会安装或升级依赖。
+
+也可以使用 PowerShell：
+
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\lab.ps1 start
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\lab.ps1 status
@@ -77,15 +82,14 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\lab.ps1 stop
 
 ## 日常使用
 
-已经完成首次安装后，通常只需要：
+已经完成首次安装后，通常只需双击：
 
 ```powershell
-git pull --ff-only
-uv sync --frozen
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\lab.ps1 start
+.\Start-SO101-Lab.cmd
 ```
 
-只有固定 commit、patch 或前端依赖改变时，才重新运行上游构建脚本。
+从 GitHub 拉取新提交后再运行 `uv sync --frozen`；只有固定 commit、patch 或前端依赖改变时，
+才重新运行上游构建脚本。
 
 ## 本地生成内容
 

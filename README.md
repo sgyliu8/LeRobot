@@ -1,82 +1,85 @@
 # PhysicalAI SO101 Lab
 
-面向 Windows 的本地 SO-ARM101 学习与实验工作台。项目复用 Hugging Face 的
-[LeLab](https://github.com/huggingface/leLab) 图形界面与
-[LeRobot](https://github.com/huggingface/lerobot) 设备、数据集和训练能力，为一套
-leader/follower SO-101 与 wrist/front 双相机建立可重复、可审计的工作流。
+面向 Windows 的本地 SO-ARM101 实验工作台。它复用 Hugging Face 的
+[LeLab](https://github.com/huggingface/leLab) 图形界面和
+[LeRobot](https://github.com/huggingface/lerobot) 机器人、Dataset 与训练能力，把设备确认、
+双相机录制、只读审计和 ACT 训练串成一条可重复的路径。
 
-> 当前状态：7 个真实双视角回合已完成只读技术审计和官方 CPU loader 读回；ACT 已完成
-> 1-step CPU 解码/反向传播 smoke。真实 resume、完整基线训练和策略评估尚未执行。
-> 这不是 Hugging Face 官方仓库，也不是工业安全控制系统。
+> 当前已验证：leader/follower 有限遥操作、wrist/front 双相机、7 个真实双视角回合、
+> 官方 Dataset loader/CPU DataLoader 读回，以及 ACT 1-step CPU smoke。
+> 真实 resume、完整基线训练、checkpoint 读回和策略真机评估仍未完成。
 
-## 项目解决什么问题
+本项目不是 Hugging Face 官方仓库，也不是工业安全控制系统。
 
-从一套已经装好的 SO-101 台架出发，本项目把容易混在一起的步骤拆成清晰路径：
+## 导航
 
-```text
-固定依赖 → 启动 LeLab → 识别设备 → 校准与遥操作
-         → 录制双视角回合 → 只读审计 → ACT 训练 → 有分母的真机评估
-```
+- [适合谁](#适合谁)
+- [项目能力](#项目能力)
+- [五分钟开始](#五分钟开始)
+- [新用户完整流程](#新用户完整流程)
+- [CPU 与 GPU 训练](#cpu-与-gpu-训练)
+- [数据与安全边界](#数据与安全边界)
+- [项目贡献](#项目贡献)
+- [开发与验证](#开发与验证)
+- [文档地图](#文档地图)
 
-核心原则：
+## 适合谁
 
-- **上游优先**：不重写机器人 UI、串口驱动、相机驱动、Dataset 格式或训练器。
-- **本地优先**：服务只监听 loopback；数据、视频、校准、日志和模型默认不上传。
-- **证据分层**：软件测试、相机观察、真机运动和任务成功分别验收，不互相替代。
-- **可重建**：Python、LeLab、LeRobot 和必要补丁均固定到明确版本。
-- **一次只做一件危险的事**：Browse 是只读；Replay、Record、Teleoperate 和 Inference 都可能驱动机械臂。
+这个仓库适合拥有以下台架、希望用官方软件链完成本地学习和实验的用户：
 
-## 已实现能力
+- 一只 SO-101 leader 和一只 SO-101 follower；
+- 一台腕部或夹爪附近相机；
+- 一台桌面前视相机；
+- 一台 Windows 电脑，可只有 CPU，也可带受 PyTorch 支持的 GPU。
 
-| 能力 | 当前结果 |
+它不会替你判断供电、固定、碰撞空间或紧急停止是否安全，也不会在日常启动时自动校准、
+下载模型、上传数据或驱动机械臂。
+
+## 项目能力
+
+| 能力 | 当前状态 |
 |---|---|
-| 官方 LeLab 本地工作台 | 可启动、查看状态、记录日志并由项目脚本停止 |
-| LeRobot SO-101 支持 | 使用固定 LeRobot v0.6.0，不创建同名替代包 |
-| Leader / Follower | 已完成受监督校准和遥操作验证 |
-| Wrist / Front 双相机 | 角色已确认；相机读取与句柄释放已验证 |
-| 录制控制 | Accept、Timeout、Discard、Stop 具有独立语义 |
-| Dataset v3 | 7 个真实双视角回合已 finalize、只读审计并由官方 CPU loader/PyAV 读回 |
-| 数据浏览与审计 | 只读检查 Parquet、视频、回合边界、动作与时序 |
-| 回合编号 | UI 显示人类序号 1–N，同时保留 Dataset 的零基 `episode_index` |
-| 训练设备 | 默认 `Auto`，按当前 PyTorch 能力选择 CUDA、MPS、XPU 或 CPU |
-| ACT 训练 / 真机策略评估 | 1-step CPU smoke 已通过；完整基线、checkpoint 验证和真机评估尚未执行 |
+| LeLab 本地 UI | 可 start、status、logs、stop；仅使用 loopback |
+| LeRobot SO-101 | 固定 LeRobot v0.6.0，不维护替代驱动 |
+| Leader / follower | 已完成一次受监督校准和有限遥操作验证 |
+| Wrist / front 相机 | 已按真实画面确认角色与句柄交接 |
+| 录制控制 | Accept、Timeout、Discard、Stop 语义分离 |
+| Dataset v3 | 7 个真实回合已 finalize、只读审计并由官方 loader 读回 |
+| Episode 显示 | UI 使用人类序号 1–N，同时显示零基 Dataset index 0–N-1 |
+| 训练设备 | `Auto` 在任务启动时选择 CUDA、MPS、XPU 或 CPU |
+| 视频解码 | 本地训练固定使用 PyAV，并在创建任务前解码真实样本 |
+| ACT | CPU 1-step smoke 已通过；完整基线与真机评估未运行 |
 
-详细、非历史堆叠的当前状态见 [Project Status](docs/PROJECT_STATUS.md)。
+完整验收边界见 [Project Status](docs/PROJECT_STATUS.md)。
 
-## 硬件拓扑
+## 系统组成
 
 ```mermaid
 flowchart LR
-    L[SO-101 Leader] -->|operator targets| LL[LeLab]
-    W[Wrist camera] --> LL
-    F[Front camera] --> LL
-    LL --> LR[LeRobot]
+    O[Operator] --> L[SO-101 Leader]
+    L --> UI[LeLab UI]
+    W[Wrist camera] --> UI
+    F[Front camera] --> UI
+    UI --> LR[LeRobot]
     LR --> R[SO-101 Follower]
-    LR --> D[Local LeRobotDataset v3]
-    D --> A[Read-only audit]
-    D --> S[ACT 1-step CPU smoke]
-    S -. later .-> T[Full ACT baseline]
+    LR --> D[Local Dataset v3]
+    D --> B[Read-only Browse / audit]
+    D --> T[ACT training: Auto device]
 ```
 
-本机保存的相机键保持兼容：
+现有真实数据继续保留以下相机键：
 
-- `arm`：wrist camera
-- `table_veiw`：front camera（保留现有拼写，不能在同一数据集中静默改名）
+- `arm`：wrist camera；
+- `table_veiw`：front camera。
 
-端口、USB instance ID、校准路径和家庭画面属于本地状态，不写入仓库。完整硬件流程见
-[Hardware Setup](docs/HARDWARE.md)。
+`table_veiw` 的拼写是已录数据合同的一部分，不能在同一个 Dataset 中静默改名。
 
-## 快速开始
+## 五分钟开始
 
-### 1. 前置条件
+### 第一次安装
 
-- Windows 11 与 PowerShell
-- Git
-- [uv](https://docs.astral.sh/uv/) 0.12.4 或兼容版本
-- Python 3.12（项目锁定环境当前解析为 3.12.13）
-- Node.js/npm 仅在首次构建或重建 LeLab 前端时需要
-
-### 2. 获取并构建固定上游
+前置条件：Windows 11、PowerShell、Git、[uv](https://docs.astral.sh/uv/) 和 Node.js/npm。
+项目要求 Python 3.12；`uv` 会按锁文件准备独立环境。
 
 ```powershell
 git clone https://github.com/sgyliu8/LeRobot.git PhysicalAI-SO101-Lab
@@ -86,65 +89,154 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\bootstrap_upstream.p
 uv sync --frozen
 ```
 
-这一步会取得固定的 LeLab checkout、应用仓库内补丁并准备打包前端。它不是日常启动命令。
+bootstrap 只用于首次安装或重建：它取得固定 LeLab checkout、应用仓库内补丁并构建前端。
+日常启动不需要重复运行。
 
-### 3. 启动工作台
+### 日常打开
+
+在仓库根目录双击 **`Start-SO101-Lab.cmd`**。它会：
+
+1. 检查项目环境是否存在；
+2. 调用受控的 `scripts/lab.ps1 start`；
+3. 服务就绪后用默认浏览器打开 [http://127.0.0.1:8000/](http://127.0.0.1:8000/)。
+
+也可以在 PowerShell 中运行：
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\lab.ps1 start
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\lab.ps1 status
+.\Start-SO101-Lab.cmd
 ```
 
-打开 [http://127.0.0.1:8000/](http://127.0.0.1:8000/)。日常启动不会升级依赖、下载模型、重新校准或自动连接机器人。
-
-训练页默认使用 `Auto`。当前环境检测到 CPU 时会使用 CPU；迁移到已安装兼容加速版 PyTorch 的
-GPU 电脑后会在任务启动时自动选择可用后端。若操作系统看见 NVIDIA GPU、但 PyTorch 不能使用
-CUDA，页面会明确提示环境不匹配，不会假装已经启用 GPU。
-
-本地训练请求固定使用 PyAV 解码；任务目录和模型进程创建前会先用官方 Dataset loader
-读取一个真实样本。旧客户端发送的 `torchcodec` 值会迁移为 PyAV，其他后端会被拒绝。
+### 查看与停止
 
 ```powershell
-# 查看最新日志
+# 当前状态
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\lab.ps1 status
+
+# 最新日志
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\lab.ps1 logs
 
-# 仅在没有活动硬件任务时停止项目拥有的服务
+# 仅在没有活动硬件任务时停止本项目服务
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\lab.ps1 stop
 ```
 
-更完整的安装、重建和故障恢复说明见 [Getting Started](docs/GETTING_STARTED.md)。
+启动脚本只管理自己记录且身份匹配的进程；不会因为端口 8000 被占用就终止其他程序。
 
-## 推荐使用顺序
+## 新用户完整流程
 
-1. 启动 UI，确认服务状态为空闲。
-2. 在操作系统与实物之间确认 leader、follower、wrist、front 身份。
-3. 检查已有校准；不要把重新 setup motors 当成普通启动步骤。
-4. 在有人现场、机械臂固定和独立断电方式可用时进行有限遥操作。
-5. 冻结任务、Dataset FPS、相机配置、编码设置和六关节限幅。
-6. 新数据集先录 1 个短回合，finalize、浏览、审计并加载一个 CPU batch。
-7. 使用第一次返回的精确 dataset ID 和同一 profile 再追加 2 个回合。
-8. 三个真实回合全部通过后，才进入 ACT 训练准备。
+### 1. 安装并确认软件
 
-录制与数据检查详见 [Data Workflow](docs/DATA_WORKFLOW.md)。
+完成上面的首次安装后，先运行状态命令并打开 UI。此时“页面可打开”只证明软件服务可用，
+不证明机械臂或相机已正确连接。
 
-## 安全边界
+### 2. 识别设备
 
-- USB 已连接不等于舵机供电正确，也不等于机械臂可以运动。
-- `Robot.connect()`、Calibrate、Teleoperate、Record、Replay 和 Inference 可能产生设备写入或运动。
-- 页面中的 Stop 是软件任务停止，不是经过认证的 emergency stop，也不保证 torque off。
-- 超时不代表动作没有执行；不要盲目重发运动请求。
-- 真实运动必须有人在场，并有不依赖浏览器或键盘焦点的独立停止/断电方式。
-- `max_relative_target` 只限制相邻位置目标差，不是速度、碰撞或力安全保证。
+在操作系统和实物之间逐一确认：
 
-开始硬件操作前请完整阅读 [Safety](docs/SAFETY.md)。
+- 哪个串口属于 leader，哪个属于 follower；
+- 哪个画面属于 wrist，哪个属于 front；
+- 相机实际支持的分辨率和捕获率；
+- 已有校准是否与当前这套硬件匹配。
 
-## 验证
+不要把普通 `COM1`、猜测的 camera index 或“USB 已插入”当作身份确认。详细步骤见
+[Hardware Setup](docs/HARDWARE.md)。
+
+### 3. 有人现场完成运动检查
+
+只有在机械臂固定、供电正确、工作区清空、操作者在场，并且有独立断电或停止方式时，才进入
+Calibrate、Teleoperate、Record、Replay 或 Inference。已有有效校准时不要为测试而强制重标定。
+
+### 4. 冻结录制配置
+
+创建正式 Dataset 前固定以下内容：
+
+- Dataset ID 与任务文字；
+- Dataset FPS；
+- `arm` / `table_veiw` 相机角色、分辨率和请求帧率；
+- H.264/PyAV 编码设置；
+- 六关节顺序、单位和 `max_relative_target`；
+- `push_to_hub=false`。
+
+推荐从 640×480、Dataset 15 Hz 开始实测。`max_relative_target` 只是相邻位置目标差约束，
+不是速度、碰撞、力或功能安全保证。
+
+### 5. 先录一个短回合
+
+新 Dataset 先录 1 个短回合并正常结束。随后在 Browse 中确认：
+
+- Episode 1 对应 Dataset index 0；
+- 两路视频都属于正确相机；
+- Parquet 帧数、视频窗口和回合边界一致；
+- action/state 是有限六维向量；
+- Browse 没有 repair、删除或改写原始数据。
+
+### 6. 只读审计与 loader 读回
 
 ```powershell
-# 公共文档、链接和配置示例
-uv run --frozen python -X utf8 tools\validate_docs.py
+uv run --frozen python -X utf8 .\tools\audit_dataset.py <owner/dataset-id> `
+  --camera arm --camera table_veiw
+```
 
-# 项目回归（全部使用 fixture；不会连接机器人）
+审计 `PASS` 只表示技术合同通过，不表示任务动作成功。任务成功、失败或中止仍需要操作者逐回合判断。
+
+### 7. 需要时续录
+
+使用第一次录制返回的精确 Dataset ID 和完全相同的 profile 进行 resume。不要手工拼接文件，
+也不要在同一个 Dataset 中更改 FPS、相机键、关节单位或标签语义。
+
+### 8. 开始训练
+
+进入 Training，选择本地 Dataset、ACT 和 `Auto` 设备。保持 PyAV 视频后端；系统会在任务记录和
+训练进程创建前，用官方 Dataset loader 解码真实样本。训练步骤详见
+[Data Workflow](docs/DATA_WORKFLOW.md)。
+
+## CPU 与 GPU 训练
+
+同一份仓库可以在不同电脑上使用：
+
+- **只有 CPU**：`Auto` 选择 CPU，适合 loader、1-step smoke 和小规模调试；完整 ACT 训练会较慢。
+- **NVIDIA GPU**：只有当前 PyTorch 构建实际报告 CUDA 可用时，`Auto` 才选择 CUDA。
+- **其他后端**：受支持时依次考虑 MPS 或 XPU；否则回退 CPU。
+- **环境不匹配**：操作系统看见 NVIDIA GPU、但 PyTorch 不能用 CUDA 时，UI 会显示明确提示，
+  不会假装正在使用 GPU。
+
+从 GitHub clone 到新 GPU 电脑后仍按“第一次安装”重建锁定环境，不要复制旧电脑的 `.venv/`、
+缓存或设备校准。模型训练前先重新运行一个有界 smoke。
+
+## 数据与安全边界
+
+- Dataset、视频、Parquet、校准、设备标识、日志、截图和模型都保存在本地并被 Git 忽略。
+- 正常录制固定 `push_to_hub=false`；上传、云训练和 W&B 都是独立的显式操作。
+- Browse 和审计是只读路径；Replay 会驱动机械臂，两者不能混淆。
+- Stop 是软件任务停止，不是经过认证的 emergency stop，也不保证 torque off。
+- 超时后不要盲目重发运动请求；先观察设备和任务状态。
+- 家庭画面可能包含人员、屏幕或私人物品，预览和提交前应主动检查。
+
+任何运动前请完整阅读 [Safety](docs/SAFETY.md)。
+
+## 项目贡献
+
+项目发起者与实验操作者 [@sgyliu8](https://github.com/sgyliu8) 的主要贡献包括：
+
+- 定义 SO101 Lab 的本地优先目标、数据合同、阶段验收和安全边界；
+- 搭建并操作 Yang101 leader/follower 与 wrist/front 双相机实验台；
+- 完成一次受监督校准、有限遥操作和相机角色确认；
+- 采集 7 个真实双视角回合，并推动 Episode 1–N 与零基 Dataset index 的清晰区分；
+- 复现 Windows 训练解码与 CPU 环境问题，推动自动设备检测、PyAV preflight 和错误提示；
+- 以真实数据读回、只读审计和有界训练 smoke 作为验收依据，而不是只看页面或 HTTP 状态。
+
+软件能力建立在 LeLab 与 LeRobot 上；上游作者仍拥有各自项目的设计、实现和许可归属。
+
+## 开发与验证
+
+```powershell
+# 锁文件和真实导入来源
+uv lock --check
+uv run --frozen python -X utf8 -c "import lelab, lerobot; print(lelab.__file__); print(lerobot.__file__)"
+
+# 公共文档、链接、配置示例和公开文件边界
+uv run --frozen python -X utf8 .\tools\validate_docs.py
+
+# 项目无硬件回归
 uv run --frozen --with pytest -- python -X utf8 -m pytest -q tests
 
 # 固定 LeLab 后端
@@ -155,21 +247,22 @@ Set-Location .\_vendor\lelab\frontend
 npm test
 npm run lint
 npm run build
-npm audit
 ```
 
-绿色测试只证明对应软件范围。测试模式、HTTP 200 或页面可打开都不是硬件在线、运动安全或真实数据质量证明。
+绿色测试只证明对应软件范围。fixture、HTTP 200、页面可打开或 `test_mode` 都不能代替真机证据。
+修改补丁和运行 fresh-apply gate 的规则见 [Development](docs/DEVELOPMENT.md)。
 
 ## 仓库结构
 
 ```text
 .
+├── Start-SO101-Lab.cmd       双击启动入口
 ├── README.md                 用户入口
-├── docs/                     安装、硬件、数据、安全与开发文档
+├── docs/                     安装、硬件、数据、安全、状态与开发说明
 ├── configs/                  非敏感示例与固定上游身份
-├── schemas/                  项目配置和实验 sidecar schema
+├── schemas/                  配置和实验 sidecar schema
 ├── scripts/lab.ps1           start / status / logs / stop
-├── tools/                    上游重建与只读数据审计
+├── tools/                    上游重建、文档校验与只读数据审计
 ├── patches/                  固定 LeLab 的可重建补丁
 ├── tests/                    无硬件回归
 ├── templates/                实验与评估记录模板
@@ -177,23 +270,24 @@ npm audit
 └── uv.lock
 ```
 
-`.venv/`、`_vendor/`、`.local/`、数据集、视频、校准、日志和模型均为本地生成内容，不进入 Git。
+`.venv/`、`_vendor/`、`.local/`、数据集、视频、校准、日志和模型不会进入 Git。
 
-## 文档导航
+## 文档地图
 
-| 文档 | 适合什么时候读 |
+| 文档 | 使用时机 |
 |---|---|
-| [Getting Started](docs/GETTING_STARTED.md) | 第一次安装、重建或启动失败 |
-| [Hardware Setup](docs/HARDWARE.md) | 连接、识别、校准、遥操作前 |
-| [Data Workflow](docs/DATA_WORKFLOW.md) | 录制、续录、浏览、审计和训练准备 |
-| [Data Contracts](docs/DATA_CONTRACTS.md) | Dataset、action、时间与 sidecar 的稳定语义 |
-| [Safety](docs/SAFETY.md) | 任何相机隐私或机械运动前 |
-| [Architecture](docs/ARCHITECTURE.md) | 理解 LeLab、LeRobot、补丁和本地数据边界 |
-| [Development](docs/DEVELOPMENT.md) | 修改代码、补丁或运行测试 |
-| [Troubleshooting](docs/TROUBLESHOOTING.md) | 端口、相机、UI、数据或停止问题 |
-| [Project Status](docs/PROJECT_STATUS.md) | 当前完成项、限制和下一验收门槛 |
+| [Getting Started](docs/GETTING_STARTED.md) | 首次安装、重建、启动和迁移电脑 |
+| [Hardware Setup](docs/HARDWARE.md) | 识别设备、校准或遥操作前 |
+| [Data Workflow](docs/DATA_WORKFLOW.md) | 录制、续录、浏览、审计和训练 |
+| [Data Contracts](docs/DATA_CONTRACTS.md) | Dataset、action、时序和 sidecar 语义 |
+| [Safety](docs/SAFETY.md) | 相机隐私或任何机械运动前 |
+| [Architecture](docs/ARCHITECTURE.md) | 理解上游、补丁和本地数据边界 |
+| [Troubleshooting](docs/TROUBLESHOOTING.md) | 端口、相机、数据、训练或停止失败 |
+| [Project Status](docs/PROJECT_STATUS.md) | 当前完成项、限制和下一门槛 |
+| [Development](docs/DEVELOPMENT.md) | 修改代码、补丁或运行完整 gate |
 
 ## 上游与许可
 
-本项目依赖 LeLab 与 LeRobot，并保留其上游许可和归属。固定版本见
-[`configs/upstream-pins.json`](configs/upstream-pins.json)。本仓库尚未为原创部分声明统一许可证；在许可证明确前，不应推断可自由再分发。原始家庭视频、数据集、校准和设备标识不属于代码公开范围。
+固定上游身份见 [`configs/upstream-pins.json`](configs/upstream-pins.json)。本项目依赖 LeLab 和
+LeRobot，并保留其上游许可与归属。本仓库尚未为原创部分声明统一许可证；在许可证明确前，
+不应推断可自由再分发。真实家庭视频、Dataset、校准和设备标识不属于代码公开范围。
