@@ -109,6 +109,24 @@ Packed MP4 的 episode window 使用半开区间 `[from_timestamp, to_timestamp)
 同一 episode 不跨训练/验证集拆分相邻帧。优先按 session 分割，以降低场景泄漏。最终 evaluation
 条件保持独立，不能反复查看后继续称为无偏评估。
 
+## 只读回放派生轨迹
+
+MuJoCo/ROS 使用的 JSONL 是忽略的派生物，不是 Dataset action 替代品。文件采用同目录临时文件后
+原子发布，避免中断留下可被误读的短轨迹。每帧固定包含：
+
+- `schema_version`、Dataset ID、episode、从 0 连续的 `frame_index` 和 `expected_frames`；
+- 原回合 frame/timestamp/state/action arrays 的统一 SHA-256；
+- 原始 `.pos` feature names 与逐轴 source units；
+- 显式 model joint names；
+- radians 位置与从零开始、严格递增的 Dataset 名义 timestamp；
+- degrees→radians、gripper visual mapping、range clip 和边界调整的 transform provenance。
+
+生成器验证回合帧号从 0 连续、timestamp 与 `frame_index / fps` 一致、state/action 均有限，并要求
+冻结 profile 与 Dataset ID/FPS/单位/action semantics 一致。读取器要求最终行数等于
+`expected_frames`，且所有行的身份、摘要与 transform 完全一致。报告分别记录原回合数组摘要和
+JSONL 文件摘要。ROS 的 URDF limit clip 必须是显式、可报告的视觉派生；它不修改该 JSONL 或原
+Dataset。
+
 ## Sidecar 与模板
 
 - [`configs/run.example.json`](../configs/run.example.json)：最小 run sidecar 示例；

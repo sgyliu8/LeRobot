@@ -56,6 +56,10 @@ Invoke-RestMethod http://127.0.0.1:8000/system/cuda-status
 真的能使用 CUDA。若返回 `gpu_present=true` 且 `mismatch=true`，请按
 [PyTorch 官方安装选择器](https://pytorch.org/get-started/locally/)为项目环境安装与当前版本兼容的
 CUDA build，然后重启并重新查询。项目不会在普通 start 时静默下载或替换大型 PyTorch 包。
+每个本地训练任务会在启动时用同一 Python 环境再次解析 `Auto`，并把请求值与解析值写入任务记录；
+迁移 checkpoint 时不沿用旧电脑的 CPU/CUDA 字段作为不可变硬件事实。Windows 锁文件当前可解析
+为 CPU PyTorch；在 GPU 主机安装兼容 CUDA build 后若再次运行 `uv sync --frozen`，必须重新检查
+CUDA 状态，因为同步可能恢复锁定版本。`Auto` 选择已有可用后端，不静默安装 GPU runtime。
 
 ## 启动与停止
 

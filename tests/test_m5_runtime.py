@@ -520,11 +520,18 @@ class M5RuntimeTests(unittest.TestCase):
         payload = {
             "follower_port": "FIXTURE-F",
             "follower_config": "follower",
-            "policy_ref": "local/checkpoint",
+            "checkpoint_job_id": "act_fixture",
+            "checkpoint_step": 12,
         }
-        with patch.object(server, "handle_start_inference", return_value=retained), TestClient(
-            server.app, headers={"host": "localhost:8000"}
-        ) as client:
+        with (
+            patch.object(
+                server.job_registry,
+                "resolve_checkpoint_ref_for_inference",
+                return_value="local/checkpoint",
+            ),
+            patch.object(server, "handle_start_inference", return_value=retained),
+            TestClient(server.app, headers={"host": "localhost:8000"}) as client,
+        ):
             response = client.post("/start-inference", json=payload)
         self.assertEqual(response.status_code, 500)
         self.assertEqual(response.json()["session_id"], "retained-session")
@@ -601,7 +608,7 @@ class M5RuntimeTests(unittest.TestCase):
 
     def test_local_repo_id_gets_namespace_and_resume_keeps_exact_id(self):
         self.assertEqual(record._canonicalize_repo_id("my set"), "local/my_set")
-        self.assertEqual(record._canonicalize_repo_id("local/exact_20260918_010101"), "local/exact_20260918_010101")
+        self.assertEqual(record._canonicalize_repo_id("local/exact_fixture"), "local/exact_fixture")
         for unsafe in ("../escape", "a/b/c", ""):
             with self.assertRaises(ValueError):
                 record._canonicalize_repo_id(unsafe)

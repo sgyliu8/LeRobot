@@ -4,12 +4,13 @@
 
 ## 当前结论
 
-**M5_DATA_READBACK_PASS / ACT_DECODER_SMOKE_PASS / REAL_RESUME_NOT_RUN**
+**M5_DATA_READBACK_PASS / ACT_CHECKPOINT_RESUME_PASS / MUJOCO_EPISODE_PLAYBACK_PASS**
 
 固定 LeLab/LeRobot 软件路径已经产出 7 个真实双视角回合。只读审计、官方 loader 与 CPU
 DataLoader batch 均通过；数据技术门槛已经超过三个回合。7 个回合是在一个新建 session 中连续
-采集，尚未用同一 ID 现场 resume，因此本页不把先前约定的 resume 程序门槛写成已完成。ACT
-已在 CPU 上完成一次有界的 1-step smoke；完整基线、checkpoint 读回和策略评估仍未开始。
+采集，尚未用同一 ID 现场 resume，因此本页不把录制 resume 程序门槛写成已完成。ACT 已在 CPU
+上完成 1-step smoke；另一个已有 step 1000 checkpoint 已完成完整状态续训到 1001/1002、两次
+保存、Windows `last` junction 更新，以及 1002 的零新增步完整加载。完整基线和策略评估仍未运行。
 
 ## 已验证
 
@@ -29,6 +30,12 @@ DataLoader batch 均通过；数据技术门槛已经超过三个回合。7 个�
   无效后端被拒绝；
 - 本地任务在创建任务记录和模型进程前由官方 Dataset loader 解码真实样本；任务元数据与日志
   固定写为 UTF-8，同时兼容读取旧 Windows ANSI 记录。
+- Windows 本地 worker 由 PID、创建时间、可执行文件、完整命令行和随机任务 token 共同绑定；
+  任务终态由持久 receipt 确认，无法读取身份的 `unknown` 不再被当作死亡或释放任务槽；
+- checkpoint 的 model/full-resume 静态检查会解析 JSON 和 safetensors header。UI 只把 POST 成功
+  称为“恢复任务已启动”，不会在优化器和随机状态真正加载前宣称恢复成功；
+- 本地 `Auto` 在任务启动时用同一个 PyTorch 环境解析设备，并同时记录请求值与解析值；显式选择
+  当前环境不可用的设备会在 Dataset preflight 前失败。
 
 ### 真实数据读回
 
@@ -38,6 +45,9 @@ DataLoader batch 均通过；数据技术门槛已经超过三个回合。7 个�
 - 官方 `LeRobotDataset` 通过明确的 PyAV 视频后端读到 7 回合、3285 帧，CPU DataLoader 同时返回两路图像与 action/state；
 - 同一真实数据在本机 CPU 上完成 ACT 的 1-step、batch-size 1、零 worker smoke；训练进程正常
   退出，loss、learning rate 和 gradient norm 均为有限值；未保存 checkpoint，因此不构成基线模型验收；
+- 一个已有 CPU checkpoint 从 global step 1000 恢复了模型、AdamW 优化器、随机状态和数据顺序，
+  实际完成 step 1001 与 1002，分别保存完整 checkpoint；step 1002 随后再次加载模型、优化器和
+  数据顺序并以 exit 0 结束。源 1000 的 11 个文件在恢复前后哈希一致；
 - 审计和 loader 前后文件 size/mtime/hash 清单不变，未 repair、删除或上传原始数据；
 - 技术写盘成功不等于 7 次任务都成功，任务质量仍需操作者逐回合评价。
 
@@ -48,12 +58,28 @@ DataLoader batch 均通过；数据技术门槛已经超过三个回合。7 个�
 - `arm` 与 `table_veiw` 两路相机角色已通过实际画面确认；
 - 上述证据不等于当前会话仍可安全运动，重新执行前仍需当次现场检查。
 
+### 只读学习实验
+
+- MuJoCo 在独立锁定环境中使用固定 Menagerie SO101 模型、简单桌面和方块；一个私有真实回合的
+  547 帧 `observation.state` 已完成 headless FK，原生 viewer event loop 也完整退出；人工视觉检查为
+  `NOT_RUN`。六轴无模型范围越界、无裁剪；
+- Dataset action 只做有限值读取和哈希，保持 `processed_operator_target` 语义，没有当作实发或
+  实测状态；gripper 0–100 只做 visual-only 数字角度映射，不解释为毫米；
+- 回放前后源 Dataset 的 7 文件 manifest SHA-256 一致；派生报告和轨迹只写入忽略的 `.local`；
+- ROS 2 的 JointState 轨迹、URDF package 本地准备器、限位审计和四终端启动顺序已经就绪。真实轨迹
+  中有 2 帧超过该 URDF 的 Elbow 上限，默认阻断发布；只有显式 `--clip-urdf` 才产生标记过的视觉派生；
+- 当前 WSL 没有 ROS 2、RViz 或 Jazzy 环境，因此 JointState、TF、RViz 和 rosbag2 实际运行均为
+  `NOT_RUN`，没有自动安装系统软件；
+- front 相机 ChArUco 几何实验已有输入与验收合同，但标记尺寸、内参、外参和新图像集尚未提供，
+  公制位姿实验为 `NOT_RUN`。
+
 ## 尚未完成
 
 - 使用现有精确 dataset ID 的真实 resume 追加路径；
 - 对 7 个回合逐一记录任务成功/失败/中止的人工判定；
-- 完整 ACT 基线、checkpoint 保存/加载、离线推理、Replay、Inference 与有分母的真机评估；
-- ROS 2、仿真和大型 VLA 不在当前闭环范围。
+- 完整 ACT 基线、离线推理、Replay、Inference 与有分母的真机评估；
+- ROS 2 运行时安装与只读 TF/RViz/bag 实测；front 相机几何标定；
+- 动力学回放、碰撞验证、sim-to-real、大型 VLA、ROS 控制和真实策略运动均未运行。
 
 ## 真实采集候选 profile
 
@@ -72,5 +98,7 @@ DataLoader batch 均通过；数据技术门槛已经超过三个回合。7 个�
 
 先在只读 Browse 中为 7 个回合记录任务成功/失败与中止判定。若确实还要继续采集，则在新的有人
 现场会话中使用现有精确 dataset ID 和完全相同 profile 做一次真实 resume，再重复只读审计；不要
-为了“补测试”而无目的驱动机械臂。进入完整 M6 基线前另行冻结数据分区、训练配置、checkpoint
-存储与算力预算；1-step smoke 只证明当前数据和训练路径可执行，不证明模型质量或实用训练时长。
+为了“补测试”而无目的驱动机械臂。下一项无需真机的 ready 实验是：在获准且已有的 Ubuntu 24.04
+ROS 2 环境中运行只读 JointState → TF → RViz → rosbag2；若不安装 ROS，则等待已知尺寸 ChArUco
+板、相机内参/外参输入后执行离线视觉几何。进入完整基线前仍需冻结数据分区、训练配置、checkpoint
+存储与算力预算；checkpoint 恢复成功不证明模型质量或实用训练时长。

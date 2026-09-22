@@ -101,8 +101,9 @@ Dataset 名义时间轴是 `frame_index / dataset_fps`。它不等于：
 - **Replay**：向 follower 发送历史 action，会产生运动。
 - **Training**：读取已验收数据，不应隐式连接硬件或上传数据。
 
-本地训练默认把 device 留给 LeRobot 自动选择，优先级是 CUDA、MPS、XPU、CPU。自动选择依据
-当前项目环境中 PyTorch 实际暴露的后端，而不是仅依据电脑商品规格或设备管理器中出现“GPU”。
+本地训练在任务启动时用同一个项目 Python/PyTorch 环境解析 `Auto`，优先级是 CUDA、MPS、XPU、
+CPU，再把解析值显式传给 worker。任务记录同时保存 requested 与 resolved device；自动选择依据
+PyTorch 实际暴露的后端，而不是仅依据电脑商品规格或设备管理器中出现“GPU”。
 
 训练视频后端固定为 PyAV。UI 会显式发送该值，后端会把旧 `torchcodec` 请求迁移到 PyAV，
 并在创建任务记录或模型进程前由官方 `LeRobotDataset` 解码一个真实样本。预检失败只阻止该次
@@ -110,3 +111,40 @@ Dataset 名义时间轴是 `frame_index / dataset_fps`。它不等于：
 
 只有三个真实回合通过 finalize、视频/Parquet 审计和官方 loader 检查后，才进入 ACT 训练准备。
 本项目默认不开启 Hugging Face Hub 上传、Weights & Biases 或云训练。
+
+## Checkpoint 与完整恢复
+
+训练 checkpoint 的数字目录是权威数据；`checkpoints/last` 只是便捷别名。Windows 无符号链接权限时，
+本项目使用指向同一数字目录的 directory junction，不会因为别名创建失败把已经完整写出的数字
+checkpoint 判成训练失败。
+
+Jobs 卡片只对同时包含模型、processor、训练配置、optimizer、RNG 和 step 状态的本地 checkpoint
+显示 Resume。选择 checkpoint 后输入的是全局目标 step；恢复会创建新输出目录，不覆盖来源。保存
+配置中的 Dataset、AdamW、batch size、seed 和 processor 仍是权威，表单默认值不会替换它们。
+任务记录另外保存来源 job/step、起始全局 step，以及请求/实际 device。
+
+`model ready` 与 `resume ready` 都只是静态文件检查。只有实际加载 policy、processor、optimizer、RNG，
+继续至少一步、重新保存，并再次完整加载，才称为 `resume verified`。CPU/GPU 的 Auto 在恢复启动时
+重新按当前 PyTorch 能力解析，因此把仓库迁移到 CUDA 电脑后不会被旧 checkpoint 的 CPU 字段静默锁死。
+
+## 只读学习实验
+
+[MuJoCo recorded-episode playback](../examples/mujoco/README.md) 使用固定 Menagerie SO101 模型，
+把真实回合的 `observation.state` 映射为运动学姿态；Dataset `action` 仍标记为操作者目标，不冒充
+实发值。读取器要求本地冻结 profile，保持 Hub offline、不下载视频、不把派生文件写入 Dataset；
+关节越界默认失败，显式 `--clip` 才能裁剪并记录计数。
+派生 JSONL 完整写入后才原子发布，并携带 Dataset/episode/帧数/摘要/transform；ROS 读取器会拒绝
+短文件、跳帧或混合身份内容。
+
+[ROS 2 read-only playback](../integrations/ros2/README.md) 只发布 `/clock` 和 `/joint_states`，由
+`robot_state_publisher` 产生 TF；rosbag2 只记录 `/clock /joint_states /tf /tf_static`，不发布任何
+controller command。发布前先审计单独的 URDF joint limits；越界默认阻断，显式 `--clip-urdf` 仅
+产生标记过的视觉派生。动画或 bag 成功只证明消息、时间和 TF 链路。
+ROS 报告仅写入 `.local` 且默认不覆盖；真正的 bag 验收还必须由 `ros2 bag info` 给出 `/clock`、
+`/joint_states`、`/tf` 与 `/tf_static` 的非零消息计数。Dataset/模型/URDF 的零点与正负号物理配准
+保持独立 `NOT_RUN`。
+
+[Front-camera geometry experiment](../experiments/vision_geometry/README.md) 从固定 front 相机、
+已知尺寸 ChArUco 标记和每台相机的实测内参开始，再估计
+base→camera 外参并报告重投影误差、遮挡与深度不确定度。标记实际尺寸、内参或外参缺失时，公制
+位姿保持 `NOT_RUN`；不能补 identity transform，也不能从录制 FPS 推断曝光时间。

@@ -22,6 +22,11 @@
 | Browse 改变文件 | 比较审计前后 manifest/hash | 立即停止，保留原始数据副本并报告为失败 |
 | 有 NVIDIA GPU 但训练仍显示 CPU | `/system/cuda-status` 的 `gpu_present`、`cuda_available` 与 `mismatch` | 按官方选择器安装兼容 CUDA PyTorch；不强制选择不可用的 `cuda` |
 | 首个 DataLoader batch 报 TorchCodec/FFmpeg DLL | 是否绕过了项目训练入口 | 更新并重建固定补丁；项目入口会把旧 `torchcodec` 请求迁移到 PyAV，并在模型启动前解码一个样本 |
+| step 保存后 Windows 报 symlink privilege 错误 | 编号 checkpoint 是否完整、`last` 是否是 junction | 更新固定补丁；项目仅对 WinError 1314 使用 junction，其他错误仍失败且不会覆盖普通目录 |
+| Resume 按钮不可用 | checkpoint health 中缺失或损坏的 model、processor、optimizer、RNG、step 文件 | 保留编号 checkpoint；按明确 issue 修复来源，不把“有目录”当作可恢复 |
+| Resume 创建后很快失败 | 新任务日志是否实际加载 model、optimizer/scheduler、RNG 与 data order | POST 成功只表示任务启动；不要把 weights-only load 称为完整恢复 |
+| checkpoint 保存报路径不存在或 native writer 错误 | `LELAB_OUTPUT_ROOT` 与最长 checkpoint 文件路径长度 | 改用更短的项目本地任务根再开始；不要在失败后手工拼接半写 checkpoint |
+| 任务消失但 PID 仍存在 | job receipt、PID 创建时间、命令行 token 与 worker identity | 保持任务为 unknown/running，不重启第二个训练；不要按 PID 数字盲杀 |
 
 ## 服务诊断
 
