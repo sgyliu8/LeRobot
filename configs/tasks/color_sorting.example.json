@@ -1,0 +1,96 @@
+{
+  "schema_version": "1.0",
+  "task_id": "color_sorting_v1",
+  "stage": "C0",
+  "dataset": {
+    "repo_id": null,
+    "single_task": "Sort the visible cube into the bin with the same color.",
+    "fps": 15,
+    "camera_aliases": {
+      "arm": "wrist",
+      "table_veiw": "front"
+    },
+    "hue_augmentation": false,
+    "grayscale_augmentation": false,
+    "color_changing_augmentation": false
+  },
+  "entities": {
+    "cube_size_mm": null,
+    "colors": [
+      {
+        "id": "color_a",
+        "display_name": null,
+        "hsv_ranges": [],
+        "instance_ids": []
+      },
+      {
+        "id": "color_b",
+        "display_name": null,
+        "hsv_ranges": [],
+        "instance_ids": []
+      },
+      {
+        "id": "color_c",
+        "display_name": null,
+        "hsv_ranges": [],
+        "instance_ids": []
+      }
+    ],
+    "bins": [
+      {
+        "color_id": "color_a",
+        "opening_size_mm": null,
+        "same_color_interior": true
+      },
+      {
+        "color_id": "color_b",
+        "opening_size_mm": null,
+        "same_color_interior": true
+      },
+      {
+        "color_id": "color_c",
+        "opening_size_mm": null,
+        "same_color_interior": true
+      }
+    ]
+  },
+  "scene": {
+    "layout_id": null,
+    "observer_camera_key": "table_veiw",
+    "source_roi": null,
+    "bin_regions": [
+      {
+        "color_id": "color_a",
+        "interior_roi": null,
+        "rim_roi": null
+      },
+      {
+        "color_id": "color_b",
+        "interior_roi": null,
+        "rim_roi": null
+      },
+      {
+        "color_id": "color_c",
+        "interior_roi": null,
+        "rim_roi": null
+      }
+    ],
+    "gripper_exclusion_rois": [],
+    "max_objects": 1,
+    "selection_rule": "single_visible_cube",
+    "frame_max_age_s": 0.5,
+    "min_component_area_fraction": 0.002,
+    "max_component_area_fraction": 0.08
+  },
+  "policy": {
+    "type": "act",
+    "chunk_size": 32,
+    "n_action_steps": 8,
+    "conditioning": "rgb_and_robot_state",
+    "task_text_consumed": false,
+    "checkpoint_id": null
+  },
+  "recording_profile_id": null,
+  "calibration_id": null,
+  "project_commit": null
+}

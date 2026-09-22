@@ -4,13 +4,15 @@
 
 ## 当前结论
 
-**M5_DATA_READBACK_PASS / ACT_CHECKPOINT_RESUME_PASS / MUJOCO_EPISODE_PLAYBACK_PASS**
+**M5_DATA_READBACK_PASS / ACT_CHECKPOINT_RESUME_PASS / MUJOCO_EPISODE_PLAYBACK_PASS / COLOR_SORTING_SOFTWARE_READY**
 
 固定 LeLab/LeRobot 软件路径已经产出 7 个真实双视角回合。只读审计、官方 loader 与 CPU
 DataLoader batch 均通过；数据技术门槛已经超过三个回合。7 个回合是在一个新建 session 中连续
 采集，尚未用同一 ID 现场 resume，因此本页不把录制 resume 程序门槛写成已完成。ACT 已在 CPU
 上完成 1-step smoke；另一个已有 step 1000 checkpoint 已完成完整状态续训到 1001/1002、两次
 保存、Windows `last` junction 更新，以及 1002 的零新增步完整加载。完整基线和策略评估仍未运行。
+三色分拣的 C0 配置、保存帧观察器、人工标签、session split、ACT 参数往返和本地结果卡已经实现；
+没有采集该任务的真实 pilot，也没有训练或运行分拣策略。
 
 ## 已验证
 
@@ -36,6 +38,11 @@ DataLoader batch 均通过；数据技术门槛已经超过三个回合。7 个�
   称为“恢复任务已启动”，不会在优化器和随机状态真正加载前宣称恢复成功；
 - 本地 `Auto` 在任务启动时用同一个 PyTorch 环境解析设备，并同时记录请求值与解析值；显式选择
   当前环境不可用的设备会在 Dataset preflight 前失败。
+- ACT 的 `chunk_size` 与 `n_action_steps` 现在从 UI/request 进入 CLI，由固定 LeRobot parser 解析并
+  写入实际 policy 配置；非 ACT/GR00T policy 不能携带这两个字段，GR00T 专用字段也不会传给 ACT；
+- `color_sorting_v1` 公开 profile 保持实际颜色、尺寸、ROI 和 Dataset ID 为 unknown。纯帧 OpenCV
+  观察器、人工 outcome 合同、session 级 split、train-only statistics 来源、本地摘要和 Browse 结果卡
+  已有无硬件回归；任务文字和视觉标签明确不作为普通 ACT 条件。
 
 ### 真实数据读回
 
@@ -78,6 +85,7 @@ DataLoader batch 均通过；数据技术门槛已经超过三个回合。7 个�
 - 使用现有精确 dataset ID 的真实 resume 追加路径；
 - 对 7 个回合逐一记录任务成功/失败/中止的人工判定；
 - 完整 ACT 基线、离线推理、Replay、Inference 与有分母的真机评估；
+- 三色分拣真实 C1 pilot、人工数据质量审查、ACT 离线验证及 C1–C4 现场评价；
 - ROS 2 运行时安装与只读 TF/RViz/bag 实测；front 相机几何标定；
 - 动力学回放、碰撞验证、sim-to-real、大型 VLA、ROS 控制和真实策略运动均未运行。
 
@@ -96,7 +104,9 @@ DataLoader batch 均通过；数据技术门槛已经超过三个回合。7 个�
 
 ## 下一验收门槛
 
-先在只读 Browse 中为 7 个回合记录任务成功/失败与中止判定。若确实还要继续采集，则在新的有人
+三色分拣的下一项 ready 工作是填写实际颜色、cube/bin 尺寸与 front ROI，并用保存帧验证观察阈值。
+进入 C1 前集中确认现场人员、固定供电、Stop/独立断电、布局可达性与有限采集范围。另一个独立任务
+仍是先在只读 Browse 中为既有 7 个回合记录任务成功/失败与中止判定。若确实还要继续采集，则在新的有人
 现场会话中使用现有精确 dataset ID 和完全相同 profile 做一次真实 resume，再重复只读审计；不要
 为了“补测试”而无目的驱动机械臂。下一项无需真机的 ready 实验是：在获准且已有的 Ubuntu 24.04
 ROS 2 环境中运行只读 JointState → TF → RViz → rosbag2；若不安装 ROS，则等待已知尺寸 ChArUco

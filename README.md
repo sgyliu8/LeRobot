@@ -7,7 +7,8 @@
 
 > 当前已验证：leader/follower 有限遥操作、wrist/front 双相机、7 个真实双视角回合、
 > 官方 Dataset loader/CPU DataLoader 读回、ACT checkpoint 完整状态续训与再次加载，以及一个真实
-> 回合驱动的 MuJoCo 运动学回放。完整基线训练与策略真机评估仍未完成。
+> 回合驱动的 MuJoCo 运动学回放。三色分拣 C0 软件链已提供，但真实 pilot、离线策略和真机分拣
+> 仍未验证。完整基线训练与策略真机评估仍未完成。
 
 本项目不是 Hugging Face 官方仓库，也不是工业安全控制系统。
 
@@ -18,6 +19,7 @@
 - [五分钟开始](#五分钟开始)
 - [新用户完整流程](#新用户完整流程)
 - [CPU 与 GPU 训练](#cpu-与-gpu-训练)
+- [三色方块分拣](#三色方块分拣)
 - [数据与安全边界](#数据与安全边界)
 - [项目贡献](#项目贡献)
 - [开发与验证](#开发与验证)
@@ -49,6 +51,7 @@
 | 训练设备 | `Auto` 在任务启动时选择 CUDA、MPS、XPU 或 CPU |
 | 视频解码 | 本地训练固定使用 PyAV，并在创建任务前解码真实样本 |
 | ACT | CPU checkpoint 已从 step 1000 续训到 1002、保存并完整重载；完整基线与真机评估未运行 |
+| 三色分拣 | C0 配置、只读颜色观察、人工标签、session split、ACT 32/8 参数链与结果卡可用；C1–C4 未运行 |
 | MuJoCo 学习实验 | 固定 SO101 模型的真实回合 headless 与原生 viewer 运动学回放已通过 |
 | ROS 2 / 视觉几何 | 离线输入和审计链已准备；本机 ROS 运行与相机几何标定尚未执行 |
 
@@ -213,6 +216,17 @@ GPU 主机按 PyTorch 官方方式安装兼容 CUDA build，之后再次执行 `
 版本，因此每次同步后都要重新查询 CUDA 状态。自动识别负责选择当前环境已经具备的后端，不负责
 静默安装显卡运行时。
 
+## 三色方块分拣
+
+LeLab 的 Record 对话框包含 `color_sorting_v1` pilot 预设，Training 中 ACT 分别配置预测块长度与执行
+前缀。实际颜色、cube/bin 尺寸、ROI 和 Dataset ID 不在公开示例中猜测；先建立被 Git 忽略的本地
+profile，再用保存帧标定只读观察器。
+
+人工标签保留 success、failure、abort、unknown 和 preflight rejected 的完整分母，并按 session
+冻结 train/validation/test。Browse 只显示经过身份检查的本地摘要；没有摘要时不会把 episode 数量
+当作任务成功。完整流程见 [Three-Color Sorting](docs/TASK_COLOR_SORTING.md)，policy 输入与 32/8
+候选参数见 [Policy Guide](docs/POLICIES.md)。
+
 ## 数据与安全边界
 
 - Dataset、视频、Parquet、校准、设备标识、日志、截图和模型都保存在本地并被 Git 忽略。
@@ -271,6 +285,7 @@ npm run build
 ├── README.md                 用户入口
 ├── docs/                     安装、硬件、数据、安全、状态与开发说明
 ├── configs/                  非敏感示例与固定上游身份
+├── so101_lab/                三色任务配置、观察、标签与分区工具
 ├── schemas/                  配置和实验 sidecar schema
 ├── scripts/lab.ps1           start / status / logs / stop
 ├── tools/                    上游重建、文档校验与只读数据审计
@@ -294,6 +309,8 @@ npm run build
 | [Hardware Setup](docs/HARDWARE.md) | 识别设备、校准或遥操作前 |
 | [Data Workflow](docs/DATA_WORKFLOW.md) | 录制、续录、浏览、审计和训练 |
 | [Data Contracts](docs/DATA_CONTRACTS.md) | Dataset、action、时序和 sidecar 语义 |
+| [Three-Color Sorting](docs/TASK_COLOR_SORTING.md) | 配置 C0、采集 C1、人工标签、分区与结果查看 |
+| [Policy Guide](docs/POLICIES.md) | ACT 输入、chunk/执行前缀、设备选择与离线验收 |
 | [Safety](docs/SAFETY.md) | 相机隐私或任何机械运动前 |
 | [Architecture](docs/ARCHITECTURE.md) | 理解上游、补丁和本地数据边界 |
 | [Troubleshooting](docs/TROUBLESHOOTING.md) | 端口、相机、数据、训练或停止失败 |
