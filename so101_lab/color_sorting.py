@@ -247,11 +247,11 @@ class ColorSortingProfile(StrictModel):
             raise ValueError("project_commit must be a full lowercase Git commit")
         return self
 
-    def capture_readiness_issues(self) -> list[str]:
+    def capture_readiness_issues(self, *, new_dataset: bool = False) -> list[str]:
         issues: list[str] = []
         if self.stage == "C0":
             issues.append("task stage is C0; select an attended capture stage")
-        if not self.dataset.repo_id:
+        if not self.dataset.repo_id and not new_dataset:
             issues.append("dataset.repo_id is not frozen")
         if self.entities.cube_size_mm is None:
             issues.append("actual cube dimensions are not frozen")
@@ -541,8 +541,6 @@ class AttemptLabel(StrictModel):
     def validate_attempt(self) -> "AttemptLabel":
         if self.target_bin_color_id != self.cube_color_id:
             raise ValueError("target bin color must match the demonstrated cube color")
-        if self.started and self.episode_index is None:
-            raise ValueError("a started attempt must identify its saved episode")
         if not self.started and self.episode_index is not None:
             raise ValueError("a preflight-rejected attempt cannot identify a saved episode")
         if self.grasp_succeeded and not self.grasp_attempted:
@@ -565,6 +563,10 @@ class EvaluationSummary(StrictModel):
     attempts_total: int
     attempts_started: int
     preflight_rejected: int
+    started_without_media: int
+    grasp_attempts: int
+    grasp_successes: int
+    interventions: int
     placements_started: int
     correct_placements: int
     human_outcomes: dict[str, int]
@@ -598,6 +600,10 @@ def summarize_attempts(labels: list[AttemptLabel]) -> EvaluationSummary:
         attempts_total=len(labels),
         attempts_started=len(started),
         preflight_rejected=sum(not item.started for item in labels),
+        started_without_media=sum(item.episode_index is None for item in started),
+        grasp_attempts=sum(item.grasp_attempted for item in started),
+        grasp_successes=sum(item.grasp_succeeded for item in started),
+        interventions=sum(item.human_intervention for item in started),
         placements_started=sum(item.placement_started for item in started),
         correct_placements=sum(item.human_outcome == "success" for item in started),
         human_outcomes={outcome: human_counts[outcome] for outcome in outcomes},
@@ -618,10 +624,12 @@ class NormalizationStatsSource(StrictModel):
 
 
 class SplitManifest(StrictModel):
-    schema_version: Literal["1.0"] = "1.0"
+    schema_version: Literal["1.1"] = "1.1"
     profile_sha256: str
     partitions: dict[Literal["train", "validation", "test"], list[EpisodeIdentity]]
     normalization_stats_source: NormalizationStatsSource
+    training_inclusion: Literal["human_success_unassisted"] = "human_success_unassisted"
+    excluded_training_episodes: list[int] = Field(default_factory=list)
 
 
 def build_split_manifest(
@@ -636,6 +644,7 @@ def build_split_manifest(
         raise ValueError("a session cannot be both validation and test")
     partitions: dict[str, list[EpisodeIdentity]] = {"train": [], "validation": [], "test": []}
     seen_episodes: set[tuple[str, int]] = set()
+    excluded: list[int] = []
     for item in labels:
         if not item.started or item.episode_index is None:
             continue
@@ -650,6 +659,11 @@ def build_split_manifest(
             if item.session_id in validation_sessions
             else "train"
         )
+        # Preserve every attempt in evaluation; initial behavior cloning learns
+        # only reviewed, unassisted successful demonstrations.
+        if partition == "train" and (item.human_outcome != "success" or item.human_intervention):
+            excluded.append(item.episode_index)
+            continue
         partitions[partition].append(
             EpisodeIdentity(
                 dataset_repo_id=item.dataset_repo_id,
@@ -665,6 +679,7 @@ def build_split_manifest(
         normalization_stats_source=NormalizationStatsSource(
             episode_indices=[item.episode_index for item in partitions["train"]]
         ),
+        excluded_training_episodes=sorted(excluded),
     )
     validate_split_manifest(manifest)
     return manifest
@@ -693,6 +708,11 @@ def validate_split_manifest(manifest: SplitManifest) -> None:
                 raise ValueError("a session appears in more than one partition")
     if len(dataset_ids) != 1:
         raise ValueError("a formal split must contain exactly one dataset identity")
+    excluded = manifest.excluded_training_episodes
+    if len(excluded) != len(set(excluded)) or any(type(i) is not int or i < 0 for i in excluded):
+        raise ValueError("excluded episodes must be unique nonnegative integers")
+    if set(excluded) & {item.episode_index for items in manifest.partitions.values() for item in items}:
+        raise ValueError("excluded training episodes cannot enter any partition")
     train_indices = [item.episode_index for item in manifest.partitions["train"]]
     if manifest.normalization_stats_source.episode_indices != train_indices:
         raise ValueError("normalization statistics must use the training partition only")
@@ -806,9 +826,15 @@ def write_local_split_manifest(
     )
     path = local_split_manifest_path(root, profile.dataset.repo_id)
     path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_suffix(".tmp")
-    temporary.write_text(manifest.model_dump_json(indent=2) + "\n", encoding="utf-8")
-    temporary.replace(path)
+    payload = manifest.model_dump_json(indent=2) + "\n"
+    if path.exists():
+        previous = SplitManifest.model_validate_json(path.read_text(encoding="utf-8"))
+        if previous != manifest:
+            raise ValueError("split is frozen; use a new evidence namespace for a revised experiment")
+        return path
+    # Exclusive creation prevents two different freezes from replacing each other.
+    with path.open("x", encoding="utf-8") as stream:
+        stream.write(payload)
     return path
 
 

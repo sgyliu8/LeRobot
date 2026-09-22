@@ -16,7 +16,7 @@
 
 - [适合谁](#适合谁)
 - [项目能力](#项目能力)
-- [五分钟开始](#五分钟开始)
+- [快速开始](#快速开始)
 - [新用户完整流程](#新用户完整流程)
 - [CPU 与 GPU 训练](#cpu-与-gpu-训练)
 - [三色方块分拣](#三色方块分拣)
@@ -79,36 +79,40 @@ flowchart LR
 
 `table_veiw` 的拼写是已录数据合同的一部分，不能在同一个 Dataset 中静默改名。
 
-## 五分钟开始
+## 快速开始
 
 ### 第一次安装
 
-前置条件：Windows 11、PowerShell、Git、[uv](https://docs.astral.sh/uv/) 和 Node.js/npm。
+前置条件：Windows 11、PowerShell、Git、[uv](https://docs.astral.sh/uv/) 和 Node.js 22.13+ / npm
+（建议 Node 24 LTS）。
 项目要求 Python 3.12；`uv` 会按锁文件准备独立环境。
 
 ```powershell
 git clone https://github.com/sgyliu8/LeRobot.git PhysicalAI-SO101-Lab
 Set-Location .\PhysicalAI-SO101-Lab
 
-powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\bootstrap_upstream.ps1
-uv sync --frozen
+.\Start-SO101-Lab.cmd setup
 ```
 
-bootstrap 只用于首次安装或重建：它取得固定 LeLab checkout、应用仓库内补丁并构建前端。
-日常启动不需要重复运行。
+Setup 取得固定上游、应用仓库补丁、构建前端并安装本目录独立环境。需要网络，首次耗时取决于下载。
+安装后运行 `Start-SO101-Lab.cmd check` 核对实际导入与 CPU/GPU 能力；
+已验证范围见 [Project Status](docs/PROJECT_STATUS.md)。
 
 ### 日常打开
 
-在仓库根目录双击 **`Start-SO101-Lab.cmd`**。它会：
-
-1. 检查项目环境是否存在；
-2. 调用受控的 `scripts/lab.ps1 start`；
-3. 服务就绪后用默认浏览器打开 [http://127.0.0.1:8000/](http://127.0.0.1:8000/)。
+在仓库根目录双击 **`Start-SO101-Lab.cmd`**。同一个菜单提供打开、安装/重建、更新、环境检查、
+状态、日志和停止；它随仓库更新，不需要重新制作快捷方式。按 Enter 打开工作台。
+打开操作先验证锁文件、补丁与实际导入身份，再启动并打开
+[http://127.0.0.1:8000/](http://127.0.0.1:8000/)，不安装依赖或连接硬件。
 
 也可以在 PowerShell 中运行：
 
 ```powershell
 .\Start-SO101-Lab.cmd
+# 不经过菜单
+.\Start-SO101-Lab.cmd open
+.\Start-SO101-Lab.cmd check
+.\Start-SO101-Lab.cmd update
 ```
 
 ### 查看与停止
@@ -209,7 +213,8 @@ checkpoint 下拉框分别显示 model 与完整恢复文件的静态健康状�
   不会假装正在使用 GPU。
 
 从 GitHub clone 到新 GPU 电脑后仍按“第一次安装”重建锁定环境，不要复制旧电脑的 `.venv/`、
-缓存或设备校准。锁定项目不会凭操作系统中的显卡自动替换 PyTorch 构建；先确认项目环境内
+可执行缓存。真实数据和同一套机械臂的校准要单独备份、核对后恢复，详见
+[迁移电脑](docs/GETTING_STARTED.md#迁移到另一台电脑)。锁定项目不会凭操作系统中的显卡自动替换 PyTorch 构建；先确认项目环境内
 `torch.cuda.is_available()` 为真，再运行一个有界 smoke。每个训练任务以其记录的
 `requested_device` / `resolved_device` 为准。Windows 锁文件当前可解析为 CPU PyTorch；如果在
 GPU 主机按 PyTorch 官方方式安装兼容 CUDA build，之后再次执行 `uv sync --frozen` 可能恢复锁定
@@ -262,10 +267,10 @@ uv run --frozen python -X utf8 -c "import lelab, lerobot; print(lelab.__file__);
 uv run --frozen python -X utf8 .\tools\validate_docs.py
 
 # 项目无硬件回归
-uv run --frozen --with pytest -- python -X utf8 -m pytest -q tests
+uv run --frozen --group test python -X utf8 -m pytest -q tests
 
 # 固定 LeLab 后端
-uv run --frozen --with pytest -- python -X utf8 -m pytest -q _vendor\lelab\tests
+uv run --frozen --group test python -X utf8 -m pytest -q _vendor\lelab\tests
 
 # 固定 LeLab 前端
 Set-Location .\_vendor\lelab\frontend
@@ -287,7 +292,8 @@ npm run build
 ├── configs/                  非敏感示例与固定上游身份
 ├── so101_lab/                三色任务配置、观察、标签与分区工具
 ├── schemas/                  配置和实验 sidecar schema
-├── scripts/lab.ps1           start / status / logs / stop
+├── scripts/workbench.ps1     安装、更新、检查与快速入口菜单
+├── scripts/lab.ps1           受控 start / status / logs / stop
 ├── tools/                    上游重建、文档校验与只读数据审计
 ├── patches/                  固定 LeLab 的可重建补丁
 ├── tests/                    无硬件回归

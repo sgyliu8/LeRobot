@@ -408,6 +408,50 @@ def test_split_is_session_grouped_and_stats_are_train_only() -> None:
         )
 
 
+def test_started_abort_without_media_keeps_denominator_but_not_training():
+    label = _label(
+        started=True, episode_index=None, human_outcome="abort",
+        grasp_attempted=False, grasp_succeeded=False, placement_started=False,
+        released_and_stable=False, actual_bin_color_id=None, end_reason="zero_frame_stop",
+    )
+    summary = summarize_attempts([label])
+    assert summary.attempts_started == 1
+    assert summary.started_without_media == 1
+    assert summary.human_outcomes["abort"] == 1
+
+
+def test_split_is_immutable_and_training_excludes_failed_demonstrations(tmp_path):
+    profile = _configured_profile()
+    labels = [
+        _label(session_id="train", episode_index=0, attempt_id="a"),
+        _label(session_id="validation", episode_index=1, attempt_id="b"),
+        _label(session_id="test", episode_index=2, attempt_id="c"),
+        _label(session_id="train", episode_index=3, attempt_id="d", human_outcome="failure"),
+    ]
+    path = write_local_split_manifest(
+        tmp_path, profile, labels, validation_sessions={"validation"}, test_sessions={"test"},
+    )
+    payload = json.loads(path.read_text())
+    assert payload["normalization_stats_source"]["episode_indices"] == [0]
+    assert payload["excluded_training_episodes"] == [3]
+    before = path.read_bytes()
+    assert write_local_split_manifest(
+        tmp_path, profile, labels, validation_sessions={"validation"}, test_sessions={"test"},
+    ) == path
+    with pytest.raises(ValueError, match="frozen"):
+        write_local_split_manifest(
+            tmp_path, profile, labels, validation_sessions={"test"}, test_sessions={"validation"},
+        )
+    assert path.read_bytes() == before
+
+
+def test_first_capture_readiness_allows_only_pending_dataset_identity():
+    profile = _configured_profile()
+    profile.dataset.repo_id = None
+    assert profile.capture_readiness_issues(new_dataset=True) == []
+    assert profile.capture_readiness_issues() == ["dataset.repo_id is not frozen"]
+
+
 def test_local_summary_is_hashed_atomic_and_contains_no_absolute_path(tmp_path: Path) -> None:
     profile = _configured_profile()
     labels = [_label()]

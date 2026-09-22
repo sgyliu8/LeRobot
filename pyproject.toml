@@ -7,8 +7,18 @@ dependencies = [
     "LeLab",
 ]
 
-[tool.uv]
-package = false
+[dependency-groups]
+test = ["pytest==8.4.2", "pytest-asyncio==1.2.0"]
+
+[build-system]
+requires = ["setuptools==80.9.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["so101_lab*"]
 
 [tool.uv.sources]
 lelab = { path = "_vendor/lelab", editable = true }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -36,6 +36,7 @@ def _parser() -> argparse.ArgumentParser:
     validate = subparsers.add_parser("validate-profile", help="validate schema and list capture blockers")
     validate.add_argument("profile", type=Path)
     validate.add_argument("--require-ready", action="store_true")
+    validate.add_argument("--new-dataset", action="store_true", help="allow the first server-assigned dataset ID to be pending")
 
     observe = subparsers.add_parser("observe-image", help="inspect one saved image; never opens a camera")
     observe.add_argument("profile", type=Path)
@@ -66,7 +67,7 @@ def main(argv: list[str] | None = None) -> int:
     root = _evidence_root()
 
     if args.command == "validate-profile":
-        issues = profile.capture_readiness_issues()
+        issues = profile.capture_readiness_issues(new_dataset=args.new_dataset)
         print(json.dumps({
             "task_id": profile.task_id,
             "stage": profile.stage,

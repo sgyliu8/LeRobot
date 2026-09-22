@@ -33,6 +33,10 @@ LeLab 负责操作流程和页面，LeRobot 负责设备、数据、策略与训
 
 ### 本地服务
 
+`Start-SO101-Lab.cmd` 与 `scripts/workbench.ps1` 是用户长期入口，统一安装、更新、诊断和打开。
+安装/更新与启动共用文件锁；启动核验安装身份，避免仓库已经更新而实际 vendor/环境仍旧。
+重建 vendor 先旁路构建、后保留旧目录并换入，默认不修改任何生产服务。
+
 `scripts/lab.ps1` 管理一个绑定到 `127.0.0.1` 的 LeLab 服务。脚本记录并复核进程身份，不根据端口号盲目终止其他应用。停止前会检查当前硬件模式；软件停止不能替代物理断电。
 
 ### 单一硬件所有者
@@ -62,6 +66,10 @@ Dataset 名义时间 `frame_index / dataset_fps` 与实测循环时间、相机�
 标签、摘要和 split 是忽略的本地 sidecar，不改变 Dataset v3。LeLab Browse 只读取经过 Dataset ID 和
 schema 检查的汇总字段，不执行 repair、delete 或自动成功判定。普通 ACT 继续只读 RGB、state 和
 action；task text、颜色观察与人工标签不是隐藏的模型条件。
+
+task training adapter 只在该本地 worker 中替换官方 Dataset factory 的分区入口，不改训练器。
+它绑定不可覆盖的 split、从 train episode metadata 聚合内存统计、单独构造 validation，
+保存实际数据/参数凭据，并保证 test 不进入训练/验证 loader。
 
 ## 上游补丁
 

@@ -143,6 +143,15 @@ train/validation/test 按完整 session 分配且三个分区都非空，归一�
 摘要和 split manifest 使用 Dataset ID 的 SHA-256 作为本地文件名，存放在被
 忽略的 recording evidence 目录；它们补充官方 Dataset v3，不改变 Parquet、视频或 episode metadata。
 
+已开始但没有保存媒体的尝试保持 `started=true, episode_index=null`，计入中止/失败分母。
+初始 ACT BC 的训练准入为人工 success 且无干预；其它训练 session 回合保留标签并列入排除清单。
+schema 1.1 冻结 split 只允许相同内容幂等写入，不自动提升旧 1.0 的准入证据。
+每个 task job 保存该 split 快照和 SHA-256；实际 train/validation 分别构造官方 Dataset，test 不加载。
+worker 从 train episodes 的官方 Parquet metadata 聚合统计，只替换内存中的 stats，并保存内容摘要；
+源 Dataset stats.json 不变。receipt 同时冻结实际使用的 metadata/data/video 相对文件名、大小与
+SHA-256；统计不变的帧重排也会被检测。resume 使用父 job 的快照与内容/统计凭据，来源变化会拒绝
+继续。训练后再追加 Dataset 可能改变共享文件的内容身份，应启动新实验而非静默 resume。
+
 - [`configs/tasks/color_sorting.example.json`](../configs/tasks/color_sorting.example.json)：显式未配置的公开 profile；
 - [Three-Color Sorting](TASK_COLOR_SORTING.md)：本地填写、标签与审查命令。
 

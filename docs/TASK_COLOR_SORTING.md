@@ -39,7 +39,7 @@ Copy-Item .\configs\tasks\color_sorting.example.json `
 
 ```powershell
 uv run --frozen python -m so101_lab.color_sorting_cli validate-profile `
-  .\configs\tasks\color_sorting.local.json --require-ready
+  .\configs\tasks\color_sorting.local.json --require-ready --new-dataset
 ```
 
 新建录制时，LeLab 会返回带时间后缀的实际 Dataset ID。把该精确 ID 写回本地任务 profile，之后的
@@ -121,6 +121,7 @@ uv run --frozen python -m so101_lab.color_sorting_cli append-label `
   .\configs\tasks\color_sorting.local.json .\private\attempt.local.json
 ```
 
+已开始但零帧中止的尝试使用 `started=true, episode_index=null`，仍计入评估分母，不伪造媒体。
 人工 `success` 只有在目标 bin 与实际 bin 一致、稳定释放且无人干预时才被接受。失败、中止、未知和
 record 前拒绝的尝试都保留在分母中；标签必须与 profile 的 Dataset、布局、录制 profile、校准、commit、
 checkpoint、颜色和打印实例一致，重复 attempt 或 episode 身份会被拒绝。
@@ -136,7 +137,8 @@ uv run --frozen python -m so101_lab.color_sorting_cli summarize-labels `
 
 收集到独立 session 后再冻结正式分区，不把同一 session 的相邻帧拆到不同集合。train、validation
 和现场 test 都必须非空；明确列出 validation/test session，其余进入 train，归一化统计来源自动限制为
-train episodes：
+train episodes。初始行为克隆只准入人工核验的无干预成功示范；训练 session 中其余保存回合
+记录为 excluded，所有失败/中止仍保留在评估摘要中：
 
 ```powershell
 uv run --frozen python -m so101_lab.color_sorting_cli audit-labels `
@@ -149,11 +151,26 @@ uv run --frozen python -m so101_lab.color_sorting_cli audit-labels `
 不修改 Dataset、视频或 Parquet。Browse 页面读取经过身份和字段检查的 summary，分别显示 started、
 correct、failure、abort、unknown 与 preflight rejected；没有人工 summary 时明确显示未验证。
 
+相同 split 再写入是幂等的；不同分区不会覆盖已有冻结文件。需要新实验分区时使用新的本地 evidence
+namespace，保留旧文件。既有 job 保存自己的 split 快照与内容身份，resume 不改用新分区。
+新 schema 为 1.1；旧 1.0 不能被默认为已经完成成功示范准入，须用原标签在新 namespace 重建。
+
 ## 6. 训练候选
 
 当前首个 ACT 候选把预测块与执行前缀分开：`chunk_size=32`、`n_action_steps=8`。它们是待离线延迟和
 结果验证的候选，不是安全值。训练前必须先冻结 session split，并关闭 Hue、灰度和改变颜色类别的
 增强。详细参数语义见 [Policies](POLICIES.md)。
+
+在 Training 的 ACT 卡点击 **Use color sorting candidate (32 / 8)** 后，界面明确显示 frozen split
+约束并关闭增强，同时设置 100 steps / batch 2 / workers 0 的短候选。
+Validation loss every N steps 默认 100，可显式设 0 禁用；检查保存频率与总步数后再开始。
+后端按所选 Dataset 读取本地冻结分区；缺失、身份冲突或非 ACT 请求会拒绝。
+worker 用官方 loader 分别加载 train/validation，test 不进入 loader；训练统计由官方每回合 stats
+只对 train 聚合，在内存中交给 normalizer，不改写全 Dataset 的 stats.json。job 中保存
+`training_split.json` 与 `training_data_receipt.json`，记录实际回合、统计摘要和有效 ACT 参数。
+配置中的 eval_split 是冻结 train/validation 回合数比例；worker 不使用官方自动尾部分割算法，
+而使用相同官方 Dataset 构造器加载 manifest 指定的确切回合。
+验证集 loss 不是现场成功率；C3/C4 整场评价仍需独立人工记录，不能由回合数自动推断。
 
 真实 policy rollout 前还需要 checkpoint 完整加载、离线输出与耗时检查，以及新的有人现场批准。
 新 episode、场景重置、故障或模式切换必须清空动作队列；计算不及时不能靠盲目补发旧动作掩盖。

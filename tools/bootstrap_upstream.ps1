@@ -1,5 +1,8 @@
 [CmdletBinding()]
-param()
+param(
+    [switch]$Rebuild,
+    [switch]$CheckOnly
+)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -113,7 +116,26 @@ if ($upstreamCommit -notmatch '^[0-9a-f]{40}$') {
 if ($patchSet.Count -ne 1 -or -not ($patchSet[0] -is [string])) {
     throw 'The upstream pin manifest must name exactly one tracked patch.'
 }
-$vendorRoot = Resolve-ProjectPath -RelativePath '_vendor\lelab'
+$canonicalVendorRoot = Resolve-ProjectPath -RelativePath '_vendor\lelab'
+$vendorRoot = $canonicalVendorRoot
+if ($Rebuild -and $CheckOnly) { throw 'Rebuild and CheckOnly are mutually exclusive.' }
+if (-not $CheckOnly) {
+    $runtimeReceipt = Join-Path $projectRoot '.local\runtime\lelab-process.json'
+    if (Test-Path -LiteralPath $runtimeReceipt) {
+        $runtimeState = Get-Content -LiteralPath $runtimeReceipt -Raw | ConvertFrom-Json
+        $running = Get-Process -Id ([int]$runtimeState.pid) -ErrorAction SilentlyContinue
+        if ($null -ne $running -and
+            $running.StartTime.ToUniversalTime().ToFileTimeUtc() -eq [int64]$runtimeState.start_filetime_utc) {
+            throw 'Stop the workbench before rebuilding its source or frontend.'
+        }
+    }
+}
+if ($Rebuild -and (Test-Path -LiteralPath $canonicalVendorRoot)) {
+    # Build beside the current checkout first. Keep the old tree recoverable,
+    # including any local source changes, rather than overwriting it.
+    Assert-NoReparsePoint -TargetPath $canonicalVendorRoot -Label 'Previous LeLab checkout'
+    $vendorRoot = Resolve-ProjectPath -RelativePath ('_vendor\lelab-build-' + [guid]::NewGuid().ToString('N'))
+}
 $patchPath = Resolve-ProjectPath -RelativePath ([string]$patchSet[0])
 Assert-NoReparsePoint -TargetPath $patchPath -Label 'Tracked LeLab patch'
 Assert-NoReparsePoint -TargetPath $vendorRoot -Label 'LeLab vendor checkout'
@@ -173,6 +195,7 @@ function Assert-ExactPatchedSource {
 
 $gitRoot = Join-Path $vendorRoot '.git'
 if (-not (Test-Path -LiteralPath $gitRoot)) {
+    if ($CheckOnly) { throw 'The pinned LeLab checkout is missing. Run Setup.' }
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $vendorRoot) | Out-Null
     git clone --filter=blob:none --no-checkout $upstreamUrl $vendorRoot
     if ($LASTEXITCODE -ne 0) { throw 'Unable to clone the pinned LeLab source.' }
@@ -214,12 +237,18 @@ else {
     if ($LASTEXITCODE -ne 0) {
         throw 'Tracked patch does not apply to the clean pinned vendor checkout.'
     }
+    if ($CheckOnly) { throw 'The pinned checkout has not been patched. Run Setup.' }
     git -C $vendorRoot apply $patchPath
     if ($LASTEXITCODE -ne 0) { throw 'Failed to apply the tracked LeLab patch.' }
 }
 
 Assert-NoReparseTree -RootPath $vendorRoot -Label 'Patched LeLab vendor checkout'
 Assert-ExactPatchedSource
+
+if ($CheckOnly) {
+    Write-Output 'PINNED_SOURCE_PASS'
+    return
+}
 
 $frontendRoot = Join-Path $vendorRoot 'frontend'
 Assert-NoReparsePoint -TargetPath $frontendRoot -Label 'LeLab frontend'
@@ -229,6 +258,25 @@ npm ci --prefix $frontendRoot
 if ($LASTEXITCODE -ne 0) { throw 'npm ci failed for the pinned LeLab frontend lock.' }
 npm run build --prefix $frontendRoot
 if ($LASTEXITCODE -ne 0) { throw 'The patched LeLab frontend build failed.' }
+
+if ($vendorRoot -ne $canonicalVendorRoot) {
+    $backupRoot = Resolve-ProjectPath -RelativePath '.local\backups'
+    Assert-NoReparsePoint -TargetPath $backupRoot -Label 'Source backup'
+    New-Item -ItemType Directory -Force -Path $backupRoot | Out-Null
+    $backupPath = Join-Path $backupRoot ('lelab-' + [guid]::NewGuid().ToString('N'))
+    Assert-NoReparsePoint -TargetPath $backupPath -Label 'Source backup destination'
+    Move-Item -LiteralPath $canonicalVendorRoot -Destination $backupPath
+    try {
+        Move-Item -LiteralPath $vendorRoot -Destination $canonicalVendorRoot
+    }
+    catch {
+        Move-Item -LiteralPath $backupPath -Destination $canonicalVendorRoot
+        throw
+    }
+    Write-Output "Previous LeLab source preserved at $backupPath"
+    $vendorRoot = $canonicalVendorRoot
+    $frontendRoot = Join-Path $vendorRoot 'frontend'
+}
 
 [pscustomobject]@{
     upstream = $upstreamUrl
