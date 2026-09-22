@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import re
 import shutil
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -70,6 +71,22 @@ def test_readme_illustration_is_accessible_and_self_contained(public_tree: Path)
     for element in svg.iter():
         assert element.tag not in {f"{namespace}script", f"{namespace}foreignObject", f"{namespace}image"}
         assert not any(key.lower().startswith("on") or key.endswith("href") for key in element.attrib)
+
+
+def test_readme_section_navigation_resolves(public_tree: Path) -> None:
+    readme = (public_tree / "README.md").read_text(encoding="utf-8")
+    headings = re.findall(r"^#{1,6}\s+(.+)$", readme, re.MULTILINE)
+    anchors = {re.sub(r"[^\w\s-]", "", title.lower()).replace(" ", "-") for title in headings}
+    for target in validate_docs.MARKDOWN_LINK.findall(readme):
+        if target.startswith("#"):
+            assert target[1:] in anchors, f"Missing README section: {target}"
+
+
+def test_readme_disclosures_are_balanced(public_tree: Path) -> None:
+    readme = (public_tree / "README.md").read_text(encoding="utf-8")
+    opened = readme.count("<details>")
+    assert opened == readme.count("</details>")
+    assert opened == readme.count("<summary>") == readme.count("</summary>")
 
 
 def test_broken_relative_link_fails(public_tree: Path) -> None:
