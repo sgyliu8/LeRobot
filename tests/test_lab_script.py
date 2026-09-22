@@ -14,10 +14,11 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_quick_start_entry_uses_the_owned_launcher_and_loopback() -> None:
     launcher = (ROOT / "Start-SO101-Lab.cmd").read_text(encoding="utf-8")
 
-    assert 'scripts\\lab.ps1" start' in launcher
-    assert "http://127.0.0.1:8000/" in launcher
-    assert "uv sync --frozen" in launcher
-    assert "bootstrap_upstream.ps1" in launcher
+    assert 'scripts\\workbench.ps1" %*' in launcher
+    workbench = (ROOT / "scripts/workbench.ps1").read_text(encoding="utf-8")
+    assert "http://127.0.0.1:8000/" in workbench
+    assert "'sync', '--frozen'" in workbench
+    assert "bootstrap_upstream.ps1" in workbench
     assert "taskkill" not in launcher.casefold()
 
 

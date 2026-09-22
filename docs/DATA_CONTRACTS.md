@@ -129,6 +129,34 @@ Dataset。
 
 ## Sidecar 与模板
 
+### 三色分拣 sidecar
+
+`color_sorting_v1` 的本地 sidecar 使用 `dataset_repo_id + session_id + attempt_id` 作为尝试身份，并把
+canonical `episode_index` 与完整抓放一一关联。每条标签还必须与 profile 的 layout、recording profile、
+calibration、project commit 和可选 policy checkpoint 身份一致。它另外记录 scene、打印件 instance、
+cube/目标/实际 bin 颜色、初始区域、选择规则、抓取与稳定释放阶段、观察帧与一致性、人工干预、结束
+原因，以及彼此独立的 observed 和 human outcome。
+
+人工成功要求同色实际 bin、稳定释放且无人干预。失败、中止、未知与 record 前拒绝都保留在分母；
+视觉 observed outcome 不能覆盖人工结果。pilot 可先生成摘要而不声称正式 split；正式
+train/validation/test 按完整 session 分配且三个分区都非空，归一化统计只列 train episodes。标签、
+摘要和 split manifest 使用 Dataset ID 的 SHA-256 作为本地文件名，存放在被
+忽略的 recording evidence 目录；它们补充官方 Dataset v3，不改变 Parquet、视频或 episode metadata。
+
+已开始但没有保存媒体的尝试保持 `started=true, episode_index=null`，计入中止/失败分母。
+初始 ACT BC 的训练准入为人工 success 且无干预；其它训练 session 回合保留标签并列入排除清单。
+schema 1.1 冻结 split 只允许相同内容幂等写入，不自动提升旧 1.0 的准入证据。
+每个 task job 保存该 split 快照和 SHA-256；实际 train/validation 分别构造官方 Dataset，test 不加载。
+worker 从 train episodes 的官方 Parquet metadata 聚合统计，只替换内存中的 stats，并保存内容摘要；
+源 Dataset stats.json 不变。receipt 同时冻结实际使用的 metadata/data/video 相对文件名、大小与
+SHA-256；统计不变的帧重排也会被检测。resume 使用父 job 的快照与内容/统计凭据，来源变化会拒绝
+继续。训练后再追加 Dataset 可能改变共享文件的内容身份，应启动新实验而非静默 resume。
+
+- [`configs/tasks/color_sorting.example.json`](../configs/tasks/color_sorting.example.json)：显式未配置的公开 profile；
+- [Three-Color Sorting](TASK_COLOR_SORTING.md)：本地填写、标签与审查命令。
+
+## 通用 Sidecar 与模板
+
 - [`configs/run.example.json`](../configs/run.example.json)：最小 run sidecar 示例；
 - [`schemas/run.schema.json`](../schemas/run.schema.json)：sidecar schema；
 - [Experiment template](../templates/EXPERIMENT.md)：采集与训练记录；

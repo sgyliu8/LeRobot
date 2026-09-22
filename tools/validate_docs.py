@@ -23,6 +23,8 @@ PUBLIC_MARKDOWN = (
     Path("docs/DEVELOPMENT.md"),
     Path("docs/TROUBLESHOOTING.md"),
     Path("docs/PROJECT_STATUS.md"),
+    Path("docs/TASK_COLOR_SORTING.md"),
+    Path("docs/POLICIES.md"),
     Path("examples/mujoco/README.md"),
     Path("integrations/ros2/README.md"),
     Path("experiments/vision_geometry/README.md"),
@@ -37,6 +39,7 @@ JSON_FILES = (
     Path("schemas/lab.schema.json"),
     Path("schemas/run.schema.json"),
     Path("experiments/vision_geometry/config.example.json"),
+    Path("configs/tasks/color_sorting.example.json"),
 )
 
 REQUIRED_FILES = PUBLIC_MARKDOWN + JSON_FILES + (
@@ -44,9 +47,16 @@ REQUIRED_FILES = PUBLIC_MARKDOWN + JSON_FILES + (
     Path("pyproject.toml"),
     Path("uv.lock"),
     Path("scripts/lab.ps1"),
+    Path("scripts/workbench.ps1"),
+    Path("scripts/maintenance.ps1"),
+    Path("tools/runtime_check.py"),
     Path("tools/audit_dataset.py"),
     Path("tools/bootstrap_upstream.ps1"),
     Path("tools/validate_docs.py"),
+    Path("so101_lab/__init__.py"),
+    Path("so101_lab/color_sorting.py"),
+    Path("so101_lab/color_sorting_cli.py"),
+    Path("so101_lab/training_split.py"),
     Path("examples/mujoco/bootstrap_model.ps1"),
     Path("examples/mujoco/pyproject.toml"),
     Path("examples/mujoco/replay_episode.py"),
@@ -250,6 +260,7 @@ def _validate_examples(root: Path, errors: list[str]) -> None:
     pins = _load_json(root, Path("configs/upstream-pins.json"), errors)
     _load_json(root, Path("schemas/lab.schema.json"), errors)
     _load_json(root, Path("schemas/run.schema.json"), errors)
+    color_sorting = _load_json(root, Path("configs/tasks/color_sorting.example.json"), errors)
 
     if isinstance(pins, dict):
         for component in ("lelab", "lerobot", "mujoco_menagerie"):
@@ -301,6 +312,60 @@ def _validate_examples(root: Path, errors: list[str]) -> None:
             errors.append("configs/run.example.json: example status must remain NOT_RUN")
         if run.get("observed_at") is not None or run.get("project_commit") is not None:
             errors.append("configs/run.example.json: template cannot claim a real execution")
+
+    if isinstance(color_sorting, dict):
+        dataset = color_sorting.get("dataset", {})
+        entities = color_sorting.get("entities", {})
+        scene = color_sorting.get("scene", {})
+        policy = color_sorting.get("policy", {})
+        if color_sorting.get("task_id") != "color_sorting_v1" or color_sorting.get("stage") != "C0":
+            errors.append("configs/tasks/color_sorting.example.json: public example must remain unexecuted C0")
+        if dataset.get("repo_id") is not None:
+            errors.append("configs/tasks/color_sorting.example.json: Dataset ID must remain unknown")
+        if dataset.get("camera_aliases") != {"arm": "wrist", "table_veiw": "front"}:
+            errors.append("configs/tasks/color_sorting.example.json: camera aliases are invalid")
+        for key in ("hue_augmentation", "grayscale_augmentation", "color_changing_augmentation"):
+            if dataset.get(key) is not False:
+                errors.append(f"configs/tasks/color_sorting.example.json: {key} must remain false")
+        colors = entities.get("colors", [])
+        if len(colors) != 3 or any(not isinstance(item, dict) for item in colors) or any(
+            item.get("display_name") is not None
+            or item.get("hsv_ranges") != []
+            or item.get("instance_ids") != []
+            for item in colors
+            if isinstance(item, dict)
+        ):
+            errors.append("configs/tasks/color_sorting.example.json: actual colors must remain unknown")
+        if entities.get("cube_size_mm") is not None or any(
+            item.get("opening_size_mm") is not None
+            for item in entities.get("bins", [])
+            if isinstance(item, dict)
+        ):
+            errors.append("configs/tasks/color_sorting.example.json: physical dimensions must remain unknown")
+        if scene.get("source_roi") is not None or any(
+            item.get("interior_roi") is not None or item.get("rim_roi") is not None
+            for item in scene.get("bin_regions", [])
+            if isinstance(item, dict)
+        ):
+            errors.append("configs/tasks/color_sorting.example.json: physical ROIs must remain unknown")
+        if (
+            scene.get("layout_id") is not None
+            or scene.get("observer_camera_key") != "table_veiw"
+            or scene.get("gripper_exclusion_rois") != []
+        ):
+            errors.append("configs/tasks/color_sorting.example.json: layout and exclusion ROIs must remain unknown")
+        if any(
+            color_sorting.get(key) is not None
+            for key in ("recording_profile_id", "calibration_id", "project_commit")
+        ):
+            errors.append("configs/tasks/color_sorting.example.json: execution identities must remain unknown")
+        if (
+            policy.get("type") != "act"
+            or policy.get("chunk_size") != 32
+            or policy.get("n_action_steps") != 8
+            or policy.get("task_text_consumed") is not False
+        ):
+            errors.append("configs/tasks/color_sorting.example.json: ACT candidate contract is invalid")
 
 
 def validate(

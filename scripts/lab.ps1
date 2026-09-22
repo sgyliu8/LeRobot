@@ -238,11 +238,19 @@ function Show-Status {
     } | ConvertTo-Json -Depth 6
 }
 
+$startLock = $null
+if ($Action -eq 'start') {
+    . (Join-Path $PSScriptRoot 'maintenance.ps1')
+    $startLock = Enter-WorkbenchLock -Root $projectRoot
+}
+try {
 switch ($Action) {
     'start' {
         if (-not (Test-Path -LiteralPath $pythonExe)) {
             throw "LeLab is not installed in the project environment. Run uv sync --frozen first."
         }
+        & $pythonExe -X utf8 (Join-Path $projectRoot 'tools\runtime_check.py')
+        if ($LASTEXITCODE -ne 0) { throw 'Installation identity check failed. Run Start-SO101-Lab.cmd setup.' }
 
         New-Item -ItemType Directory -Force -Path $runtimeRoot, $logRoot, $recordingEvidenceRoot | Out-Null
         foreach ($createdPath in @($runtimeRoot, $logRoot, $recordingEvidenceRoot)) {
@@ -425,3 +433,5 @@ switch ($Action) {
         } | ConvertTo-Json -Depth 4
     }
 }
+}
+finally { if ($null -ne $startLock) { $startLock.Dispose() } }

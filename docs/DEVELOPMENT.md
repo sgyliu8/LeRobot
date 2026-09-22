@@ -35,10 +35,10 @@ uv run --frozen python -X utf8 -c "import lelab, lerobot; print(lelab.__file__);
 uv run --frozen python -X utf8 .\tools\validate_docs.py
 
 # 项目无硬件回归
-uv run --frozen --with pytest -- python -X utf8 -m pytest -q tests
+uv run --frozen --group test python -X utf8 -m pytest -q tests
 
 # 固定上游测试
-uv run --frozen --with pytest -- python -X utf8 -m pytest -q _vendor\lelab\tests
+uv run --frozen --group test python -X utf8 -m pytest -q _vendor\lelab\tests
 
 # 前端
 Set-Location .\_vendor\lelab\frontend
@@ -75,6 +75,11 @@ git apply --reverse --check ..\..\patches\lelab-6091a458-so101-lab.patch
 随后运行后端测试、前端测试和 build。不要在含未保存修改的 vendor checkout 上机械覆盖。
 fresh checkout 的实际导入路径也必须指向该临时 checkout；当前开发 checkout 测试通过不能替代
 fresh-apply 验收。
+
+用户安装/更新统一使用 `Start-SO101-Lab.cmd setup/update`。维护中不要绕过互斥入口另行启动服务。
+可用 `tools/bootstrap_upstream.ps1 -CheckOnly` 只核对固定 patch；
+`-Rebuild` 在旁边构建新 vendor 并保留旧目录。开发期间修改源码后，应先生成 patch，
+再 Setup 记录安装身份，不能直接伪造安装凭据。
 
 ## 测试数据规则
 

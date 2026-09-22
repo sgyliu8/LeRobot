@@ -8,3 +8,4 @@ from pathlib import Path
 
 _TEST_JOB_ROOT = Path(tempfile.mkdtemp(prefix="so101-lab-project-tests-")) / "jobs"
 os.environ["LELAB_OUTPUT_ROOT"] = str(_TEST_JOB_ROOT)
+os.environ["LELAB_RECORDING_EVIDENCE_ROOT"] = str(_TEST_JOB_ROOT.parent / "recordings")

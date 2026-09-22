@@ -16,6 +16,9 @@ flowchart TB
     LR --> DS[LeRobotDataset v3]
     DS --> AUDIT[Read-only audit]
     DS -. future .-> ACT[ACT training]
+    DS --> TASK[Local task labels and split]
+    C2 --> OBS[Read-only color observer]
+    OBS --> TASK
 ```
 
 LeLab 负责操作流程和页面，LeRobot 负责设备、数据、策略与训练。本仓库只负责：
@@ -29,6 +32,10 @@ LeLab 负责操作流程和页面，LeRobot 负责设备、数据、策略与训
 ## 运行边界
 
 ### 本地服务
+
+`Start-SO101-Lab.cmd` 与 `scripts/workbench.ps1` 是用户长期入口，统一安装、更新、诊断和打开。
+安装/更新与启动共用文件锁；启动核验安装身份，避免仓库已经更新而实际 vendor/环境仍旧。
+重建 vendor 先旁路构建、后保留旧目录并换入，默认不修改任何生产服务。
 
 `scripts/lab.ps1` 管理一个绑定到 `127.0.0.1` 的 LeLab 服务。脚本记录并复核进程身份，不根据端口号盲目终止其他应用。停止前会检查当前硬件模式；软件停止不能替代物理断电。
 
@@ -49,6 +56,20 @@ LeLab 负责操作流程和页面，LeRobot 负责设备、数据、策略与训
 本项目不改变 Dataset 的 `action` 标签语义。固定录制路径中的 `action` 是经过 processor 的操作者目标。额外的本地 trace 才记录 requested、to-send、effective-sent、clipping、发命令前的 measured state 与主机时序。
 
 Dataset 名义时间 `frame_index / dataset_fps` 与实测循环时间、相机到达时间分开保存。没有硬件 exposure timestamp 时明确标记 unavailable。
+
+### 三色任务层
+
+`so101_lab` 是项目自己的轻量 namespace，不遮蔽官方 `lerobot`。它验证 `color_sorting_v1` profile、
+处理调用方提供的保存帧、校验人工 attempt 标签，并按完整 session 建立 split。观察器没有相机或串口
+构造路径；未来在线使用时也只能读取现有 camera owner 的带时间戳新鲜帧。
+
+标签、摘要和 split 是忽略的本地 sidecar，不改变 Dataset v3。LeLab Browse 只读取经过 Dataset ID 和
+schema 检查的汇总字段，不执行 repair、delete 或自动成功判定。普通 ACT 继续只读 RGB、state 和
+action；task text、颜色观察与人工标签不是隐藏的模型条件。
+
+task training adapter 只在该本地 worker 中替换官方 Dataset factory 的分区入口，不改训练器。
+它绑定不可覆盖的 split、从 train episode metadata 聚合内存统计、单独构造 validation，
+保存实际数据/参数凭据，并保证 test 不进入训练/验证 loader。
 
 ## 上游补丁
 
@@ -76,6 +97,8 @@ patches/lelab-6091a458-so101-lab.patch
   和精确 full-state resume lineage；
 - 浏览器只用 job ID 与 step 选择 checkpoint；绝对输出/数据路径由后端重新解析、验证归属，且不进入
   公开 job/checkpoint DTO。
+- ACT 的 prediction chunk 与 execution prefix 从 UI/request 进入固定官方 parser 和保存配置，并按
+  policy 类型拒绝不适用字段；三色任务预设与人工结果摘要复用现有 Record/Browse 页面。
 
 ## 目录职责
 
@@ -85,6 +108,7 @@ patches/      可重建的上游补丁
 schemas/      项目配置与实验记录 schema
 scripts/      本地服务生命周期
 tools/        上游重建、文档验证、数据审计
+so101_lab/    三色任务 profile、纯帧观察、标签、分区与本地报告
 tests/        无硬件软件回归
 templates/    实验和评估记录模板
 ```
