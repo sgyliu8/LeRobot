@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import shutil
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import pytest
@@ -50,6 +51,25 @@ def test_public_tree_passes(public_tree: Path) -> None:
 def test_missing_required_document_fails(public_tree: Path) -> None:
     (public_tree / "docs" / "SAFETY.md").unlink()
     assert any("missing required file" in error for error in _validate(public_tree))
+
+
+def test_missing_readme_illustration_fails(public_tree: Path) -> None:
+    (public_tree / "docs/assets/lab-overview.svg").unlink()
+    assert any("missing required file" in error for error in _validate(public_tree))
+
+
+def test_readme_illustration_is_accessible_and_self_contained(public_tree: Path) -> None:
+    svg = ET.parse(public_tree / "docs/assets/lab-overview.svg").getroot()
+    namespace = "{http://www.w3.org/2000/svg}"
+    assert svg.tag == f"{namespace}svg"
+    assert svg.attrib["viewBox"] == "0 0 1200 660"
+    for tag in ("title", "desc"):
+        element = svg.find(f"{namespace}{tag}")
+        assert element is not None and element.text
+        assert element.attrib["id"] in svg.attrib["aria-labelledby"].split()
+    for element in svg.iter():
+        assert element.tag not in {f"{namespace}script", f"{namespace}foreignObject", f"{namespace}image"}
+        assert not any(key.lower().startswith("on") or key.endswith("href") for key in element.attrib)
 
 
 def test_broken_relative_link_fails(public_tree: Path) -> None:

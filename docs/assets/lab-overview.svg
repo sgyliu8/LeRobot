@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="660" viewBox="0 0 1200 660" role="img" aria-labelledby="title desc">
+  <title id="title">PhysicalAI SO101 Lab：从你的一次示范开始</title>
+  <desc id="desc">角色示意而非实物照片。操作者移动示教臂，电脑上的本地工作台把目标交给执行臂。腕部相机观察夹爪，桌面相机观察场景；两路画面和动作保存在本地，用于回看与学习。</desc>
+  <defs>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#d6e5ee" stroke-opacity=".055"/>
+    </pattern>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="#67d6b3" stroke-width="2"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="660" rx="24" fill="#112536"/>
+  <rect width="1200" height="660" rx="24" fill="url(#grid)"/>
+  <g font-family="'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif">
+    <text x="48" y="53" fill="#87b6cd" font-size="18" letter-spacing="3">PHYSICAL AI · SO101 LAB</text>
+    <text x="48" y="122" fill="#f5f9fc" font-size="48" font-weight="700">从你的一次示范开始。</text>
+    <text x="50" y="165" fill="#c1d3df" font-size="24">你来示范 · 双视角记录 · 在本机检查与学习</text>
+    <rect x="958" y="35" width="194" height="38" rx="19" fill="#233d50"/>
+    <text x="1055" y="60" text-anchor="middle" fill="#c1d3df" font-size="18">设备与流程示意</text>
+
+    <rect x="36" y="213" width="320" height="325" rx="18" fill="#1b3549" stroke="#35566c"/>
+    <text x="60" y="251" fill="#eef5fa" font-size="25" font-weight="700">01 你手上的示教臂</text>
+    <text x="60" y="282" fill="#a8c0d1" font-size="19">LEADER · 由你带着运动</text>
+    <path d="M 61 494 H 330" stroke="#486477" stroke-width="2"/>
+    <rect x="85" y="476" width="88" height="17" rx="5" fill="#d2dfe7"/>
+    <path d="M 130 471 L 117 382 L 232 332 L 286 392" fill="none" stroke="#6f8fa5" stroke-width="27" stroke-linejoin="round"/>
+    <path d="M 130 471 L 117 382 L 232 332 L 286 392" fill="none" stroke="#d7e3ec" stroke-width="13" stroke-linejoin="round"/>
+    <g fill="#193346" stroke="#71d7b5" stroke-width="5">
+      <circle cx="130" cy="466" r="12"/><circle cx="117" cy="382" r="15"/>
+      <circle cx="232" cy="332" r="15"/><circle cx="286" cy="392" r="11"/>
+    </g>
+    <path d="M 277 403 L 263 421 L 269 434 M 295 398 L 313 414 L 306 428" fill="none" stroke="#d7e3ec" stroke-width="7" stroke-linecap="round"/>
+    <text x="60" y="522" fill="#c1d3df" font-size="18">示范怎样拿起、移动、放下</text>
+
+    <text x="523" y="276" text-anchor="middle" fill="#edf6fa" font-size="27" font-weight="700">本地工作台</text>
+    <text x="523" y="308" text-anchor="middle" fill="#a8c0d1" font-size="19">LeLab + LeRobot</text>
+    <rect x="399" y="343" width="248" height="150" rx="11" fill="#d0dfe9"/>
+    <rect x="410" y="354" width="226" height="126" rx="5" fill="#142c3e"/>
+    <rect x="426" y="371" width="91" height="49" rx="5" fill="#2c5666"/>
+    <rect x="529" y="371" width="91" height="49" rx="5" fill="#354e69"/>
+    <path d="M 437 405 L 455 386 L 472 401 L 487 389 L 505 408 M 540 406 L 559 390 L 577 402 L 590 384 L 608 405" fill="none" stroke="#9ddbcc" stroke-width="3"/>
+    <text x="523" y="455" text-anchor="middle" fill="#edf6fa" font-size="21">录制 · 回看 · 训练</text>
+    <path d="M 384 496 H 662 L 646 511 H 400 Z" fill="#a4bdce"/>
+    <path d="M 361 408 H 390 M 654 408 H 684" fill="none" stroke="#67d6b3" stroke-width="3" marker-end="url(#arrow)"/>
+
+    <rect x="692" y="213" width="472" height="325" rx="18" fill="#1b3549" stroke="#35566c"/>
+    <text x="716" y="251" fill="#eef5fa" font-size="25" font-weight="700">02 桌面上的执行臂</text>
+    <text x="716" y="282" fill="#a8c0d1" font-size="19">FOLLOWER · 受监督地跟随</text>
+    <path d="M 716 494 H 1141" stroke="#486477" stroke-width="2"/>
+    <rect x="751" y="477" width="95" height="16" rx="5" fill="#d2dfe7"/>
+    <path d="M 800 468 L 827 397 L 752 331 L 900 349 L 943 399" fill="none" stroke="#658ca0" stroke-width="25" stroke-linejoin="round"/>
+    <path d="M 800 468 L 827 397 L 752 331 L 900 349 L 943 399" fill="none" stroke="#c9dfe6" stroke-width="12" stroke-linejoin="round"/>
+    <g fill="#193346" stroke="#71d7b5" stroke-width="5">
+      <circle cx="800" cy="465" r="12"/><circle cx="827" cy="397" r="14"/>
+      <circle cx="752" cy="331" r="14"/><circle cx="900" cy="349" r="12"/>
+    </g>
+    <path d="M 936 402 L 926 431 L 936 442 M 949 396 L 968 423 L 958 440" fill="none" stroke="#c9dfe6" stroke-width="7" stroke-linecap="round"/>
+    <rect x="917" y="363" width="32" height="25" rx="6" fill="#f4c779"/>
+    <circle cx="933" cy="375" r="6" fill="#193346"/>
+    <path d="M 948 374 H 992" stroke="#f4c779" stroke-width="2"/>
+    <text x="1000" y="381" fill="#f4d6a3" font-size="20">腕部相机</text>
+    <text x="1000" y="406" fill="#b6cbd8" font-size="17">看清抓取细节</text>
+
+    <path d="M 1081 325 V 347 M 1081 325 L 991 474 L 1134 474 Z" fill="#67d6b3" fill-opacity=".065" stroke="#67d6b3" stroke-opacity=".3" stroke-dasharray="5 5"/>
+    <path d="M 1115 323 V 483 M 1093 487 H 1137" fill="none" stroke="#92aebf" stroke-width="5"/>
+    <rect x="1064" y="302" width="64" height="31" rx="7" fill="#6fc7b2"/>
+    <circle cx="1081" cy="317" r="9" fill="#193346" stroke="#d5efe6" stroke-width="2"/>
+    <text x="1138" y="252" text-anchor="end" fill="#9ae0cb" font-size="20">桌面相机</text>
+    <text x="1138" y="278" text-anchor="end" fill="#b6cbd8" font-size="17">看清整个场景</text>
+    <rect x="1010" y="458" width="28" height="33" rx="3" fill="#efb570"/>
+    <path d="M 1010 458 L 1024 450 L 1051 451 L 1038 459 Z" fill="#ffd399"/>
+    <path d="M 1038 459 L 1051 451 V 482 L 1038 491 Z" fill="#b88246"/>
+    <text x="716" y="522" fill="#c1d3df" font-size="18">两路画面 + 机械臂状态与动作</text>
+
+    <path d="M 48 567 H 1152" stroke="#35566c"/>
+    <text x="50" y="611" fill="#8cdec5" font-size="23" font-weight="700">从示范中学习</text>
+    <text x="277" y="611" fill="#c1d3df" font-size="23">记录 → 检查 → 训练 → 有人现场验证</text>
+    <text x="1150" y="611" text-anchor="end" fill="#a8c0d1" font-size="19">数据默认留在本地</text>
+  </g>
+</svg>

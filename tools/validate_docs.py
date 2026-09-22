@@ -43,6 +43,7 @@ JSON_FILES = (
 )
 
 REQUIRED_FILES = PUBLIC_MARKDOWN + JSON_FILES + (
+    Path("docs/assets/lab-overview.svg"),
     Path("Start-SO101-Lab.cmd"),
     Path("pyproject.toml"),
     Path("uv.lock"),

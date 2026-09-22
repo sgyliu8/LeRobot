@@ -1,333 +1,222 @@
 # PhysicalAI SO101 Lab
 
-面向 Windows 的本地 SO-ARM101 实验工作台。它复用 Hugging Face 的
-[LeLab](https://github.com/huggingface/leLab) 图形界面和
-[LeRobot](https://github.com/huggingface/lerobot) 机器人、Dataset 与训练能力，把设备确认、
-双相机录制、只读审计和 ACT 训练串成一条可重复的路径。
+**把桌面上的机械臂，变成一个能示范、能记录、能学习的实验台。**
 
-> 当前已验证：leader/follower 有限遥操作、wrist/front 双相机、7 个真实双视角回合、
-> 官方 Dataset loader/CPU DataLoader 读回、ACT checkpoint 完整状态续训与再次加载，以及一个真实
-> 回合驱动的 MuJoCo 运动学回放。三色分拣 C0 软件链已提供，但真实 pilot、离线策略和真机分拣
-> 仍未验证。完整基线训练与策略真机评估仍未完成。
+![实验台示意：你移动示教臂，本地工作台将动作交给执行臂；腕部相机看抓取细节，桌面相机看整个场景。](docs/assets/lab-overview.svg)
 
-本项目不是 Hugging Face 官方仓库，也不是工业安全控制系统。
+你握着一只机械臂，示范怎样拿起方块、放进盒子；另一只机械臂跟着做。
+两台相机分别记录“手边发生了什么”和“桌面上发生了什么”。
+SO101 Lab 帮你把这些示范保存下来、逐回合检查，再交给模型学习。
 
-## 导航
+这是一套 **Windows 本地工作台**，复用 [LeLab](https://github.com/huggingface/leLab) 的操作界面和
+[LeRobot](https://github.com/huggingface/lerobot) 的机器人与训练能力。
+不需要先搭建云服务，也不需要先学 ROS。只有 CPU，也可以从数据记录和检查开始。
 
-- [适合谁](#适合谁)
-- [项目能力](#项目能力)
-- [快速开始](#快速开始)
-- [新用户完整流程](#新用户完整流程)
-- [CPU 与 GPU 训练](#cpu-与-gpu-训练)
-- [三色方块分拣](#三色方块分拣)
-- [数据与安全边界](#数据与安全边界)
-- [项目贡献](#项目贡献)
-- [开发与验证](#开发与验证)
-- [文档地图](#文档地图)
+[开始使用](#快速开始) · [认识实验台](#一张桌子上的学习实验室) · [操作流程](#从一次示范到一次验证) · [当前进展](#现在走到了哪一步) · [使用指南](#按你现在要做的事找文档)
 
-## 适合谁
+> **先说清楚边界：**真实双相机录制、数据读回和训练断点恢复已有验证；
+> 模型自主完成抓放、三色分拣的真机效果尚未验证。这不是一套开箱即会分拣的机器人。
 
-这个仓库适合拥有以下台架、希望用官方软件链完成本地学习和实验的用户：
+## 一张桌子上的学习实验室
 
-- 一只 SO-101 leader 和一只 SO-101 follower；
-- 一台腕部或夹爪附近相机；
-- 一台桌面前视相机；
-- 一台 Windows 电脑，可只有 CPU，也可带受 PyTorch 支持的 GPU。
+| 组成 | 它做什么 | 在软件里叫什么 |
+|---|---|---|
+| 你手上的示教臂 | 由你带着运动，提供操作示范 | Leader |
+| 桌面上的执行臂 | 在受监督的遥操作中跟随，完成实际抓放 | Follower |
+| 靠近夹爪的相机 | 看清接近、夹取和放下的细节 | Wrist，相机键 `arm` |
+| 桌面支架上的相机 | 看清方块、盒子和机械臂的位置关系 | Front，相机键 `table_veiw` |
+| 你的电脑 | 打开工作台，保存、检查数据并运行训练 | LeLab + LeRobot |
 
-它不会替你判断供电、固定、碰撞空间或紧急停止是否安全，也不会在日常启动时自动校准、
-下载模型、上传数据或驱动机械臂。
-
-## 项目能力
-
-| 能力 | 当前状态 |
-|---|---|
-| LeLab 本地 UI | 可 start、status、logs、stop；仅使用 loopback |
-| LeRobot SO-101 | 固定 LeRobot v0.6.0，不维护替代驱动 |
-| Leader / follower | 已完成一次受监督校准和有限遥操作验证 |
-| Wrist / front 相机 | 已按真实画面确认角色与句柄交接 |
-| 录制控制 | Accept、Timeout、Discard、Stop 语义分离 |
-| Dataset v3 | 7 个真实回合已 finalize、只读审计并由官方 loader 读回 |
-| Episode 显示 | UI 使用人类序号 1–N，同时显示零基 Dataset index 0–N-1 |
-| 训练设备 | `Auto` 在任务启动时选择 CUDA、MPS、XPU 或 CPU |
-| 视频解码 | 本地训练固定使用 PyAV，并在创建任务前解码真实样本 |
-| ACT | CPU checkpoint 已从 step 1000 续训到 1002、保存并完整重载；完整基线与真机评估未运行 |
-| 三色分拣 | C0 配置、只读颜色观察、人工标签、session split、ACT 32/8 参数链与结果卡可用；C1–C4 未运行 |
-| MuJoCo 学习实验 | 固定 SO101 模型的真实回合 headless 与原生 viewer 运动学回放已通过 |
-| ROS 2 / 视觉几何 | 离线输入和审计链已准备；本机 ROS 运行与相机几何标定尚未执行 |
-
-完整验收边界见 [Project Status](docs/PROJECT_STATUS.md)。
-
-## 系统组成
-
-```mermaid
-flowchart LR
-    O[Operator] --> L[SO-101 Leader]
-    L --> UI[LeLab UI]
-    W[Wrist camera] --> UI
-    F[Front camera] --> UI
-    UI --> LR[LeRobot]
-    LR --> R[SO-101 Follower]
-    LR --> D[Local Dataset v3]
-    D --> B[Read-only Browse / audit]
-    D --> T[ACT training: Auto device]
-```
-
-现有真实数据继续保留以下相机键：
-
-- `arm`：wrist camera；
-- `table_veiw`：front camera。
-
-`table_veiw` 的拼写是已录数据合同的一部分，不能在同一个 Dataset 中静默改名。
+这里是“一只臂示范、一只臂执行”，不是两只执行臂协作。上图是角色示意，不是实物照片或尺寸图。
+`table_veiw` 的拼写沿用已有数据，不能在同一数据集中随意改名。
 
 ## 快速开始
 
-### 第一次安装
+### 1 · 第一次，把软件装好
 
-前置条件：Windows 11、PowerShell、Git、[uv](https://docs.astral.sh/uv/) 和 Node.js 22.13+ / npm
-（建议 Node 24 LTS）。
-项目要求 Python 3.12；`uv` 会按锁文件准备独立环境。
+准备 Windows 11、PowerShell、[Git](https://git-scm.com/downloads)、[uv](https://docs.astral.sh/uv/getting-started/installation/)
+和 [Node.js](https://nodejs.org/en/download)（22.13+，已验证 Node 24）。Python 3.12 由 uv 为本项目准备。
+首次安装需要网络。
+
+在 PowerShell 中依次运行：
 
 ```powershell
 git clone https://github.com/sgyliu8/LeRobot.git PhysicalAI-SO101-Lab
 Set-Location .\PhysicalAI-SO101-Lab
-
 .\Start-SO101-Lab.cmd setup
-```
-
-Setup 取得固定上游、应用仓库补丁、构建前端并安装本目录独立环境。需要网络，首次耗时取决于下载。
-安装后运行 `Start-SO101-Lab.cmd check` 核对实际导入与 CPU/GPU 能力；
-已验证范围见 [Project Status](docs/PROJECT_STATUS.md)。
-
-### 日常打开
-
-在仓库根目录双击 **`Start-SO101-Lab.cmd`**。同一个菜单提供打开、安装/重建、更新、环境检查、
-状态、日志和停止；它随仓库更新，不需要重新制作快捷方式。按 Enter 打开工作台。
-打开操作先验证锁文件、补丁与实际导入身份，再启动并打开
-[http://127.0.0.1:8000/](http://127.0.0.1:8000/)，不安装依赖或连接硬件。
-
-也可以在 PowerShell 中运行：
-
-```powershell
-.\Start-SO101-Lab.cmd
-# 不经过菜单
-.\Start-SO101-Lab.cmd open
 .\Start-SO101-Lab.cmd check
-.\Start-SO101-Lab.cmd update
+.\Start-SO101-Lab.cmd open
 ```
 
-### 查看与停止
+安装会准备固定版本的依赖和界面，不会自动校准或驱动机械臂。
+打开后，在浏览器访问 **[本地工作台 · 127.0.0.1:8000](http://127.0.0.1:8000/)**。
+页面能打开，只代表软件已启动，不代表设备已经确认。
 
-```powershell
-# 当前状态
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\lab.ps1 status
+### 2 · 以后，双击一个文件
 
-# 最新日志
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\lab.ps1 logs
+在项目文件夹里双击 **[`Start-SO101-Lab.cmd`](Start-SO101-Lab.cmd)**，按 Enter 即可打开工作台。
+可以给它创建桌面快捷方式；这个入口随仓库持续更新，不用每次换版本都重新制作。
 
-# 仅在没有活动硬件任务时停止本项目服务
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\lab.ps1 stop
-```
-
-启动脚本只管理自己记录且身份匹配的进程；不会因为端口 8000 被占用就终止其他程序。
-
-## 新用户完整流程
-
-### 1. 安装并确认软件
-
-完成上面的首次安装后，先运行状态命令并打开 UI。此时“页面可打开”只证明软件服务可用，
-不证明机械臂或相机已正确连接。
-
-### 2. 识别设备
-
-在操作系统和实物之间逐一确认：
-
-- 哪个串口属于 leader，哪个属于 follower；
-- 哪个画面属于 wrist，哪个属于 front；
-- 相机实际支持的分辨率和捕获率；
-- 已有校准是否与当前这套硬件匹配。
-
-不要把普通 `COM1`、猜测的 camera index 或“USB 已插入”当作身份确认。详细步骤见
-[Hardware Setup](docs/HARDWARE.md)。
-
-### 3. 有人现场完成运动检查
-
-只有在机械臂固定、供电正确、工作区清空、操作者在场，并且有独立断电或停止方式时，才进入
-Calibrate、Teleoperate、Record、Replay 或 Inference。已有有效校准时不要为测试而强制重标定。
-
-### 4. 冻结录制配置
-
-创建正式 Dataset 前固定以下内容：
-
-- Dataset ID 与任务文字；
-- Dataset FPS；
-- `arm` / `table_veiw` 相机角色、分辨率和请求帧率；
-- H.264/PyAV 编码设置；
-- 六关节顺序、单位和 `max_relative_target`；
-- `push_to_hub=false`。
-
-推荐从 640×480、Dataset 15 Hz 开始实测。`max_relative_target` 只是相邻位置目标差约束，
-不是速度、碰撞、力或功能安全保证。
-
-### 5. 先录一个短回合
-
-新 Dataset 先录 1 个短回合并正常结束。随后在 Browse 中确认：
-
-- Episode 1 对应 Dataset index 0；
-- 两路视频都属于正确相机；
-- Parquet 帧数、视频窗口和回合边界一致；
-- action/state 是有限六维向量；
-- Browse 没有 repair、删除或改写原始数据。
-
-### 6. 只读审计与 loader 读回
-
-```powershell
-uv run --frozen python -X utf8 .\tools\audit_dataset.py <owner/dataset-id> `
-  --camera arm --camera table_veiw
-```
-
-审计 `PASS` 只表示技术合同通过，不表示任务动作成功。任务成功、失败或中止仍需要操作者逐回合判断。
-
-### 7. 需要时续录
-
-使用第一次录制返回的精确 Dataset ID 和完全相同的 profile 进行 resume。不要手工拼接文件，
-也不要在同一个 Dataset 中更改 FPS、相机键、关节单位或标签语义。
-
-### 8. 开始训练
-
-进入 Training，选择本地 Dataset、ACT 和 `Auto` 设备。保持 PyAV 视频后端；系统会在任务记录和
-训练进程创建前，用官方 Dataset loader 解码真实样本。任务记录同时保存请求设备与实际解析设备。
-
-checkpoint 下拉框分别显示 model 与完整恢复文件的静态健康状态。Resume 会创建一个有明确父任务、
-源 step 和目标 global step 的新任务；创建成功只表示“恢复任务已启动”，必须看到模型、优化器、
-随机状态和数据顺序加载成功，随后保存并再次加载，才可称完整恢复成功。训练步骤详见
-[Data Workflow](docs/DATA_WORKFLOW.md)。
-
-## CPU 与 GPU 训练
-
-同一份仓库可以在不同电脑上使用：
-
-- **只有 CPU**：`Auto` 选择 CPU，适合 loader、1-step smoke 和小规模调试；完整 ACT 训练会较慢。
-- **NVIDIA GPU**：只有当前 PyTorch 构建实际报告 CUDA 可用时，`Auto` 才选择 CUDA。
-- **其他后端**：受支持时依次考虑 MPS 或 XPU；否则回退 CPU。
-- **环境不匹配**：操作系统看见 NVIDIA GPU、但 PyTorch 不能用 CUDA 时，UI 会显示明确提示，
-  不会假装正在使用 GPU。
-
-从 GitHub clone 到新 GPU 电脑后仍按“第一次安装”重建锁定环境，不要复制旧电脑的 `.venv/`、
-可执行缓存。真实数据和同一套机械臂的校准要单独备份、核对后恢复，详见
-[迁移电脑](docs/GETTING_STARTED.md#迁移到另一台电脑)。锁定项目不会凭操作系统中的显卡自动替换 PyTorch 构建；先确认项目环境内
-`torch.cuda.is_available()` 为真，再运行一个有界 smoke。每个训练任务以其记录的
-`requested_device` / `resolved_device` 为准。Windows 锁文件当前可解析为 CPU PyTorch；如果在
-GPU 主机按 PyTorch 官方方式安装兼容 CUDA build，之后再次执行 `uv sync --frozen` 可能恢复锁定
-版本，因此每次同步后都要重新查询 CUDA 状态。自动识别负责选择当前环境已经具备的后端，不负责
-静默安装显卡运行时。
-
-## 三色方块分拣
-
-LeLab 的 Record 对话框包含 `color_sorting_v1` pilot 预设，Training 中 ACT 分别配置预测块长度与执行
-前缀。实际颜色、cube/bin 尺寸、ROI 和 Dataset ID 不在公开示例中猜测；先建立被 Git 忽略的本地
-profile，再用保存帧标定只读观察器。
-
-人工标签保留 success、failure、abort、unknown 和 preflight rejected 的完整分母，并按 session
-冻结 train/validation/test。Browse 只显示经过身份检查的本地摘要；没有摘要时不会把 episode 数量
-当作任务成功。完整流程见 [Three-Color Sorting](docs/TASK_COLOR_SORTING.md)，policy 输入与 32/8
-候选参数见 [Policy Guide](docs/POLICIES.md)。
-
-## 数据与安全边界
-
-- Dataset、视频、Parquet、校准、设备标识、日志、截图和模型都保存在本地并被 Git 忽略。
-- 正常录制固定 `push_to_hub=false`；上传、云训练和 W&B 都是独立的显式操作。
-- Browse 和审计是只读路径；Replay 会驱动机械臂，两者不能混淆。
-- Stop 是软件任务停止，不是经过认证的 emergency stop，也不保证 torque off。
-- 超时后不要盲目重发运动请求；先观察设备和任务状态。
-- 家庭画面可能包含人员、屏幕或私人物品，预览和提交前应主动检查。
-
-任何运动前请完整阅读 [Safety](docs/SAFETY.md)。
-
-## 项目贡献
-
-项目发起者与实验操作者 [@sgyliu8](https://github.com/sgyliu8) 的主要贡献包括：
-
-- 定义 SO101 Lab 的本地优先目标、数据合同、阶段验收和安全边界；
-- 搭建并操作 SO-101 leader/follower 与 wrist/front 双相机实验台；
-- 完成一次受监督校准、有限遥操作和相机角色确认；
-- 采集 7 个真实双视角回合，并推动 Episode 1–N 与零基 Dataset index 的清晰区分；
-- 复现 Windows 训练解码与 CPU 环境问题，推动自动设备检测、PyAV preflight 和错误提示；
-- 以真实数据读回、只读审计和有界训练 smoke 作为验收依据，而不是只看页面或 HTTP 状态。
-
-软件能力建立在 LeLab 与 LeRobot 上；上游作者仍拥有各自项目的设计、实现和许可归属。
-
-## 开发与验证
-
-```powershell
-# 锁文件和真实导入来源
-uv lock --check
-uv run --frozen python -X utf8 -c "import lelab, lerobot; print(lelab.__file__); print(lerobot.__file__)"
-
-# 公共文档、链接、配置示例和公开文件边界
-uv run --frozen python -X utf8 .\tools\validate_docs.py
-
-# 项目无硬件回归
-uv run --frozen --group test python -X utf8 -m pytest -q tests
-
-# 固定 LeLab 后端
-uv run --frozen --group test python -X utf8 -m pytest -q _vendor\lelab\tests
-
-# 固定 LeLab 前端
-Set-Location .\_vendor\lelab\frontend
-npm test
-npm run lint
-npm run build
-```
-
-绿色测试只证明对应软件范围。fixture、HTTP 200、页面可打开或 `test_mode` 都不能代替真机证据。
-修改补丁和运行 fresh-apply gate 的规则见 [Development](docs/DEVELOPMENT.md)。
-
-## 仓库结构
-
-```text
-.
-├── Start-SO101-Lab.cmd       双击启动入口
-├── README.md                 用户入口
-├── docs/                     安装、硬件、数据、安全、状态与开发说明
-├── configs/                  非敏感示例与固定上游身份
-├── so101_lab/                三色任务配置、观察、标签与分区工具
-├── schemas/                  配置和实验 sidecar schema
-├── scripts/workbench.ps1     安装、更新、检查与快速入口菜单
-├── scripts/lab.ps1           受控 start / status / logs / stop
-├── tools/                    上游重建、文档校验与只读数据审计
-├── patches/                  固定 LeLab 的可重建补丁
-├── tests/                    无硬件回归
-├── examples/mujoco/          隔离的真实回合运动学回放
-├── integrations/ros2/        只读 JointState / TF / RViz / bag 准备
-├── experiments/              尚未执行的测量实验合同
-├── templates/                实验与评估记录模板
-├── pyproject.toml
-└── uv.lock
-```
-
-`.venv/`、`_vendor/`、`.local/`、数据集、视频、校准、日志和模型不会进入 Git。
-
-## 文档地图
-
-| 文档 | 使用时机 |
+| 你想做什么 | 菜单 / PowerShell 命令 |
 |---|---|
-| [Getting Started](docs/GETTING_STARTED.md) | 首次安装、重建、启动和迁移电脑 |
-| [Hardware Setup](docs/HARDWARE.md) | 识别设备、校准或遥操作前 |
-| [Data Workflow](docs/DATA_WORKFLOW.md) | 录制、续录、浏览、审计和训练 |
-| [Data Contracts](docs/DATA_CONTRACTS.md) | Dataset、action、时序和 sidecar 语义 |
-| [Three-Color Sorting](docs/TASK_COLOR_SORTING.md) | 配置 C0、采集 C1、人工标签、分区与结果查看 |
-| [Policy Guide](docs/POLICIES.md) | ACT 输入、chunk/执行前缀、设备选择与离线验收 |
-| [Safety](docs/SAFETY.md) | 相机隐私或任何机械运动前 |
-| [Architecture](docs/ARCHITECTURE.md) | 理解上游、补丁和本地数据边界 |
-| [Troubleshooting](docs/TROUBLESHOOTING.md) | 端口、相机、数据、训练或停止失败 |
-| [Project Status](docs/PROJECT_STATUS.md) | 当前完成项、限制和下一门槛 |
-| [Development](docs/DEVELOPMENT.md) | 修改代码、补丁或运行完整 gate |
-| [MuJoCo playback](examples/mujoco/README.md) | 用本地真实回合驱动固定 SO101 模型 |
-| [ROS 2 playback](integrations/ros2/README.md) | 准备只读 JointState → TF → RViz → rosbag2 |
-| [Vision geometry](experiments/vision_geometry/README.md) | 准备固定 front 相机与 ChArUco 几何实验 |
+| 打开工作台 | Enter，或 `.\Start-SO101-Lab.cmd open` |
+| 检查环境和 CPU / GPU | `.\Start-SO101-Lab.cmd check` |
+| 查看状态或日志 | `.\Start-SO101-Lab.cmd status` / `logs` |
+| 停止本项目服务 | `.\Start-SO101-Lab.cmd stop` |
+| 获取更新并重建环境 | `.\Start-SO101-Lab.cmd update` |
+
+日常打开不会升级依赖、下载模型或启动机械运动。
+**更新前，先在界面正常结束任务，再停止服务。**端口被别的程序占用时，不会强行关闭它。
+
+安装失败、重建环境、迁移电脑的详细步骤都在 [安装与日常使用](docs/GETTING_STARTED.md)。
+
+## 从一次示范到一次验证
+
+不要急着录几百遍。先走通一个短回合，再扩大数据量。
+
+```mermaid
+flowchart TD
+    A[准备好台架<br/>确认设备、供电、固定与停止方式]
+    B[你来示范<br/>录一个短回合，保存两路画面和动作]
+    C[打开回看<br/>检查画面、回合边界，并人工标注结果]
+    D{数据是否可用？}
+    E[补充示范<br/>保持配置一致，覆盖不同场景]
+    F[让模型学习<br/>先做小规模本地训练，验证保存和恢复]
+    G[先不上机器人<br/>检查模型输出和计算速度]
+    H[有人现场再试<br/>限定任务与次数，记录成功、失败和中止]
+    A --> B --> C --> D
+    D -->|需要改进：保留原记录| B
+    D -->|通过| E --> F --> G
+    G -. 达到执行条件并获得现场确认 .-> H
+    classDef prepare fill:#eaf3fa,stroke:#527b99,color:#142d40
+    classDef data fill:#e6f5ef,stroke:#27856a,color:#163d31
+    classDef learn fill:#fff3df,stroke:#b47c28,color:#513816
+    class A prepare
+    class B,C,D,E data
+    class F,G,H learn
+```
+
+**录制时：**你负责移动示教臂。创建数据集前，先固定相机名称、分辨率、帧率和关节单位；
+可以从 640×480、数据集 15 Hz 候选开始实测，实际相机能力另行确认。
+已有有效校准时，不必为了“重新开始”而强制重标定。
+
+**回看时：**在 Browse 中检查两路视频。一次完整尝试叫一个“回合”（Episode）。
+例如第七个回合显示为 **`Episode 7 of 7 · dataset index 6`**：前面是人的计数，后面是从 0 开始的数据编号，
+并不是少录了一次。技术检查通过，也不等于抓放成功，结果仍需逐回合判断。
+
+**追加时：**使用首次返回的同一个数据集 ID 和相同配置续录，不手工拼文件。
+失败、中止与成功都要保留记录；不要只挑好看的视频。
+
+**训练时：**从 ACT 开始——它根据画面和机械臂状态学习一小段连续动作。
+先确认数据能读、训练能保存、保存后能恢复，再讨论更长训练。
+“模型训练完了”与“机器人会做了”是两件事。
+
+完整操作步骤与只读检查命令见 [录制、回看与训练](docs/DATA_WORKFLOW.md)。
+
+## 现在走到了哪一步
+
+下面区分的是**已有证据**与**下一步实验**，不是用开发版本号表示完成度。
+
+| 已有验证 | 还不能据此推断 |
+|---|---|
+| 主从校准、有限遥操作和两路相机角色确认 | 任意姿态、长期运行都安全 |
+| 7 个真实双视角回合，已重新打开并由官方数据工具读回 | 7 个回合都完成了任务，或真实续录流程已经验收 |
+| CPU 训练从第 1000 步恢复到 1002，再保存、再加载 | 一个完整模型已经训练好，或可以直接上机器人 |
+| 三色任务的配置、标签、数据分组和训练参数链已实现 | 已采集三色示范，或已经实现自主分拣 |
+| 真实回合驱动模拟机械臂姿态回放 | 动力学、碰撞和真机任务效果已经验证 |
+
+当前完整训练基线、三色任务训练和真机评估仍未完成。
+更细的验证范围与限制见 [项目状态](docs/PROJECT_STATUS.md)。
+
+## 下一站：三色方块分拣
+
+目标很直观：**把方块放进同色盒子**。但先从一个方块开始，不把“会做一道题”当成“会整理整张桌子”。
+
+| 顺序 | 场景怎样变化 | 重点看什么 |
+|---|---|---|
+| ① 一个方块 | 随机一种颜色，三个盒子位置固定 | 能否拿起并放进正确盒子 |
+| ② 少量方块 | 方块彼此分开，选择顺序明确 | 能否稳定选择下一个目标 |
+| ③ 多个方块 | 一次完成有限数量的整理 | 整场结果，以及失败后发生了什么 |
+| ④ 盒子换位 | 改变盒子位置 | 学到的是颜色匹配，还是固定位置 |
+
+工作台已提供 `color_sorting_v1` 任务预设；**以上四个实物阶段都尚未验证**。
+实际颜色、尺寸与布局由现场配置决定。旧抓放数据不能冒充新任务的分拣示范。
+
+颜色观察工具可以帮助检查保存画面，看不清时返回“未知”；它不会因为方块消失就自动判成功，
+也不会把普通 ACT 变成能理解任意文字指令的模型。
+
+从这里开始：[三色分拣操作指南](docs/TASK_COLOR_SORTING.md) · [ACT 怎么学、参数怎么选](docs/POLICIES.md)。
+
+## 只有 CPU 可以用吗？换电脑怎么办？
+
+**可以从当前电脑开始。**CPU 足够用于软件操作、数据读回与小规模训练检查，
+长时间训练会慢；现场录制还要实测双相机吞吐，不能只看页面是否流畅。
+
+训练设备默认选择 **Auto**。它使用当前环境真正可用的加速设备；没有可用 GPU，就使用 CPU。
+“电脑装了显卡”不等于“训练正在使用显卡”，以环境检查和任务显示的实际设备为准。
+
+换电脑时，分开搬这两部分：
+
+| 从 GitHub 获取 | 通过自己的私有备份迁移 |
+|---|---|
+| 代码、启动入口、固定依赖和使用文档 | 数据集、模型、任务记录、本地配置和本套硬件的校准 |
+| 在新电脑运行 Setup → Check | 先确认文件完整，再回看、读回和验证恢复 |
+
+不要复制旧 `.venv` 或旧进程记录。GPU 电脑需要兼容的 PyTorch 构建；自动检测不会替你静默安装显卡运行时。
+Setup / Update 后也要重新 Check，因为锁定安装可能恢复 CPU 构建。
+另一台实体电脑和 GPU 上的实际运行仍需现场验收，不能承诺任何主机直接可用。
+
+按 [换电脑迁移清单](docs/GETTING_STARTED.md#迁移到另一台电脑) 逐项操作即可。
+
+## 开始运动前，记住这几件事
+
+- **页面不是安全证明。**USB 连上、画面亮了，不代表电源、固定和运动空间都正确。
+- **先准备独立停止方式。**软件 Stop 不等于物理断电，也不是经过认证的急停。
+- **回看视频不会移动机器人。**真正的动作重放或模型控制需要单独的现场确认；不要混为一谈。
+- **保留本地原件。**视频、数据集、校准、日志和模型不进入本仓库；默认关闭录制上传，云训练和上传需另外决定。
+
+任何机械运动前，完整阅读 [硬件确认](docs/HARDWARE.md) 与 [安全说明](docs/SAFETY.md)。
+本项目用于受监督的学习实验，不是工业安全控制系统。
+
+## 谁在把它做成可用的实验台
+
+项目由 **[@sgyliu8](https://github.com/sgyliu8)** 发起并进行实物实验：
+
+- 搭建主从机械臂与双相机台架，完成校准、遥操作和真实示范采集；
+- 从实际使用中提出问题：回合编号看不懂、CPU 训练报错、训练中断后怎样接着跑；
+- 推动长期可用的快速入口、环境检查和迁移流程，让项目不只停在“代码能运行”；
+- 用真实数据读回与恢复试验验证改进，并定义三色分拣的任务与验收边界。
+
+**LeLab 提供操作界面，LeRobot 提供机器人与学习能力；本项目把它们接成一条适合本地 SO101 台架的使用路径。**
+我们维护固定版本、必要修补、数据检查和操作文档，不另造一套驱动、数据格式或训练框架。
+
+## 按你现在要做的事找文档
+
+| 我想…… | 从这里读 |
+|---|---|
+| 安装、打开、更新或换电脑 | [安装与日常使用](docs/GETTING_STARTED.md) |
+| 确认机械臂、相机与运动条件 | [硬件指南](docs/HARDWARE.md) · [安全说明](docs/SAFETY.md) |
+| 录制、追加、回看、训练 | [数据操作流程](docs/DATA_WORKFLOW.md) · [数据字段与时间含义](docs/DATA_CONTRACTS.md) |
+| 开始三色任务，理解模型选择 | [三色分拣](docs/TASK_COLOR_SORTING.md) · [策略指南](docs/POLICIES.md) |
+| 解决错误，确认已经验证了什么 | [故障排查](docs/TROUBLESHOOTING.md) · [项目状态](docs/PROJECT_STATUS.md) |
+| 修改代码、运行测试或重建补丁 | [架构](docs/ARCHITECTURE.md) · [开发指南](docs/DEVELOPMENT.md) |
+
+<details>
+<summary>进一步学习：模拟回放、ROS 2 与视觉几何</summary>
+
+- [MuJoCo 回放](examples/mujoco/README.md)：已完成真实回合驱动的姿态回放，不等于动态分拣验证。
+- [ROS 2 只读回放](integrations/ros2/README.md)：输入与操作说明已准备，实际 ROS 运行尚未执行。
+- [视觉几何实验](experiments/vision_geometry/README.md)：准备测量与标定，等待实物尺寸和现场图像。
+
+这些不是第一次安装或录制的前置条件。
+
+</details>
 
 ## 上游与许可
 
-固定上游身份见 [`configs/upstream-pins.json`](configs/upstream-pins.json)。本项目依赖 LeLab 和
-LeRobot，并保留其上游许可与归属。本仓库尚未为原创部分声明统一许可证；在许可证明确前，
-不应推断可自由再分发。真实家庭视频、Dataset、校准和设备标识不属于代码公开范围。
+感谢 [Hugging Face LeLab](https://github.com/huggingface/leLab) 与
+[LeRobot](https://github.com/huggingface/lerobot) 的作者和社区。
+准确依赖身份见 [固定版本配置](configs/upstream-pins.json)；上游代码保留各自许可和归属。
+
+本项目不是 Hugging Face 官方仓库。原创部分尚未声明统一许可证，不应据此推断可自由再分发。
+公开范围是代码、非敏感配置、文档与原创示意图，不包含真实家庭画面或私有实验数据。
