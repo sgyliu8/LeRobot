@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 PUBLIC_MARKDOWN = (
     Path("README.md"),
+    Path("README.en.md"),
     Path("docs/GETTING_STARTED.md"),
     Path("docs/HARDWARE.md"),
     Path("docs/DATA_WORKFLOW.md"),
@@ -44,6 +45,7 @@ JSON_FILES = (
 
 REQUIRED_FILES = PUBLIC_MARKDOWN + JSON_FILES + (
     Path("docs/assets/lab-overview.svg"),
+    Path("docs/assets/lab-overview.en.svg"),
     Path("Start-SO101-Lab.cmd"),
     Path("pyproject.toml"),
     Path("uv.lock"),

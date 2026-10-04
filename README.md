@@ -1,5 +1,7 @@
 <div align="center">
 
+**简体中文** · [English](README.en.md)
+
 # PhysicalAI SO101 Lab
 
 **从你的一次示范，开始机械臂的学习。**

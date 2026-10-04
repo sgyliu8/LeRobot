@@ -54,13 +54,15 @@ def test_missing_required_document_fails(public_tree: Path) -> None:
     assert any("missing required file" in error for error in _validate(public_tree))
 
 
-def test_missing_readme_illustration_fails(public_tree: Path) -> None:
-    (public_tree / "docs/assets/lab-overview.svg").unlink()
+@pytest.mark.parametrize("filename", ["lab-overview.svg", "lab-overview.en.svg"])
+def test_missing_readme_illustration_fails(public_tree: Path, filename: str) -> None:
+    (public_tree / "docs/assets" / filename).unlink()
     assert any("missing required file" in error for error in _validate(public_tree))
 
 
-def test_readme_illustration_is_accessible_and_self_contained(public_tree: Path) -> None:
-    svg = ET.parse(public_tree / "docs/assets/lab-overview.svg").getroot()
+@pytest.mark.parametrize("filename", ["lab-overview.svg", "lab-overview.en.svg"])
+def test_readme_illustration_is_accessible_and_self_contained(public_tree: Path, filename: str) -> None:
+    svg = ET.parse(public_tree / "docs/assets" / filename).getroot()
     namespace = "{http://www.w3.org/2000/svg}"
     assert svg.tag == f"{namespace}svg"
     assert svg.attrib["viewBox"] == "0 0 1200 660"
@@ -73,8 +75,9 @@ def test_readme_illustration_is_accessible_and_self_contained(public_tree: Path)
         assert not any(key.lower().startswith("on") or key.endswith("href") for key in element.attrib)
 
 
-def test_readme_section_navigation_resolves(public_tree: Path) -> None:
-    readme = (public_tree / "README.md").read_text(encoding="utf-8")
+@pytest.mark.parametrize("filename", ["README.md", "README.en.md"])
+def test_readme_section_navigation_resolves(public_tree: Path, filename: str) -> None:
+    readme = (public_tree / filename).read_text(encoding="utf-8")
     headings = re.findall(r"^#{1,6}\s+(.+)$", readme, re.MULTILINE)
     anchors = {re.sub(r"[^\w\s-]", "", title.lower()).replace(" ", "-") for title in headings}
     for target in validate_docs.MARKDOWN_LINK.findall(readme):
@@ -82,11 +85,45 @@ def test_readme_section_navigation_resolves(public_tree: Path) -> None:
             assert target[1:] in anchors, f"Missing README section: {target}"
 
 
-def test_readme_disclosures_are_balanced(public_tree: Path) -> None:
-    readme = (public_tree / "README.md").read_text(encoding="utf-8")
+@pytest.mark.parametrize("filename", ["README.md", "README.en.md"])
+def test_readme_disclosures_are_balanced(public_tree: Path, filename: str) -> None:
+    readme = (public_tree / filename).read_text(encoding="utf-8")
     opened = readme.count("<details>")
     assert opened == readme.count("</details>")
     assert opened == readme.count("<summary>") == readme.count("</summary>")
+
+
+def test_readme_language_switches_and_localized_illustrations(public_tree: Path) -> None:
+    chinese = (public_tree / "README.md").read_text(encoding="utf-8")
+    english = (public_tree / "README.en.md").read_text(encoding="utf-8")
+    assert "[English](README.en.md)" in chinese.split("# PhysicalAI", 1)[0]
+    assert "[简体中文](README.md)" in english.split("# PhysicalAI", 1)[0]
+    assert "(docs/assets/lab-overview.svg)" in chinese
+    assert "(docs/assets/lab-overview.en.svg)" in english
+
+
+def test_readme_editions_preserve_commands_parameters_and_structure(public_tree: Path) -> None:
+    chinese = (public_tree / "README.md").read_text(encoding="utf-8")
+    english = (public_tree / "README.en.md").read_text(encoding="utf-8")
+    # Structural parity is separate from human review of meaning and evidence claims.
+    for pattern in (r"```powershell\n(.*?)```", r"^##(?!#)", r"<details>", r"```mermaid"):
+        left = re.findall(pattern, chinese, re.DOTALL | re.MULTILINE)
+        right = re.findall(pattern, english, re.DOTALL | re.MULTILINE)
+        assert left == right, pattern
+    for literal in (
+        "arm", "table_veiw", "color_sorting_v1", "Local — your machine (free)",
+        "Use color sorting candidate (32 / 8)", "Resume to global training step",
+        "model ready", "model + resume files ready", "100", "2", "0", "32", "8", "1", "10", "1002",
+    ):
+        assert f"`{literal}`" in chinese
+        assert chinese.count(f"`{literal}`") == english.count(f"`{literal}`"), literal
+    # Both editions link to the same guides, upstream projects and launcher.
+    def destinations(text: str) -> set[str]:
+        return {
+            target for target in validate_docs.MARKDOWN_LINK.findall(text)
+            if not target.startswith(("#", "README.", "docs/assets/"))
+        }
+    assert destinations(chinese) == destinations(english)
 
 
 def test_broken_relative_link_fails(public_tree: Path) -> None:
