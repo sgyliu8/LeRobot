@@ -282,6 +282,7 @@ def _video_window_summary(dataset_dir: Path, episode_idx: int, camera: str) -> d
     video_path = ensure_safe_dataset_path(dataset_dir, location.path, require_file=True)
     decoded = 0
     times: list[float] = []
+    visual_samples: list[dict[str, float]] = []
     with av.open(str(video_path)) as container:
         stream = container.streams.video[0]
         codec = stream.codec_context.name
@@ -290,6 +291,9 @@ def _video_window_summary(dataset_dir: Path, episode_idx: int, camera: str) -> d
         average_rate = float(stream.average_rate) if stream.average_rate else None
         start = location.from_timestamp or 0.0
         end = location.to_timestamp
+        # Bounded, full-frame hints only. Low texture, stillness or darkness is
+        # not a task-failure label, and these values never reject a recording.
+        sample_stride = max(1, math.ceil((end - start) * (average_rate or 15) / 12)) if end else 30
         for frame in container.decode(stream):
             if frame.time is None:
                 continue
@@ -299,6 +303,15 @@ def _video_window_summary(dataset_dir: Path, episode_idx: int, camera: str) -> d
             if not is_before_episode_window_end(stamp, end):
                 break
             times.append(stamp)
+            if decoded % sample_stride == 0 and len(visual_samples) < 12:
+                import cv2
+
+                gray = frame.to_ndarray(format="gray")
+                visual_samples.append({
+                    "laplacian_variance": float(cv2.Laplacian(gray, cv2.CV_64F).var()),
+                    "dark_fraction": float(np.mean(gray < 16)),
+                    "bright_fraction": float(np.mean(gray > 239)),
+                })
             decoded += 1
     return {
         "path": video_path.relative_to(dataset_dir).as_posix(),
@@ -311,6 +324,15 @@ def _video_window_summary(dataset_dir: Path, episode_idx: int, camera: str) -> d
         "pts_monotonic": all(b > a for a, b in itertools.pairwise(times)),
         "from_timestamp": location.from_timestamp,
         "to_timestamp": location.to_timestamp,
+        "visual_review_hints": {
+            "sample_count": len(visual_samples),
+            "sampling": "up_to_12_frames_per_episode_camera",
+            "median": {
+                key: statistics.median(sample[key] for sample in visual_samples)
+                for key in ("laplacian_variance", "dark_fraction", "bright_fraction")
+            } if visual_samples else {},
+            "interpretation": "advisory_only_not_blur_or_success_classification",
+        },
     }
 
 
