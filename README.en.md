@@ -79,6 +79,7 @@ You can keep a desktop shortcut to this file as the project is updated.
 | Inspect service status or logs | `.\Start-SO101-Lab.cmd status` / `.\Start-SO101-Lab.cmd logs` |
 | Stop this project's service | `.\Start-SO101-Lab.cmd stop` |
 | Update the project | `.\Start-SO101-Lab.cmd update` |
+| Review training data without changing originals | Menu `8`, or `.\Start-SO101-Lab.cmd data` |
 
 </details>
 
@@ -239,7 +240,10 @@ A 32 / 8 setting does not guarantee real-time performance or safe motion.
 ### Your first setup: make a short training run work
 
 1. **Prepare the data first.** Finish recording and finalization, inspect it in Browse, then verify readback using the
-   [data workflow — Chinese](docs/DATA_WORKFLOW.md). The color task also requires human labels and frozen training,
+   [data workflow — Chinese](docs/DATA_WORKFLOW.md). For ordinary pick-and-place data, use the
+   [data preparation guide — Chinese](docs/DATA_PREPARATION.md) to review each episode and freeze whole-session splits.
+   Originals remain unchanged; training automatically uses the frozen selection. Brightness and texture metrics are
+   review hints, not automatic task-success labels. The color task also requires human labels and frozen training,
    validation and test groups by recording session. Do not split adjacent frames from one session across the three groups.
    The first color baseline admits only human-verified, successful demonstrations without intervention;
    failed and aborted attempts remain in the records and outcome counts.
