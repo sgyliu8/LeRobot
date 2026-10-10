@@ -81,6 +81,20 @@ fresh-apply 验收。
 `-Rebuild` 在旁边构建新 vendor 并保留旧目录。开发期间修改源码后，应先生成 patch，
 再 Setup 记录安装身份，不能直接伪造安装凭据。
 
+## 前端依赖维护
+
+前端依赖锁随同一个上游 patch 保存，必须在 `_vendor/lelab/frontend` 中运行 `npm ci` 和在线
+`npm audit`；离线安装提示不能替代在线审计，不使用 `npm audit fix --force` 或忽略规则隐藏告警。
+当前构建使用 Tailwind CSS / PostCSS 插件 `4.3.3`、tailwind-merge `3.7.0` 和 source-map-js `1.2.2`。
+无官方修复版的 braces 依赖链已从构建中移除，同时移除引入旧链的开发标记工具和未启用的 typography 插件。
+既有界面沿用原主题配置；焦点、阴影、收缩和弹窗变量写法按
+[Tailwind 升级说明](https://tailwindcss.com/docs/upgrade-guide)适配，并有实际 CSS 编译回归。
+浏览器使用当前 Edge / Chrome；Tailwind 4 的最低要求为 Chrome 111、Safari 16.4 或 Firefox 128。
+
+更新依赖后运行前端测试、lint、build、在线 audit 和 fresh patch 重建，并在实际浏览器检查表单与弹窗。
+低内存开发电脑可使用 `npm test -- --maxWorkers=2`。这些检查不启动训练、相机或机器人。
+上游弃用提示与漏洞报告应分开记录，不为消除提示盲目升级机器人可视化或图表库。
+
 ## 测试数据规则
 
 - MP4/Parquet fixture 必须明确标记 synthetic。
