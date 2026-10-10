@@ -93,7 +93,18 @@ fresh-apply 验收。
 
 更新依赖后运行前端测试、lint、build、在线 audit 和 fresh patch 重建，并在实际浏览器检查表单与弹窗。
 低内存开发电脑可使用 `npm test -- --maxWorkers=2`。这些检查不启动训练、相机或机器人。
-上游弃用提示与漏洞报告应分开记录，不为消除提示盲目升级机器人可视化或图表库。
+Recharts 固定为 `3.10.1`，`react-is` 与 React 同为 `18.3.1`，按
+[官方迁移说明](https://github.com/recharts/recharts/wiki/3.0-migration-guide)验证。
+动作曲线通过公开坐标接口解析点击帧，命中层位于曲线之上；保留悬停提示，并在切换回合时清除旧曲线。
+回归使用真实 Recharts 渲染，覆盖首/中/末帧、无悬停点击、旧悬停位置、越界、回合切换和训练指标更新。
+未被产品代码使用的 `@react-three/drei` / `@react-three/fiber` 已移除，连带移除弃用的 BVH 依赖；
+机器人视图仍使用 Three.js `0.177.0` 和 URDF Loader `0.12.7`，类型声明与 Three.js 版本对齐。
+模型回归解析随软件附带的 SO101 URDF、全部视觉 STL 和关节变换；浏览器检查实际模型显示。
+上游弃用提示与漏洞报告分开记录，不通过忽略规则或强制覆盖 peer dependency 隐藏问题。
+
+补充类型检查可运行 `npx tsc --noEmit -p tsconfig.app.json`。目前仍有 12 项既存诊断，集中在
+EpisodeViewer/recordingRequest 的测试类型、onboarding 的类型收窄和可选 camera FPS；
+本次升级未新增诊断。这项检查尚未全绿，不能以 Vite build 成功替代它。
 
 ## 测试数据规则
 
