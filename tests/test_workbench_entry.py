@@ -16,6 +16,16 @@ runtime_check = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(runtime_check)
 
 
+def test_data_review_entry_is_scoped_to_the_offline_cli():
+    text = (ROOT / "scripts/workbench.ps1").read_text(encoding="utf-8")
+    action = text.split("'data' {", 1)[1].split("'open' {", 1)[0]
+    assert "so101_lab.data_preparation_cli" in action
+    assert all(f"'{command}'" in action for command in ("inspect", "status", "label", "freeze"))
+    for forbidden in ("uv sync", "Remove-Item", "Start-Process", "calibrate", "teleoperate"):
+        assert forbidden not in action
+    assert "'8'='data'" in text
+
+
 def test_install_receipt_rejects_changed_code_and_lock(tmp_path, monkeypatch, capsys):
     files = {
         "configs/upstream-pins.json": json.dumps({

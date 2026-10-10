@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('menu', 'open', 'setup', 'update', 'check', 'status', 'logs', 'stop')]
+    [ValidateSet('menu', 'open', 'setup', 'update', 'check', 'status', 'logs', 'stop', 'data')]
     [string]$Action = 'menu'
 )
 
@@ -90,6 +90,35 @@ function Invoke-Action {
     Push-Location -LiteralPath $projectRoot
     try {
         switch ($Selected) {
+            'data' {
+                if (-not (Test-Path -LiteralPath $pythonExe)) { throw 'Environment missing. Choose Setup (2).' }
+                Write-Host 'Raw Dataset files are read-only. Review decisions stay in local evidence.'
+                Write-Host 'For color_sorting_v1 use the task-specific label/split workflow.'
+                $datasetId = Read-Host 'Exact local Dataset ID (Browse shows it)'
+                $operation = Read-Host '1 Inspect / 2 Status / 3 Label one episode / 4 Freeze session split'
+                $arguments = @('-X', 'utf8', '-m', 'so101_lab.data_preparation_cli')
+                switch ($operation) {
+                    '1' { $arguments += @('inspect', $datasetId) }
+                    '2' { $arguments += @('status', $datasetId) }
+                    '3' {
+                        $episode = Read-Host 'Zero-based dataset index (not the displayed ordinal)'
+                        $decision = Read-Host 'Decision: keep or exclude'
+                        $outcome = Read-Host 'Observed outcome: success / failure / aborted / unknown'
+                        $intervention = Read-Host 'Extra human intervention: yes / no / unknown'
+                        $reason = Read-Host 'Reason for this decision'
+                        $arguments += @('label', $datasetId, '--episode', $episode, '--decision', $decision,
+                            '--outcome', $outcome, '--intervention', $intervention, '--reason', $reason)
+                    }
+                    '4' {
+                        Write-Host 'Use session IDs from Status. All remaining sessions become training candidates.'
+                        $validation = Read-Host 'One validation session ID'
+                        $test = Read-Host 'One independent test session ID'
+                        $arguments += @('freeze', $datasetId, '--validation-session', $validation, '--test-session', $test)
+                    }
+                    default { throw 'Choose 1, 2, 3 or 4. No data was changed.' }
+                }
+                Invoke-Checked $pythonExe $arguments
+            }
             'open' {
                 if (-not (Test-Path -LiteralPath $pythonExe)) { throw 'First use: choose Setup (2).' }
                 Invoke-Checked 'powershell.exe' @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $labScript, 'start')
@@ -119,10 +148,10 @@ if ($Action -ne 'menu') {
 }
 while ($true) {
     Write-Host "`nPhysicalAI SO101 Lab"
-    Write-Host "1 / Enter  Open workbench`n2  Setup / rebuild installed version`n3  Update current Git branch + Setup`n4  Check installation and compute`n5  Status`n6  Logs`n7  Stop idle workbench`n0  Exit"
+    Write-Host "1 / Enter  Open workbench`n2  Setup / rebuild installed version`n3  Update current Git branch + Setup`n4  Check installation and compute`n5  Status`n6  Logs`n7  Stop idle workbench`n8  Review training data (raw files unchanged)`n0  Exit"
     $choice = Read-Host 'Choose'
     if ($choice -eq '0') { break }
-    $selected = @{ ''='open'; '1'='open'; '2'='setup'; '3'='update'; '4'='check'; '5'='status'; '6'='logs'; '7'='stop' }[$choice]
+    $selected = @{ ''='open'; '1'='open'; '2'='setup'; '3'='update'; '4'='check'; '5'='status'; '6'='logs'; '7'='stop'; '8'='data' }[$choice]
     if (-not $selected) { continue }
     try { Invoke-Action $selected }
     catch { Write-Host $_.Exception.Message -ForegroundColor Red }

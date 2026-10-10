@@ -4,6 +4,8 @@
 可只读审计、可由官方 loader 读取并能用精确身份继续追加的本地数据集。
 
 字段与身份的稳定定义见 [Data Contracts](DATA_CONTRACTS.md)。
+录好后要选择哪些示范进入训练，见[数据清洗与预处理](DATA_PREPARATION.md)：保留原件、人工审核、按场次分区，
+而不是单独剪视频。快速入口菜单中的 `8 Review training data` 可启动通用审核工具。
 
 ## 录制前冻结 profile
 
@@ -48,13 +50,15 @@ Discard 和 Stop 都不能删除已经 finalize 的历史数据。任务成功�
 使用第一次返回的准确 dataset ID：
 
 ```powershell
-uv run --frozen python -X utf8 .\tools\audit_dataset.py <dataset-id> `
+.\.venv\Scripts\python.exe -X utf8 .\tools\audit_dataset.py local/my_demo `
   --camera arm --camera table_veiw `
-  --output .\.local\audits\<dataset-id>.json
+  --output .\.local\evidence\recordings\audit-report.json
 ```
 
 审计会读取而不修复数据，并检查 profile、回合、视频窗口、帧、动作与时间语义。Browse/audit
 不会自动补帧、删除文件或改变原始数据。短视频不能用最后一帧无限替代缺失帧。
+上面 ID 是示例，需替换成真实 ID；输出必须位于本地 recording evidence 根目录。
+若需要保留多轮审核记录，优先使用数据清洗指南里的 Inspect/Refresh 流程。
 
 界面中的 “Episode 7 of 7” 是第七个可见回合；其 Dataset `episode_index` 仍是 6。UI 同时显示
 两者以避免把一基阅读序号误当成 Parquet/API 身份。

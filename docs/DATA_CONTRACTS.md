@@ -157,6 +157,23 @@ SHA-256；统计不变的帧重排也会被检测。resume 使用父 job 的快�
 
 ## 通用 Sidecar 与模板
 
+### 通用训练前审核
+
+通用 `review.json` schema 1.0 以 Dataset ID 和 canonical episode index 对应每个已保存回合，
+session 身份来自原始录制 trace。人工 `decision=pending/keep/exclude` 与
+`outcome=unknown/success/failure/aborted`、额外干预状态、理由分别保存；初始不推断成功。
+原始文件、profile 和所属 session trace 的内容身份一起冻结，绝对电脑路径不进入摘要算法。
+
+`split.json` schema 2.0 保存完整审核快照与三个非空、session 互斥的分区。训练只准入 keep、
+人工 success 且无额外干预的回合；训练场次的其它回合列入排除清单，验证/测试场次保留所有已保存回合。
+未保存尝试仍以 trace 为准，本清单不能替代完整现场尝试分母。
+旧三色 schema 1.1 与其摘要规则保持不变，不能把两种任务清单混用。
+
+冻结后修改需显式 refresh 并归档旧版本；失败 refresh 撤销当前训练准入。
+本地 ACT job 将所选清单快照、train-only 统计来源和数据内容身份写入任务目录；resume 继续使用父任务
+快照，原件改变则拒绝。全量审计发现技术损坏时整份 Dataset 阻断，exclude 不是绕过坏索引的开关。
+画面抽样数值不改变审核状态，不自动补帧、重编码或剪切。见[操作指南](DATA_PREPARATION.md)。
+
 - [`configs/run.example.json`](../configs/run.example.json)：最小 run sidecar 示例；
 - [`schemas/run.schema.json`](../schemas/run.schema.json)：sidecar schema；
 - [Experiment template](../templates/EXPERIMENT.md)：采集与训练记录；

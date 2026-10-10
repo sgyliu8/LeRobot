@@ -13,6 +13,9 @@ import os
 from pathlib import Path
 
 from .color_sorting import SplitManifest, local_split_manifest_path, validate_split_manifest
+from .data_preparation import (
+    PreparedSplit, assert_source_current, preparation_path, read_review, validate_prepared_split,
+)
 
 
 def manifest_digest(manifest: SplitManifest) -> str:
@@ -20,11 +23,23 @@ def manifest_digest(manifest: SplitManifest) -> str:
     return hashlib.sha256(payload.encode()).hexdigest()
 
 
+def parse_manifest(text: str) -> SplitManifest:
+    payload = json.loads(text)
+    if not isinstance(payload, dict):
+        raise ValueError("split manifest must be a JSON object")
+    if payload.get("schema_version") == "2.0":
+        manifest = PreparedSplit.model_validate(payload)
+        validate_prepared_split(manifest)
+    else:
+        manifest = SplitManifest.model_validate(payload)
+        validate_split_manifest(manifest)
+    return manifest
+
+
 def read_manifest(path: Path, repo_id: str) -> SplitManifest:
     if path.is_symlink() or path.is_junction() or path.stat().st_size > 8 * 1024 * 1024:
         raise ValueError("split must be a bounded regular local file")
-    manifest = SplitManifest.model_validate_json(path.read_text(encoding="utf-8"))
-    validate_split_manifest(manifest)
+    manifest = parse_manifest(path.read_text(encoding="utf-8"))
     if manifest.partitions["train"][0].dataset_repo_id != repo_id:
         raise ValueError("split Dataset identity does not match the request")
     return manifest
@@ -33,19 +48,37 @@ def read_manifest(path: Path, repo_id: str) -> SplitManifest:
 def bind_request(request, *, source: Path | None = None):
     """Return a validated request + snapshot; never accept caller-supplied paths."""
     root = Path(os.environ.get("LELAB_RECORDING_EVIDENCE_ROOT", ".local/evidence/recordings"))
-    path = source or local_split_manifest_path(root, request.dataset_repo_id)
+    color_path = local_split_manifest_path(root, request.dataset_repo_id)
+    review_path = preparation_path(request.dataset_repo_id)
+    prepared = request.dataset_task == "data_review_v1" or review_path.exists() or preparation_path(
+        request.dataset_repo_id, "audit.json"
+    ).exists()
+    path = source or (preparation_path(request.dataset_repo_id, "split.json") if prepared else color_path)
     is_color_task = (
         request.dataset_task == "color_sorting_v1"
         or request.dataset_repo_id.split("/")[-1].startswith("color_sorting_v1")
-        or path.is_file()
+        or color_path.is_file()
     )
-    if not is_color_task:
+    if not is_color_task and not prepared and source is None:
         return request, None
+    if is_color_task and prepared:
+        raise ValueError("conflicting task/review workflows; retain the color-sorting task split")
     if request.policy_type != "act" or request.dataset_image_transforms_enable:
-        raise ValueError("color_sorting_v1 requires ACT with image augmentation disabled")
+        raise ValueError("reviewed datasets require ACT with image augmentation disabled")
     if not path.is_file():
-        raise ValueError("Freeze the color-sorting session split before training")
+        raise ValueError("Freeze the reviewed session split before training; pending or failed audits cannot train")
     manifest = read_manifest(path, request.dataset_repo_id)
+    task = "data_review_v1" if isinstance(manifest, PreparedSplit) else "color_sorting_v1"
+    if request.dataset_task is not None and request.dataset_task != task:
+        raise ValueError("requested task conflicts with the frozen split")
+    if isinstance(manifest, PreparedSplit):
+        from lelab.episode_media import resolve_dataset_dir
+        if source is None and read_review(request.dataset_repo_id) != manifest.review:
+            raise ValueError("current review differs from the frozen split")
+        if request.dataset_root is not None:
+            if Path(request.dataset_root).resolve() != resolve_dataset_dir(request.dataset_repo_id).resolve():
+                raise ValueError("custom Dataset root differs from the reviewed local source")
+        assert_source_current(manifest.review)
     digest = manifest_digest(manifest)
     train = manifest.normalization_stats_source.episode_indices
     if request.dataset_episodes is not None and request.dataset_episodes != train:
@@ -55,9 +88,11 @@ def bind_request(request, *, source: Path | None = None):
     values = request.model_dump()
     validation = manifest.partitions["validation"]
     values.update(
-        dataset_task="color_sorting_v1", dataset_split_sha256=digest, dataset_episodes=train,
+        dataset_task=task, dataset_split_sha256=digest, dataset_episodes=train,
         dataset_eval_split=len(validation) / (len(train) + len(validation)),
     )
+    if isinstance(manifest, PreparedSplit):
+        values["dataset_root"] = str(resolve_dataset_dir(request.dataset_repo_id))
     return type(request).model_validate(values), manifest
 
 
@@ -125,6 +160,8 @@ def install_dataset_factory(manifest: SplitManifest, receipt: Path) -> None:
 
     make_dataset = factory.make_dataset
     validate_split_manifest(manifest)
+    if isinstance(manifest, PreparedSplit):
+        validate_prepared_split(manifest)
     train_ids = manifest.normalization_stats_source.episode_indices
     validation_ids = [item.episode_index for item in manifest.partitions["validation"]]
     repo_id = manifest.partitions["train"][0].dataset_repo_id
@@ -139,7 +176,12 @@ def install_dataset_factory(manifest: SplitManifest, receipt: Path) -> None:
             or cfg.dataset.eval_split != len(validation_ids) / (len(train_ids) + len(validation_ids))
             or cfg.policy.type != "act"
         ):
-            raise ValueError("effective training config conflicts with the frozen color-sorting split")
+            raise ValueError("effective training config conflicts with the frozen session split")
+        if isinstance(manifest, PreparedSplit):
+            from lelab.episode_media import resolve_dataset_dir
+            if cfg.dataset.root is not None and Path(cfg.dataset.root).resolve() != resolve_dataset_dir(repo_id).resolve():
+                raise ValueError("effective Dataset root differs from the reviewed source")
+            assert_source_current(manifest.review)
         train = make_dataset(cfg)
         validation_cfg = copy.deepcopy(cfg)
         validation_cfg.dataset.episodes = validation_ids
@@ -168,6 +210,9 @@ def install_dataset_factory(manifest: SplitManifest, receipt: Path) -> None:
                 "n_action_steps": cfg.policy.n_action_steps,
             },
         }
+        if isinstance(manifest, PreparedSplit):
+            assert_source_current(manifest.review)
+            payload["reviewed_source_sha256"] = manifest.source_sha256
         if receipt.exists():
             previous = json.loads(receipt.read_text(encoding="utf-8"))
             if previous != payload:

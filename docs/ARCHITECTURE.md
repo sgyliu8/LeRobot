@@ -108,7 +108,7 @@ patches/      可重建的上游补丁
 schemas/      项目配置与实验记录 schema
 scripts/      本地服务生命周期
 tools/        上游重建、文档验证、数据审计
-so101_lab/    三色任务 profile、纯帧观察、标签、分区与本地报告
+so101_lab/    三色任务、通用回合审核、纯帧观察、冻结分区与本地报告
 tests/        无硬件软件回归
 templates/    实验和评估记录模板
 ```

@@ -73,6 +73,7 @@ Set-Location .\PhysicalAI-SO101-Lab
 | 查看状态或日志 | `.\Start-SO101-Lab.cmd status` / `.\Start-SO101-Lab.cmd logs` |
 | 停止本项目服务 | `.\Start-SO101-Lab.cmd stop` |
 | 获取更新并重建环境 | `.\Start-SO101-Lab.cmd update` |
+| 审核训练数据，不改原件 | 菜单 `8`，或 `.\Start-SO101-Lab.cmd data` |
 
 </details>
 
@@ -222,6 +223,8 @@ flowchart TD
 ### 第一次设置：先跑通短训练
 
 1. **先准备数据**：录制结束并保存完成，在 Browse 回看，再按[数据流程](docs/DATA_WORKFLOW.md)检查读回。
+   普通抓放数据可通过[数据清洗指南](docs/DATA_PREPARATION.md)逐回合审核，再按完整场次冻结分区；
+   原始视频和动作不改动，训练自动采用冻结清单。画面明暗/清晰度数值只作提示，不自动判定任务成功。
    三色任务还需人工标签和按采集场次冻结的训练、验证、测试分组；一个场次不能拆成相邻帧来凑三个组。
    初版三色训练只准入人工核验、无干预的成功示范；失败和中止仍保留在记录与结果统计中。
 2. **选择本地训练**：打开 Training，在 Compute target 选择 `Local — your machine (free)`；
