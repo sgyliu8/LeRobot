@@ -43,6 +43,7 @@ uv run --frozen --group test python -X utf8 -m pytest -q _vendor\lelab\tests
 # 前端
 Set-Location .\_vendor\lelab\frontend
 npm test
+npm run typecheck
 npm run lint
 npm run build
 npm audit
@@ -102,9 +103,15 @@ Recharts 固定为 `3.10.1`，`react-is` 与 React 同为 `18.3.1`，按
 模型回归解析随软件附带的 SO101 URDF、全部视觉 STL 和关节变换；浏览器检查实际模型显示。
 上游弃用提示与漏洞报告分开记录，不通过忽略规则或强制覆盖 peer dependency 隐藏问题。
 
-补充类型检查可运行 `npx tsc --noEmit -p tsconfig.app.json`。目前仍有 12 项既存诊断，集中在
-EpisodeViewer/recordingRequest 的测试类型、onboarding 的类型收窄和可选 camera FPS；
-本次升级未新增诊断。这项检查尚未全绿，不能以 Vite build 成功替代它。
+完整类型检查运行 `npm run typecheck`，同时检查应用（包括测试）和 Vite 构建配置。
+`npm run build` 与 `npm run build:dev` 都先运行此门禁，类型错误会阻止打包；不能用 Vite
+打包成功代替类型检查。既有 12 项应用诊断及一项构建配置诊断已修复，未关闭空值检查、排除测试
+或加入类型抑制。相机缺少 FPS 时仍拒绝录制，不自动补一个值改变已冻结的配置。
+
+按 [Vite 8 迁移说明](https://vite.dev/guide/migration.html)和已安装版本的类型接口，
+生产日志精简改用 `build.rolldownOptions.treeshake.manualPureFunctions`，不再使用失效的
+`esbuild.pure`。内存构建回归验证普通日志被移除、警告/错误保留、日志参数中的副作用仍执行；
+development 模式仍保留日志。此修复没有更新任何依赖版本或锁文件。
 
 ## 测试数据规则
 
