@@ -81,6 +81,8 @@ fresh-apply 验收。
 可用 `tools/bootstrap_upstream.ps1 -CheckOnly` 只核对固定 patch；
 `-Rebuild` 在旁边构建新 vendor 并保留旧目录。开发期间修改源码后，应先生成 patch，
 再 Setup 记录安装身份，不能直接伪造安装凭据。
+源码清单同时核对改名后的内容与原路径的删除；纯改名使用固定上游的 blob 身份，
+改名后编辑使用补丁中的完整 blob 身份。回归覆盖暂存/未暂存状态，并拒绝内容篡改、缺失、额外文件及旧文件恢复。
 
 ## 前端依赖维护
 

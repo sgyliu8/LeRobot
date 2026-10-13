@@ -151,6 +151,23 @@ function Assert-ExactPatchedSource {
             $currentPath = $Matches[2]
             continue
         }
+        if ($null -ne $currentPath -and $line -match '^rename from (.+)$') {
+            $renamedFrom = $Matches[1]
+            if (-not $renamedFrom.StartsWith('frontend/dist/', [StringComparison]::Ordinal) -and
+                -not $expectedBlobs.ContainsKey($renamedFrom)) {
+                $expectedBlobs[$renamedFrom] = [string]::new([char]'0', 40)
+            }
+            if (-not $currentPath.StartsWith('frontend/dist/', [StringComparison]::Ordinal)) {
+                # A pure rename has no index line. Its blob is unchanged from
+                # the verified upstream HEAD; an edited rename overrides it below.
+                $sourceBlob = git -C $vendorRoot rev-parse --verify "HEAD:$renamedFrom"
+                if ($LASTEXITCODE -ne 0 -or $sourceBlob -notmatch '^[0-9a-f]{40}$') {
+                    throw "Unable to identify the upstream rename source: $renamedFrom"
+                }
+                $expectedBlobs[$currentPath] = $sourceBlob
+            }
+            continue
+        }
         if ($null -ne $currentPath -and $line -match '^index [0-9a-f]{40}\.\.([0-9a-f]{40})(?: [0-7]{6})?$') {
             # dist is a reviewed, packaged output in the patch, but it is not
             # source inventory: npm build below regenerates and verifies it.
@@ -160,10 +177,10 @@ function Assert-ExactPatchedSource {
         }
     }
     if (-not $expectedBlobs.Count) {
-        throw 'Tracked LeLab patch does not contain full-index blob identities.'
+        throw 'Tracked LeLab patch does not contain verifiable source blob identities.'
     }
 
-    $modified = @(git -C $vendorRoot diff --name-only HEAD -- . ':(exclude)frontend/dist')
+    $modified = @(git -C $vendorRoot diff --no-renames --name-only HEAD -- . ':(exclude)frontend/dist')
     if ($LASTEXITCODE -ne 0) { throw 'Unable to inspect the patched LeLab worktree.' }
     $untracked = @(git -C $vendorRoot ls-files --others --exclude-standard -- . ':(exclude)frontend/dist')
     if ($LASTEXITCODE -ne 0) { throw 'Unable to inspect untracked LeLab source.' }
