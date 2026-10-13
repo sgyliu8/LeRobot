@@ -5,10 +5,11 @@ description = "Local, upstream-first SO-ARM101 lab integration"
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "LeLab",
+    "starlette==1.7.0",
 ]
 
 [dependency-groups]
-test = ["pytest==8.4.2", "pytest-asyncio==1.2.0"]
+test = ["pytest==8.4.2", "pytest-asyncio==1.2.0", "httpx2==2.13.1"]
 
 [build-system]
 requires = ["setuptools==80.9.0"]
