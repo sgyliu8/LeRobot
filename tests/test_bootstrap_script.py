@@ -70,7 +70,7 @@ def _check_inventory(repo: Path, patch: Path) -> subprocess.CompletedProcess[str
 def test_bootstrap_checks_real_git_renames(tmp_path: Path, edited: bool, mutation: str) -> None:
     repo = tmp_path / "vendor fixture"
     repo.mkdir()
-    _git_fixture(repo, "init")
+    _git_fixture(repo, "init", "--object-format=sha1")
     original = repo / "original.ts"
     renamed = repo / "renamed provider.ts"
     content = "".join(f"export const value{i} = {i};\n" for i in range(20))
