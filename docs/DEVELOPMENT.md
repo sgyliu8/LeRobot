@@ -93,7 +93,7 @@ fresh-apply 验收。
 浏览器使用当前 Edge / Chrome；Tailwind 4 的最低要求为 Chrome 111、Safari 16.4 或 Firefox 128。
 
 更新依赖后运行前端测试、lint、build、在线 audit 和 fresh patch 重建，并在实际浏览器检查表单与弹窗。
-低内存开发电脑可使用 `npm test -- --maxWorkers=2`。这些检查不启动训练、相机或机器人。
+低内存开发电脑可使用 `npm test -- --maxWorkers=1`。这些检查不启动训练、相机或机器人。
 Recharts 固定为 `3.10.1`，`react-is` 与 React 同为 `18.3.1`，按
 [官方迁移说明](https://github.com/recharts/recharts/wiki/3.0-migration-guide)验证。
 动作曲线通过公开坐标接口解析点击帧，命中层位于曲线之上；保留悬停提示，并在切换回合时清除旧曲线。
@@ -112,6 +112,26 @@ Recharts 固定为 `3.10.1`，`react-is` 与 React 同为 `18.3.1`，按
 生产日志精简改用 `build.rolldownOptions.treeshake.manualPureFunctions`，不再使用失效的
 `esbuild.pure`。内存构建回归验证普通日志被移除、警告/错误保留、日志参数中的副作用仍执行；
 development 模式仍保留日志。此修复没有更新任何依赖版本或锁文件。
+
+## 热更新、按需加载与服务生命周期
+
+组件/Provider 文件只导出组件；共用 Context、Hook 和样式函数放在独立模块，避免热更新失去状态。
+`npm run lint` 使用 `--max-warnings=0`，没有关闭 Fast Refresh 规则。开发浏览器验证还会在引导途中
+编辑 Provider，检查进度保留、欢迎弹窗不重复出现；临时探针不随补丁发布。
+
+首页保持直接加载，其他页面使用 React lazy/Suspense；3D 引擎保留 Three 官方 core/renderer 边界。
+加载失败会明确提示，不自动刷新页面或重发任务；全局停止提示位于页面加载边界之外。
+[Rolldown 分包](https://rolldown.rs/reference/OutputOptions.codeSplitting)配置不调高 Vite 的 500 kB
+告警阈值。真实应用内存构建测试检查每个 JS 块小于 500 kB、首页静态依赖总和小于 550 kB，并确认
+Three/Recharts 没有进入首页依赖。这里测的是压缩前的构建 JS 字节，不是网络速度或整站总体积。
+
+FastAPI 使用[官方 lifespan 接口](https://fastapi.tiangolo.com/advanced/events/)，保持一次启动诊断，
+正常退出、服务异常和启动失败均停止广播，不借启动访问设备。Starlette 固定 `1.7.0`，采用其
+[AnyIO 4.15 兼容修复](https://starlette.dev/release-notes/#170-september-23-2026)；FastAPI、AnyIO、
+LeLab/LeRobot 与训练依赖不升级。测试组固定 `httpx2==2.13.1`，仅替换 TestClient 的弃用后端选择，
+生产 HTTPX 依赖仍保留。`uv sync --frozen --group test` 可安装同一已验证组合。
+回归执行 `python -m pytest -q -W error::DeprecationWarning tests _vendor/lelab/tests`，不屏蔽弃用提示。
+Vite 仍可能给出 SWC 插件替换建议或构建耗时提示；它们不属于上述三类告警，也没有被过滤。
 
 ## 测试数据规则
 
